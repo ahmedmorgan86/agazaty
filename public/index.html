@@ -1040,6 +1040,10 @@
             return fixedRestReason(date, employee) === 'راحة الوردية' ? 'راحة الوردية' : (record.status || '');
         }
 
+        function countsAsEmployeeRest(date, employee, record) {
+            return record.status === 'راحة' && fixedRestReason(date, employee) !== 'راحة الوردية';
+        }
+
         function switchTeam(team) {
             if (!['red', 'blue', 'yellow', 'morning'].includes(team)) return;
             if (!isAdmin && currentProfile && team !== currentProfile.team) return;
@@ -1292,7 +1296,7 @@
                     
                     const st = (rec.status || "").trim();
                     if (st === 'حضور') totals[emp.id].present++;
-                    else if (st === 'راحة') totals[emp.id].rest++;
+                    else if (countsAsEmployeeRest(date, emp, rec)) totals[emp.id].rest++;
                     else if (st === 'إعتيادي') totals[emp.id].annual++;
                     else if (st === 'عارضة') totals[emp.id].casual++;
                     else if (st === 'إذن') totals[emp.id].permission++;
@@ -1338,7 +1342,7 @@
                 footerHTML += `
                     <td class="p-3 text-center border-r border-slate-200 bg-slate-100">
                         <div class="text-[11px] space-y-0.5">
-                            <div>حضور: <span class="font-bold text-emerald-700">${t.present}</span> | راحة: <span class="font-bold text-slate-700">${t.rest}</span></div>
+                            <div>حضور: <span class="font-bold text-emerald-700">${t.present}</span> | راحة الموظف: <span class="font-bold text-slate-700">${t.rest}</span></div>
                             <div class="text-[10px] text-slate-500">إعتيادي: ${t.annual} | عارضة: ${t.casual} | إذن: ${t.permission}</div>
                         </div>
                     </td>
@@ -1386,7 +1390,7 @@
 
             const kpis = [
                 { label: "أيام الحضور", value: totalPres, icon: "fa-solid fa-user-check", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-                { label: "أيام الراحة", value: totalRest, icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
+                { label: "راحات الموظفين", value: totalRest, icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
                 { label: "إجازات إعتيادي", value: totalAnnual, icon: "fa-solid fa-umbrella-beach", color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
                 { label: "إجازات عارضة", value: totalCasual, icon: "fa-solid fa-triangle-exclamation", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
                 { label: "أذونات العمل", value: totalPerm, icon: "fa-solid fa-clock-rotate-left", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200" },
@@ -1649,7 +1653,7 @@
                 const del = parseInt(rec.delay) || 0;
 
                 if (st === 'حضور') pres++;
-                else if (st === 'راحة') rest++;
+                else if (countsAsEmployeeRest(d, emp, rec)) rest++;
                 else if (st === 'إعتيادي') annual++;
                 else if (st === 'عارضة') casual++;
                 else if (st === 'إذن') perm++;
@@ -1669,7 +1673,7 @@
                         <span class="text-sm font-black text-emerald-900">${pres} يوم</span>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
-                        <span class="text-[10px] text-slate-600 block">الراحات</span>
+                        <span class="text-[10px] text-slate-600 block">راحات الموظف</span>
                         <span class="text-sm font-black text-slate-900">${rest} يوم</span>
                     </div>
                     <div class="bg-sky-50 border border-sky-200 p-2 rounded-lg">
