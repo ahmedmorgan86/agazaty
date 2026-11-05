@@ -10,6 +10,22 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid));
     }
 
+    function sameGroupProfileEdit() {
+      let caller = get(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid)).data;
+      return isEmployee()
+        && resource.data.team == caller.team
+        && resource.data.job == caller.job
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.annual_balance is number
+        && request.resource.data.annual_balance >= 0
+        && request.resource.data.casual_balance is number
+        && request.resource.data.casual_balance >= 0
+        && request.resource.data.perm_hours is number
+        && request.resource.data.perm_hours >= 0;
+    }
+
     match /employeeAccounts/{uid} {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin() || isEmployee();
@@ -31,7 +47,8 @@ service cloud.firestore {
         && request.resource.data.casual_balance == 7
         && request.resource.data.perm_hours == 4
       );
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin() || sameGroupProfileEdit();
+      allow delete: if isAdmin();
     }
 
     match /teamMembership/{employeeId} {

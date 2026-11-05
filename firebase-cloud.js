@@ -118,6 +118,10 @@ function saveRecords(changes) {
     return patch(fields);
 }
 
+function clearRecord(date, employeeId) {
+    return patch([[['attendanceData', date, 'records', employeeId], deleteField()]]);
+}
+
 function saveDays(days) {
     return patch(days.flatMap(day => [
         [['attendanceData', day.date, 'day'], day.day],
@@ -161,6 +165,16 @@ async function updateEmployeeAccount(employee, employees) {
     return batch.commit();
 }
 
+function updatePeerProfile(employee) {
+    if (!auth?.currentUser || !database) throw new Error('سجّل الدخول أولاً.');
+    return updateDoc(doc(database, 'employeeAccounts', employee.authUid || employee.id), {
+        name: employee.name,
+        annual_balance: employee.annual_balance,
+        casual_balance: employee.casual_balance,
+        perm_hours: employee.perm_hours
+    });
+}
+
 function deleteEmployeeRecords(employees, employeeId, dates, uid) {
     const batch = writeBatch(database);
     const fields = [['employees', employees], ...dates.map(date =>
@@ -179,10 +193,12 @@ window.firebaseBridge = {
     changePassword,
     save,
     saveRecords,
+    clearRecord,
     saveDays,
     saveEmployees,
     createEmployeeAccount,
     updateEmployeeAccount,
+    updatePeerProfile,
     deleteEmployeeRecords
 };
 window.dispatchEvent(new Event('firebase-bridge-ready'));

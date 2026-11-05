@@ -29,14 +29,32 @@
     </script>
     <style>
         body { font-family: 'Cairo', sans-serif; background: #eef3f8; }
-        .app-header { background: linear-gradient(125deg, #0d253f, #173c5f 62%, #0d5f72); color: white; border: 0; }
-        .app-header .app-brand h1, .app-header .app-brand p { color: white; }
-        .app-header .app-brand p { opacity: .72; }
-        .app-header .brand-icon { background: rgba(255,255,255,.15); box-shadow: none; }
-        .app-header .app-actions > button { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: white; box-shadow: none; }
-        .app-header .app-actions > button:hover { background: rgba(255,255,255,.22); }
-        .app-header .app-actions > button i, .app-header .app-actions > button .fa-cloud { color: white; }
-        .app-header .app-actions #cloudStatusBtn { background: rgba(10,26,45,.34); }
+        .app-header { background: #fff; color: #17334c; border-bottom: 1px solid #d9e3ed; box-shadow: 0 8px 24px rgba(18,48,75,.06); }
+        .header-top { max-width: 1500px; margin: auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+        .header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .header-brand-mark { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; color: white; font-size: 20px; border-radius: 14px; background: #0e7490; }
+        .header-brand strong { display: block; font-size: 17px; line-height: 1.35; }
+        .header-brand span { display: block; color: #64748b; font-size: 11px; }
+        .header-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .header-user-label { text-align: left; line-height: 1.35; }
+        .header-user-label strong { display: block; white-space: nowrap; }
+        .header-user-label span { color: #64748b; font-size: 11px; }
+        .header-user-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; color: #0e7490; background: #e5f5f8; }
+        .header-nav-wrap { border-top: 1px solid #e9eef3; }
+        .header-nav { max-width: 1500px; margin: auto; padding: 7px 24px; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+        .header-nav button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 39px; padding: 8px 12px; border-radius: 9px; color: #486276; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .header-nav button:hover { background: #edf6f8; color: #0e7490; }
+        .header-nav button.nav-primary { background: #0e7490; color: white; }
+        .header-nav button.nav-primary:hover { background: #0a5d76; }
+        .header-nav #cloudStatusBtn { margin-inline-start: auto; background: #f3f7f9; color: #547087; }
+        .employee-directory { background: white; border: 1px solid #dbe5ef; border-radius: 18px; padding: 20px; box-shadow: 0 12px 36px rgba(25,55,85,.06); }
+        .employee-directory-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .employee-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+        .employee-card { border: 1px solid #dce6ef; border-radius: 14px; padding: 15px; background: #fbfdff; }
+        .employee-card h3 { font-weight: 900; font-size: 15px; }
+        .employee-card p { color: #64748b; font-size: 12px; margin-top: 2px; }
+        .employee-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+        .employee-card-actions button { padding: 7px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; min-height: 36px; }
         .app-main { max-width: 1500px; }
         .app-main > .bg-white, .app-main > .grid + .bg-white { box-shadow: 0 12px 36px rgba(25,55,85,.06); border-color: #dbe5ef; }
         .app-hero { background: linear-gradient(135deg, #122f4f, #186277); color: white; border-radius: 22px; padding: 24px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; box-shadow: 0 18px 34px rgba(15,61,88,.17); }
@@ -84,23 +102,23 @@
         .modal-table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
         .modal-table-scroll > table { min-width: 680px; }
         @media screen and (max-width: 1023px) {
-            .app-header-inner.h-16 { height: auto; flex-wrap: wrap; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
-            .app-actions { width: 100%; flex-wrap: wrap; gap: 8px; }
-            .app-actions > button { min-height: 40px; }
             .mobile-attendance { display: grid; gap: 12px; padding: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
             .attendance-scroll { display: none; }
         }
         @media screen and (max-width: 639px) {
             body { overflow-x: hidden; }
-            .app-brand { min-width: 0; }
-            .app-brand h1 { font-size: 14px; line-height: 1.4; }
-            .app-brand p { display: none; }
-            .app-brand .brand-version { display: none; }
-            body .app-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .app-actions > button, .team-controls > button, .bulk-controls > button { margin: 0; }
-            .app-actions > button { justify-content: center; min-width: 0; padding: 9px 8px; text-align: center; }
-            .app-actions > button span { overflow-wrap: anywhere; }
-            #cloudStatusBtn { grid-column: 1 / -1; }
+            .header-top { padding: 10px 14px; gap: 8px; }
+            .header-brand { gap: 8px; }
+            .header-brand-mark { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
+            .header-brand strong { font-size: 13px; }
+            .header-brand span, .header-user-label span { display: none; }
+            .header-user-label strong { font-size: 11px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+            .header-user-icon { width: 32px; height: 32px; }
+            .header-nav { padding: 5px 10px; }
+            .header-nav #cloudStatusBtn { margin-inline-start: 0; }
+            .employee-directory { padding: 14px; }
+            .employee-directory-header { align-items: flex-start; flex-wrap: wrap; }
+            .team-controls > button, .bulk-controls > button { margin: 0; }
             .period-controls, .quick-filters { width: 100%; flex-wrap: wrap; gap: 8px; }
             .month-tabs { max-width: 100%; overflow-x: auto; }
             .month-tabs button { flex: 0 0 auto; min-height: 40px; }
@@ -161,9 +179,8 @@
             <h2 class="text-2xl font-black text-slate-900">تسجيل موظف جديد</h2>
             <p class="text-sm text-slate-500 mt-2">أدخل بياناتك واختر ورديتك لإنشاء حسابك.</p>
             <label for="registerName">اسم الموظف</label><input id="registerName" required autocomplete="name" placeholder="الاسم الكامل">
-            <label for="registerJob">الوظيفة</label><select id="registerJob" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الوظيفة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
+            <label for="registerJob">الإدارة</label><select id="registerJob" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الإدارة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
             <label for="registerCode">كود الموظف</label><input id="registerCode" required dir="ltr" autocomplete="username" placeholder="مثال: 8001">
-            <label for="registerDept">القسم / الإدارة</label><input id="registerDept" placeholder="القسم">
             <label for="registerTeam">الوردية</label>
             <select id="registerTeam" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الوردية</option><option value="red">الوردية الحمراء</option><option value="blue">الوردية الزرقاء</option><option value="yellow">الوردية الصفراء</option><option value="morning">الوردية الصباحية</option></select>
             <p class="text-xs text-slate-500 mt-3">كلمة المرور الأولية لحسابك: <strong>1234567</strong>. يمكنك تغييرها بعد الدخول.</p>
@@ -180,58 +197,22 @@
         </div>
     </div>
 
-    <!-- Top Navigation Bar -->
-    <header id="appHeader" class="app-header hidden sticky top-0 z-40 shadow-sm no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="app-header-inner flex justify-between items-center h-16">
-                <!-- Brand Title -->
-                <div class="app-brand flex items-center space-x-3 space-x-reverse">
-                    <div class="brand-icon w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                        <i class="fa-solid fa-calendar-check text-xl"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center space-x-2 space-x-reverse">
-                            <h1 class="text-lg font-bold text-slate-900 leading-tight">نظام الورديات والإجازات السحابي</h1>
-                            <span class="brand-version bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-full">v2.0 Pro</span>
-                        </div>
-                        <p class="text-xs text-slate-500">حضورك ووردية فريقك في مكان واحد</p>
-                    </div>
-                </div>
-
-                <!-- Action Controls -->
-                <div class="app-actions flex items-center space-x-2 space-x-reverse">
-                    <!-- Cloud Connection Status -->
-                    <button onclick="openCloudModal()" id="cloudStatusBtn" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg border text-xs font-semibold bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="cloudStatusDot"></span>
-                        <span id="cloudStatusText">جاري الاتصال بـ Firebase</span>
-                        <i class="fa-solid fa-cloud text-slate-400 mr-1"></i>
-                    </button>
-
-                    <button onclick="openRotationMatrixModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold transition">
-                        <i class="fa-solid fa-arrows-rotate text-amber-600"></i>
-                        <span>الفرق الأربع</span>
-                    </button>
-
-                    <button id="manageEmployeesButton" onclick="openNewEmployeeForm()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition">
-                        <i class="fa-solid fa-users-gear text-blue-600"></i>
-                        <span>تسجيل موظف جديد</span>
-                    </button>
-
-                    <button onclick="openBalancesModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-bold transition">
-                        <i class="fa-solid fa-wallet text-indigo-600"></i>
-                        <span>أرصدة الإجازات</span>
-                    </button>
-
-                    <button onclick="exportToExcel()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition">
-                        <i class="fa-solid fa-file-excel"></i>
-                        <span>تصدير Excel</span>
-                    </button>
-                    <button id="myReportButton" onclick="openMyReport()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-lines"></i><span>تقريري</span></button>
-                    <button onclick="showAccountModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
-                    <button onclick="logoutEmployee()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-right-from-bracket"></i><span>خروج</span></button>
-                </div>
-            </div>
+    <header id="appHeader" class="app-header hidden sticky top-0 z-40 no-print">
+        <div class="header-top">
+            <div class="header-brand"><div class="header-brand-mark"><i class="fa-solid fa-calendar-check"></i></div><div><strong>الحضور والورديات</strong><span>لوحة العمل اليومية</span></div></div>
+            <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
+        <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">
+            <button type="button" class="nav-primary" onclick="document.getElementById('appMain').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-house"></i>الرئيسية</button>
+            <button type="button" id="manageEmployeesButton" onclick="document.getElementById('employeeDirectorySection').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-users"></i>الموظفون</button>
+            <button type="button" onclick="openRotationMatrixModal()"><i class="fa-solid fa-arrows-rotate"></i>الورديات</button>
+            <button type="button" onclick="openBalancesModal()"><i class="fa-solid fa-wallet"></i>أرصدة الإجازات</button>
+            <button type="button" id="myReportButton" onclick="openMyReport()"><i class="fa-solid fa-file-lines"></i>تقريري</button>
+            <button type="button" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i>تصدير Excel</button>
+            <button type="button" onclick="showAccountModal()"><i class="fa-solid fa-user-gear"></i>حسابي</button>
+            <button type="button" onclick="logoutEmployee()"><i class="fa-solid fa-arrow-right-from-bracket"></i>خروج</button>
+            <button type="button" onclick="openCloudModal()" id="cloudStatusBtn"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="cloudStatusDot"></span><span id="cloudStatusText">جاري الاتصال</span></button>
+        </nav></div>
     </header>
 
     <!-- Main Container -->
@@ -239,6 +220,11 @@
         <section class="app-hero no-print">
             <div><span class="text-xs font-bold text-cyan-200">لوحة الحضور</span><h2 id="heroTitle">اختر الوردية لعرض جدول الحضور</h2><p id="heroSubtitle" class="text-sm mt-2">كل أيام الشهر وأرصدة الحضور في عرض واضح.</p></div>
             <div class="hero-profile"><span>الحساب الحالي</span><strong id="profileName">—</strong><span id="profileDetails">—</span><span id="profileCode">—</span></div>
+        </section>
+
+        <section id="employeeDirectorySection" class="employee-directory no-print scroll-mt-32">
+            <div class="employee-directory-header"><div><span class="text-xs font-bold text-cyan-700">دليل الفريق</span><h2 class="text-lg font-black text-slate-900">الموظفون والتحكم في الحسابات</h2><p id="employeeDirectorySubtitle" class="text-xs text-slate-500">الزملاء المسموح لك بعرض بياناتهم وتعديلها</p></div><button id="addEmployeeButton" type="button" onclick="openNewEmployeeForm()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-user-plus ml-1"></i>إضافة موظف</button></div>
+            <div id="employeeCards" class="employee-cards"></div>
         </section>
 
         <!-- Controls & Filter Toolbar -->
@@ -388,7 +374,7 @@
             </div>
 
             <!-- Employee Form (For Add or Edit) -->
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <div id="employeeFormPanel" class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                 <div class="flex justify-between items-center">
                     <h4 class="text-xs font-bold text-slate-800" id="empFormHeading">
                         <i class="fa-solid fa-user-plus text-blue-600 ml-1"></i> إضافة موظف جديد
@@ -420,12 +406,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">القسم / الإدارة:</label>
-                        <input type="text" id="formEmpDept" value="العمليات والتشغيل" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1">المسمى الوظيفي:</label>
-                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الوظيفة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
+                        <label class="block font-bold text-slate-700 mb-1">الإدارة:</label>
+                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الإدارة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">رصيد الإعتيادي (سنوي):</label>
@@ -446,7 +428,7 @@
                     </div>
                 </div>
             </div>
-            <p class="text-xs text-slate-500">يُنشأ حساب الموظف الجديد بكوده وكلمة المرور الافتراضية 1234567.</p>
+            <p id="employeeFormHelp" class="text-xs text-slate-500">يُنشأ حساب الموظف الجديد بكوده وكلمة المرور الافتراضية 1234567.</p>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -456,7 +438,7 @@
                             <th class="p-3">#</th>
                             <th class="p-3">اسم الموظف</th>
                             <th class="p-3">الكود</th>
-                            <th class="p-3">الوظيفة</th>
+                            <th class="p-3">الإدارة</th>
                             <th class="p-3">الوردية</th>
                             <th class="p-3 text-center">رصيد إعتيادي</th>
                             <th class="p-3 text-center">رصيد عارضة</th>
@@ -551,6 +533,9 @@
                         </button>
                         <button type="button" onclick="selectStatus('مأمورية')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="مأمورية">
                             <i class="fa-solid fa-briefcase text-teal-600 block mb-1 text-base"></i> مأمورية
+                        </button>
+                        <button type="button" onclick="selectStatus('')" class="status-btn col-span-3 px-3 py-2 rounded-lg border border-dashed text-center font-bold text-xs transition" data-status="">
+                            <i class="fa-solid fa-eraser text-slate-500 ml-1"></i> مسح حالة اليوم وإرجاعها فارغة
                         </button>
                     </div>
                 </div>
@@ -822,9 +807,9 @@
         // 1. Initial State & Seed Data
         // ==========================================
         const INITIAL_EMPLOYEES = [
-            { id: "emp_1", code: "5686", name: "أحمد نادر", team: "red", dept: "تشغيل", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_2", code: "5979", name: "محمد سالم", team: "red", dept: "تشغيل", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_1793875124061", code: "7091", name: "محمد علاء خليل", team: "morning", dept: "البنية التحتية", job: "البنية التحتية", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
+            { id: "emp_1", code: "5686", name: "أحمد نادر", team: "red", dept: "", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_2", code: "5979", name: "محمد سالم", team: "red", dept: "", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_1793875124061", code: "7091", name: "محمد علاء خليل", team: "morning", dept: "", job: "البنية التحتية", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
         ];
 
         const INITIAL_ATTENDANCE = {};
@@ -958,7 +943,7 @@
 
             document.getElementById('heroTitle').textContent = `جدول ${badge.innerText}`;
             document.getElementById('heroSubtitle').textContent = isAdmin || team === currentProfile?.team
-                ? 'كل أيام الشهر وبيانات الموظفين في نفس الوردية والوظيفة.'
+                ? 'كل أيام الشهر وبيانات الموظفين في نفس الوردية والإدارة.'
                 : 'يمكنك مشاهدة هذه الوردية. تعديل الحضور متاح لورديتك فقط.';
 
             renderTable();
@@ -1295,14 +1280,14 @@
         // 4. ADVANCED EMPLOYEE CRUD MANAGEMENT
         // ==========================================
         function openEmployeesManagerModal() {
-            if (!isAdmin) return;
             renderEmployeesDirectory();
+            resetEmployeeForm();
             document.getElementById('employeesManagerModal').classList.remove('hidden');
         }
 
         function openNewEmployeeForm() {
+            if (!isAdmin) return;
             openEmployeesManagerModal();
-            resetEmployeeForm();
             document.getElementById('formEmpName').focus();
         }
 
@@ -1315,7 +1300,8 @@
             const tbody = document.getElementById('employeesDirectoryTableBody');
             let html = '';
 
-            employees.forEach((emp, index) => {
+            const visibleEmployees = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            visibleEmployees.forEach((emp, index) => {
                 const teamBadge = {
                     blue: '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">الزرقاء (طويل 1)</span>',
                     yellow: '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">الصفراء (طويل 21)</span>',
@@ -1340,9 +1326,9 @@
                                 <button onclick="openEmployeeReport('${emp.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold text-xs" title="كشف حضور الموظف">
                                     <i class="fa-solid fa-file-invoice"></i> كشف
                                 </button>
-                                <button onclick="deleteEmployee('${emp.id}')" class="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs" title="حذف الموظف">
+                                ${isAdmin ? `<button onclick="deleteEmployee('${emp.id}')" class="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs" title="حذف الموظف">
                                     <i class="fa-solid fa-trash-can"></i> حذف
-                                </button>
+                                </button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -1352,17 +1338,40 @@
             tbody.innerHTML = html;
         }
 
+        function renderEmployeeCards() {
+            const visible = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            document.getElementById('addEmployeeButton').classList.toggle('hidden', !isAdmin);
+            document.getElementById('employeeDirectorySubtitle').textContent = isAdmin
+                ? 'جميع الموظفين: تعديل البيانات والأرصدة، إضافة الحسابات وحذفها'
+                : 'يمكنك تعديل بيانات وأرصدة زملائك في نفس الوردية والإدارة';
+            const teamNames = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
+            document.getElementById('employeeCards').innerHTML = visible.length ? visible.map(emp => `
+                <article class="employee-card">
+                    <h3>${escapeHTML(emp.name)}</h3>
+                    <p>الكود: ${escapeHTML(emp.code || '—')} · الوردية: ${teamNames[emp.team] || '—'}</p>
+                    <p>الإدارة: ${escapeHTML(emp.job || 'غير محددة')}</p>
+                    <p>الاعتيادي: ${emp.annual_balance ?? 21} يوم · العارضة: ${emp.casual_balance ?? 7} أيام · الأذونات: ${emp.perm_hours ?? 4} ساعات</p>
+                    <div class="employee-card-actions">
+                        <button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات والأرصدة</button>
+                        <button type="button" class="bg-slate-100 text-slate-700" onclick="openEmployeeReport('${emp.id}')"><i class="fa-solid fa-file-lines ml-1"></i>كشف الحضور</button>
+                    </div>
+                </article>
+            `).join('') : '<p class="text-slate-500 text-sm">لا يوجد موظفون في هذه المجموعة.</p>';
+        }
+
         function editEmployee(empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp) return;
+            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
 
             document.getElementById('formEmpId').value = emp.id;
             document.getElementById('formEmpName').value = emp.name;
             document.getElementById('formEmpCode').value = emp.code || '';
             document.getElementById('formEmpCode').readOnly = true;
             document.getElementById('formEmpTeam').value = emp.team || '';
-            document.getElementById('formEmpDept').value = emp.dept || 'العمليات';
             document.getElementById('formEmpJob').value = emp.job || '';
+            document.getElementById('formEmpTeam').disabled = !isAdmin;
+            document.getElementById('formEmpJob').disabled = !isAdmin;
+            document.getElementById('employeeFormPanel').classList.remove('hidden');
             document.getElementById('formEmpAnnual').value = emp.annual_balance ?? 21;
             document.getElementById('formEmpCasual').value = emp.casual_balance ?? 7;
             document.getElementById('formEmpPermHours').value = emp.perm_hours ?? 4;
@@ -1379,8 +1388,11 @@
             document.getElementById('formEmpCode').value = '';
             document.getElementById('formEmpCode').readOnly = false;
             document.getElementById('formEmpTeam').value = '';
-            document.getElementById('formEmpDept').value = 'العمليات والتشغيل';
             document.getElementById('formEmpJob').value = '';
+            document.getElementById('formEmpTeam').disabled = false;
+            document.getElementById('formEmpJob').disabled = false;
+            document.getElementById('employeeFormPanel').classList.toggle('hidden', !isAdmin);
+            document.getElementById('employeeFormHelp').classList.toggle('hidden', !isAdmin);
             document.getElementById('formEmpAnnual').value = '21';
             document.getElementById('formEmpCasual').value = '7';
             document.getElementById('formEmpPermHours').value = '4';
@@ -1392,12 +1404,12 @@
         }
 
         async function saveEmployeeFromForm() {
-            if (!isAdmin) return;
             const id = document.getElementById('formEmpId').value.trim();
+            if (!isAdmin && !id) return;
             const name = document.getElementById('formEmpName').value.trim();
             const code = document.getElementById('formEmpCode').value.trim();
             const team = document.getElementById('formEmpTeam').value;
-            const dept = document.getElementById('formEmpDept').value.trim();
+            const dept = '';
             const job = document.getElementById('formEmpJob').value;
             const annual = Number(document.getElementById('formEmpAnnual').value);
             const casual = Number(document.getElementById('formEmpCasual').value);
@@ -1408,7 +1420,7 @@
                 return;
             }
             if (!/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job) || employees.some(e => e.id !== id && e.code.toLowerCase() === code.toLowerCase())) {
-                alert('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الوظيفة والوردية.');
+                alert('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الإدارة والوردية.');
                 return;
             }
             if (![annual, casual, perm].every(value => Number.isFinite(value) && value >= 0)) {
@@ -1422,9 +1434,13 @@
                 if (id) {
                     const index = employees.findIndex(e => e.id === id);
                     if (index < 0) return;
-                    const changed = { ...employees[index], name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const original = employees[index];
+                    if (!isAdmin && (original.team !== currentProfile?.team || original.job !== currentProfile?.job)) return;
+                    const changed = { ...original, name, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    if (isAdmin) Object.assign(changed, { code, team, dept, job });
                     const updated = employees.map(e => e.id === id ? changed : e);
-                    await window.firebaseBridge.updateEmployeeAccount(changed, updated);
+                    if (isAdmin) await window.firebaseBridge.updateEmployeeAccount(changed, updated);
+                    else await window.firebaseBridge.updatePeerProfile(changed);
                     employees = updated;
                 } else {
                     const employee = { id: `emp_${Date.now()}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
@@ -1432,9 +1448,10 @@
                     employees.push(created);
                 }
                 renderEmployeesDirectory();
+                renderEmployeeCards();
                 resetEmployeeForm();
                 renderTable();
-                alert('تم حفظ الموظف وحسابه. كلمة المرور الافتراضية: 1234567');
+                alert(isAdmin && !id ? 'تم إنشاء حساب الموظف. كلمة المرور الافتراضية: 1234567' : 'تم حفظ بيانات الموظف وأرصدته.');
             } catch (error) {
                 alert(`تعذر حفظ الحساب: ${error.message}`);
             } finally { button.disabled = false; }
@@ -1462,6 +1479,7 @@
                 employees = updatedEmployees;
                 affectedDates.forEach(date => delete attendanceData[date].records[empId]);
                 renderEmployeesDirectory();
+                renderEmployeeCards();
                 renderTable();
             } catch (error) { alert(`تعذر حذف الموظف: ${error.message}`); }
         }
@@ -1474,7 +1492,7 @@
             if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
 
             document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
-            document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.dept || 'العمليات'}`;
+            document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.job || 'غير محددة'}`;
 
             // Calculate stats for current month
             let pres = 0, rest = 0, annual = 0, casual = 0, perm = 0, delay = 0;
@@ -1605,7 +1623,7 @@
             const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp?.team || 'red');
             document.getElementById('modalDateInfo').innerText = `${dayData.day || ''}، ${date} - الوردية: ${employeeShift}`;
             
-            selectedModalStatus = rec.status || "حضور";
+            selectedModalStatus = rec.status || "";
             updateStatusButtonsUI();
 
             document.getElementById('modalDelay').value = rec.delay ?? 0;
@@ -1623,6 +1641,11 @@
         function selectStatus(status) {
             selectedModalStatus = status;
             updateStatusButtonsUI();
+            if (!status) {
+                document.getElementById('modalDelay').value = 0;
+                document.getElementById('modalPermissionMinutes').value = 0;
+                document.getElementById('modalNotes').value = '';
+            }
             if (status === 'راحة' || status === 'إعتيادي' || status === 'عارضة') {
                 document.getElementById('modalDelay').value = 0;
             }
@@ -1652,6 +1675,15 @@
             }
             if (!attendanceData[date].records) {
                 attendanceData[date].records = {};
+            }
+
+            if (!selectedModalStatus) {
+                const hadRecord = Object.hasOwn(attendanceData[date].records, empId);
+                delete attendanceData[date].records[empId];
+                closeEditModal();
+                renderTable();
+                if (hadRecord) cloudWrite(window.firebaseBridge.clearRecord(date, empId));
+                return;
             }
 
             const delayVal = Math.max(0, parseInt(document.getElementById('modalDelay').value, 10) || 0);
@@ -1780,7 +1812,7 @@
             errorLabel.classList.add('hidden');
             const job = document.getElementById('registerJob').value;
             if (!name || !/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job)) {
-                errorLabel.textContent = 'أدخل الاسم والكود بحروف إنجليزية وأرقام، ثم اختر الوظيفة والوردية.';
+                errorLabel.textContent = 'أدخل الاسم والكود بحروف إنجليزية وأرقام، ثم اختر الإدارة والوردية.';
                 errorLabel.classList.remove('hidden');
                 return;
             }
@@ -1790,7 +1822,7 @@
                 await window.firebaseBridge.registerEmployee({
                     name, code, team,
                     job,
-                    dept: document.getElementById('registerDept').value.trim()
+                    dept: ''
                 });
             } catch (error) {
                 errorLabel.textContent = error.code === 'auth/email-already-in-use' ? 'هذا الكود مسجل بالفعل. استخدم شاشة الدخول.' : `تعذر إنشاء الحساب: ${error.message}`;
@@ -1858,10 +1890,12 @@
         function showSignedInProfile() {
             document.getElementById('profileName').textContent = currentProfile?.name || 'الإدارة';
             document.getElementById('profileDetails').textContent = currentProfile
-                ? `الوظيفة: ${currentProfile.job || 'غير محددة'} · ${currentProfile.dept || ''}${isAdmin ? ' · مدير النظام' : ''}`
+                ? `الإدارة: ${currentProfile.job || 'غير محددة'}${isAdmin ? ' · مدير النظام' : ''}`
                 : 'إدارة الموظفين والورديات';
+            document.getElementById('headerUserName').textContent = currentProfile?.name || 'الموظف';
+            document.getElementById('headerUserRole').textContent = isAdmin ? 'مدير النظام' : currentProfile?.job || 'موظف';
             document.getElementById('profileCode').textContent = currentProfile ? `الكود: ${currentProfile.code}` : 'ADMIN';
-            ['manageEmployeesButton', 'autoFillButton', 'quickFillButton'].forEach(id => document.getElementById(id).classList.toggle('hidden', !isAdmin));
+            ['autoFillButton', 'quickFillButton'].forEach(id => document.getElementById(id).classList.toggle('hidden', !isAdmin));
             [['btnTeamRed', 'red'], ['btnTeamBlue', 'blue'], ['btnTeamYellow', 'yellow'], ['btnTeamMorning', 'morning']]
                 .forEach(([id, team]) => document.getElementById(id).classList.toggle('hidden', !isAdmin && currentProfile?.team !== team));
             document.querySelector('.team-controls').classList.toggle('single-team', !isAdmin);
@@ -1890,6 +1924,7 @@
             }
             ensureMonthDates(currentMonth);
             showSignedInProfile();
+            renderEmployeeCards();
             if (!activeTeam && currentProfile && !isAdmin) switchTeam(currentProfile.team);
             else renderTable();
         }
