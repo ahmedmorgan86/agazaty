@@ -9,3 +9,6 @@ PUBLIC.mkdir(exist_ok=True)
 
 for name in ("index.html", "firebase-cloud.js"):
     copy2(ROOT / name, PUBLIC / name)
+
+(PUBLIC / "assets").mkdir(exist_ok=True)
+copy2(ROOT / "assets" / "app-logo.png", PUBLIC / "assets" / "app-logo.png")

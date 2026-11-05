@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="./assets/app-logo.png">
     <title>نظام إدارة الحضور والورديات والإجازات السحابي</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +33,8 @@
         .app-header { background: #fff; color: #17334c; border-bottom: 1px solid #d9e3ed; box-shadow: 0 8px 24px rgba(18,48,75,.06); }
         .header-top { max-width: 1500px; margin: auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
         .header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .header-brand-mark { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; color: white; font-size: 20px; border-radius: 14px; background: #0e7490; }
+        .header-brand-mark { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; background: white; border: 1px solid #dbe5ed; }
+        .header-brand-mark img { display: block; width: 40px; height: 40px; object-fit: contain; }
         .header-brand strong { display: block; font-size: 17px; line-height: 1.35; }
         .header-brand span { display: block; color: #64748b; font-size: 11px; }
         .header-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -55,6 +57,20 @@
         .employee-card p { color: #64748b; font-size: 12px; margin-top: 2px; }
         .employee-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
         .employee-card-actions button { padding: 7px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; min-height: 36px; }
+        .notice-stack { position: fixed; z-index: 80; top: 18px; left: 18px; display: grid; gap: 10px; width: min(390px, calc(100vw - 36px)); pointer-events: none; }
+        .app-notice { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 15px; background: white; box-shadow: 0 16px 40px rgba(15, 38, 62, .2); border: 1px solid #dbe5ed; border-right: 4px solid #0e7490; pointer-events: auto; animation: notice-in .18s ease-out; }
+        .app-notice.success { border-right-color: #059669; }
+        .app-notice.error { border-right-color: #dc2626; }
+        .app-notice.warning { border-right-color: #d97706; }
+        .app-notice-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 auto; background: #e5f5f8; color: #0e7490; }
+        .app-notice.success .app-notice-icon { background: #dcfce7; color: #047857; }
+        .app-notice.error .app-notice-icon { background: #fee2e2; color: #b91c1c; }
+        .app-notice.warning .app-notice-icon { background: #fef3c7; color: #b45309; }
+        .app-notice-content { flex: 1; min-width: 0; }
+        .app-notice-content strong { display: block; font-size: 13px; }
+        .app-notice-content span { display: block; color: #52677b; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+        .app-notice-close { color: #64748b; padding: 2px 5px; }
+        @keyframes notice-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         .app-main { max-width: 1500px; }
         .app-main > .bg-white, .app-main > .grid + .bg-white { box-shadow: 0 12px 36px rgba(25,55,85,.06); border-color: #dbe5ef; }
         .app-hero { background: linear-gradient(135deg, #122f4f, #186277); color: white; border-radius: 22px; padding: 24px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; box-shadow: 0 18px 34px rgba(15,61,88,.17); }
@@ -107,9 +123,11 @@
         }
         @media screen and (max-width: 639px) {
             body { overflow-x: hidden; }
+            .notice-stack { top: 10px; left: 10px; width: calc(100vw - 20px); }
             .header-top { padding: 10px 14px; gap: 8px; }
             .header-brand { gap: 8px; }
-            .header-brand-mark { width: 36px; height: 36px; font-size: 16px; border-radius: 10px; }
+            .header-brand-mark { width: 36px; height: 36px; border-radius: 10px; }
+            .header-brand-mark img { width: 32px; height: 32px; }
             .header-brand strong { font-size: 13px; }
             .header-brand span, .header-user-label span { display: none; }
             .header-user-label strong { font-size: 11px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
@@ -161,7 +179,7 @@
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
-            <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-800 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/app-logo.png" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">نظام الحضور والورديات</h1>
             <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف وكلمة المرور لعرض ورديتك.</p>
             <label for="loginCode">كود الموظف</label>
@@ -176,6 +194,7 @@
         </form>
         <form id="registerForm" class="login-card hidden" onsubmit="registerNewEmployee(event)">
             <button type="button" onclick="toggleRegistration(false)" class="text-cyan-800 text-sm font-bold mb-3"><i class="fa-solid fa-arrow-right ml-1"></i>العودة للدخول</button>
+            <img src="./assets/app-logo.png" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain mb-3">
             <h2 class="text-2xl font-black text-slate-900">تسجيل موظف جديد</h2>
             <p class="text-sm text-slate-500 mt-2">أدخل بياناتك واختر ورديتك لإنشاء حسابك.</p>
             <label for="registerName">اسم الموظف</label><input id="registerName" required autocomplete="name" placeholder="الاسم الكامل">
@@ -199,7 +218,7 @@
 
     <header id="appHeader" class="app-header hidden sticky top-0 z-40 no-print">
         <div class="header-top">
-            <div class="header-brand"><div class="header-brand-mark"><i class="fa-solid fa-calendar-check"></i></div><div><strong>الحضور والورديات</strong><span>لوحة العمل اليومية</span></div></div>
+            <div class="header-brand"><div class="header-brand-mark"><img src="./assets/app-logo.png" alt="شعار التطبيق"></div><div><strong>الحضور والورديات</strong><span>لوحة العمل اليومية</span></div></div>
             <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
         <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">
@@ -597,7 +616,7 @@
                         </span>
                         <span class="bg-red-200 text-red-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 11</span>
                     </div>
-                    <p class="text-[11px] text-red-700 mt-1">اليوم الطويل: يوم 11 (تسليم من الصباحية إلى المسائية)</p>
+                    <p class="text-[11px] text-red-700 mt-1">راحة إجبارية يوم 1 · اليوم الطويل يوم 11</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
@@ -608,7 +627,7 @@
                         </span>
                         <span class="bg-blue-200 text-blue-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 1</span>
                     </div>
-                    <p class="text-[11px] text-blue-700 mt-1">اليوم الطويل: يوم 1 (تسليم من الصباحية إلى المسائية)</p>
+                    <p class="text-[11px] text-blue-700 mt-1">راحة إجبارية يوم 21 · اليوم الطويل يوم 1</p>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
@@ -619,7 +638,7 @@
                         </span>
                         <span class="bg-amber-200 text-amber-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 21</span>
                     </div>
-                    <p class="text-[11px] text-amber-700 mt-1">اليوم الطويل: يوم 21 (تسليم من الصباحية إلى المسائية)</p>
+                    <p class="text-[11px] text-amber-700 mt-1">راحة إجبارية يوم 11 · اليوم الطويل يوم 21</p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                     <div class="flex items-center justify-between">
@@ -645,7 +664,7 @@
                     <tbody class="divide-y divide-slate-100">
                         <tr class="hover:bg-slate-50">
                             <td class="p-2.5 font-bold text-slate-800">يوم 1</td>
-                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
                             <td class="p-2.5 text-center bg-blue-100/60 font-black text-blue-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
@@ -661,7 +680,7 @@
                             <td class="p-2.5 font-bold text-slate-800">يوم 11</td>
                             <td class="p-2.5 text-center bg-red-100/60 font-black text-red-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
-                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
                         </tr>
                         <tr class="hover:bg-slate-50 bg-slate-50/30">
@@ -674,7 +693,7 @@
                         <tr class="hover:bg-slate-50">
                             <td class="p-2.5 font-bold text-slate-800">يوم 21</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
-                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
                             <td class="p-2.5 text-center bg-amber-100/60 font-black text-amber-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
                         </tr>
@@ -688,6 +707,28 @@
                     </tbody>
                 </table>
             </div>
+
+            <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                <div><h4 class="font-black text-slate-900">تفاصيل الورديات</h4><p class="text-xs text-slate-500">المواعيد المسجلة تظهر للجميع. الراحة الإجبارية: الحمراء يوم 1، الزرقاء يوم 21، الصفراء يوم 11. الجمعة إجازة ثابتة للوردية الصباحية.</p></div>
+                <div id="shiftDetailsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+            </section>
+
+            <section id="shiftEditorPanel" class="hidden rounded-xl border border-cyan-200 bg-cyan-50/40 p-4 space-y-4">
+                <div><h4 class="font-black text-slate-900">تعديل الورديات</h4><p class="text-xs text-slate-600">تحديد المواعيد وتغيير وردية فريق في يوم محدد. التغيير يظهر لكل الموظفين فور الحفظ.</p></div>
+                <div id="shiftTimesEditor" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+                <button type="button" onclick="saveShiftTimes()" class="rounded-xl bg-cyan-700 px-4 py-2.5 text-xs font-bold text-white">حفظ مواعيد الورديات</button>
+                <div class="border-t border-cyan-200 pt-4 space-y-3">
+                    <h5 class="font-bold text-sm">تغيير وردية يوم محدد</h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div><label for="shiftEditDate" class="block text-xs font-bold mb-1">التاريخ</label><input id="shiftEditDate" type="date" class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm"></div>
+                        <div><label for="shiftEditTeam" class="block text-xs font-bold mb-1">الفريق</label><select id="shiftEditTeam" class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm"><option value="red">الحمراء</option><option value="blue">الزرقاء</option><option value="yellow">الصفراء</option></select></div>
+                        <div><label for="shiftEditType" class="block text-xs font-bold mb-1">الوردية الجديدة</label><select id="shiftEditType" class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm"><option value="الصباحيه">الصباحية</option><option value="المسائيه">المسائية</option><option value="الليليه">الليلية</option><option value="اليوم الطويل">اليوم الطويل</option></select></div>
+                    </div>
+                    <div><label for="shiftEditNote" class="block text-xs font-bold mb-1">تفاصيل التغيير (اختياري)</label><input id="shiftEditNote" type="text" maxlength="200" placeholder="سبب أو تفاصيل الوردية" class="w-full rounded-lg border border-slate-300 bg-white p-2 text-sm"></div>
+                    <button type="button" onclick="saveShiftOverride()" class="rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-bold text-white">حفظ تغيير اليوم</button>
+                    <div id="shiftOverrideList" class="space-y-2"></div>
+                </div>
+            </section>
 
             <div class="flex justify-end">
                 <button onclick="closeRotationMatrixModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">إغلاق</button>
@@ -799,6 +840,15 @@
     </div>
 
 
+    <div id="noticeStack" class="notice-stack no-print" role="status" aria-live="polite" aria-atomic="false"></div>
+
+    <div id="confirmationModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-950/60 p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" aria-describedby="confirmationMessage" onclick="if(event.target === this) closeConfirmation(false)">
+        <div class="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl">
+            <div class="mb-4 flex items-start gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-circle-question text-xl"></i></div><div><h2 id="confirmationTitle" class="text-lg font-black text-slate-900">تأكيد الإجراء</h2><p id="confirmationMessage" class="mt-1 text-sm leading-7 text-slate-600"></p></div></div>
+            <div class="flex flex-wrap justify-end gap-2"><button id="confirmationCancel" type="button" onclick="closeConfirmation(false)" class="rounded-xl border border-slate-300 px-4 py-2.5 font-bold text-slate-700 hover:bg-slate-50">إلغاء</button><button id="confirmationAccept" type="button" onclick="closeConfirmation(true)" class="rounded-xl bg-cyan-700 px-4 py-2.5 font-bold text-white hover:bg-cyan-800">تأكيد</button></div>
+        </div>
+    </div>
+
     <!-- ============================================================= -->
     <!-- APPLICATION JAVASCRIPT ENGINE -->
     <!-- ============================================================= -->
@@ -814,9 +864,75 @@
 
         const INITIAL_ATTENDANCE = {};
 
+        const noticeTypes = {
+            success: { title: 'تم بنجاح', icon: 'fa-circle-check' },
+            error: { title: 'تعذر إكمال الإجراء', icon: 'fa-circle-exclamation' },
+            warning: { title: 'تنبيه', icon: 'fa-triangle-exclamation' },
+            info: { title: 'معلومة', icon: 'fa-circle-info' }
+        };
+
+        function showNotice(message, type = 'success') {
+            const kind = noticeTypes[type] ? type : 'info';
+            const stack = document.getElementById('noticeStack');
+            const notice = document.createElement('div');
+            notice.className = `app-notice ${kind}`;
+            const icon = document.createElement('div');
+            icon.className = 'app-notice-icon';
+            icon.innerHTML = `<i class="fa-solid ${noticeTypes[kind].icon}"></i>`;
+            const content = document.createElement('div');
+            content.className = 'app-notice-content';
+            const title = document.createElement('strong');
+            title.textContent = noticeTypes[kind].title;
+            const detail = document.createElement('span');
+            detail.textContent = message;
+            content.append(title, detail);
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.className = 'app-notice-close';
+            close.setAttribute('aria-label', 'إغلاق الرسالة');
+            close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            close.onclick = () => notice.remove();
+            notice.append(icon, content, close);
+            stack.prepend(notice);
+            while (stack.children.length > 3) stack.lastElementChild.remove();
+            setTimeout(() => notice.remove(), kind === 'error' ? 8500 : 5000);
+        }
+
+        let confirmationResolve = null;
+        let confirmationPreviousFocus = null;
+        function askConfirmation(message, options = {}) {
+            if (confirmationResolve) closeConfirmation(false);
+            confirmationPreviousFocus = document.activeElement;
+            document.getElementById('confirmationTitle').textContent = options.title || 'تأكيد الإجراء';
+            document.getElementById('confirmationMessage').textContent = message;
+            const accept = document.getElementById('confirmationAccept');
+            accept.textContent = options.accept || 'تأكيد';
+            accept.className = `rounded-xl px-4 py-2.5 font-bold text-white ${options.danger ? 'bg-red-600 hover:bg-red-700' : 'bg-cyan-700 hover:bg-cyan-800'}`;
+            document.getElementById('confirmationModal').classList.remove('hidden');
+            document.getElementById('confirmationCancel').focus();
+            return new Promise(resolve => { confirmationResolve = resolve; });
+        }
+        function closeConfirmation(accepted) {
+            document.getElementById('confirmationModal').classList.add('hidden');
+            const resolve = confirmationResolve;
+            confirmationResolve = null;
+            resolve?.(accepted);
+            confirmationPreviousFocus?.focus?.();
+        }
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && confirmationResolve) closeConfirmation(false);
+            if (event.key === 'Tab' && confirmationResolve) {
+                const cancel = document.getElementById('confirmationCancel');
+                const accept = document.getElementById('confirmationAccept');
+                if (event.shiftKey && document.activeElement === cancel) { event.preventDefault(); accept.focus(); }
+                else if (!event.shiftKey && document.activeElement === accept) { event.preventDefault(); cancel.focus(); }
+            }
+        });
+
         // Application State
         let employees = [];
         let attendanceData = {};
+        let shiftSettings = { times: {}, overrides: {} };
         let workspaceEmployees = [];
         let registeredEmployees = [];
         let workspaceLoaded = false;
@@ -878,6 +994,9 @@
         // - Yellow (الصفراء): 1-10 الليليه | 11-20 الصباحيه | 21 اليوم الطويل | 22-31 المسائيه
         // - Morning (الصباحية الثابتة): الصباحية في كل أيام الشهر
         function calculateShiftForDate(dayNum, team) {
+            const dateKey = `${currentMonth}-${String(dayNum).padStart(2, '0')}`;
+            const override = shiftSettings.overrides?.[dateKey]?.[team];
+            if (override?.type) return override.type;
             if (team === 'morning') return 'الصباحيه';
             if (team === 'red') {
                 if (dayNum === 11) return 'اليوم الطويل';
@@ -898,13 +1017,21 @@
             return '';
         }
 
-        function isMorningFriday(date, employee) {
-            return employee.team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5;
+        function fixedRestReason(date, employee) {
+            if (employee.team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5) return 'إجازة الجمعة الثابتة';
+            const restDays = { red: 1, blue: 21, yellow: 11 };
+            if (Number(date.slice(-2)) === restDays[employee.team]) return 'راحة الوردية الإجبارية';
+            return '';
+        }
+
+        function isFixedRest(date, employee) {
+            return Boolean(fixedRestReason(date, employee));
         }
 
         function effectiveRecord(date, employee, record) {
-            return isMorningFriday(date, employee)
-                ? { status: 'راحة', delay: 0, permissionMinutes: 0, notes: 'إجازة أسبوعية ثابتة' }
+            const restReason = fixedRestReason(date, employee);
+            return restReason
+                ? { status: 'راحة', delay: 0, permissionMinutes: 0, notes: restReason }
                 : (record || { status: '', delay: 0, notes: '' });
         }
 
@@ -949,9 +1076,9 @@
             renderTable();
         }
 
-        function autoFillMonthShifts() {
+        async function autoFillMonthShifts() {
             if (!isAdmin || !activeTeam) return;
-            if (!confirm(`هل تريد تطبيق نظام الورديات التلقائي لشهر ${currentMonth} وفق نمط الوردية المعتمدة؟`)) return;
+            if (!await askConfirmation(`هل تريد تطبيق نظام الورديات التلقائي لشهر ${currentMonth} وفق نمط الوردية المعتمدة؟`, { accept: 'تطبيق الورديات' })) return;
 
             const [yearStr, monthStr] = currentMonth.split('-');
             const year = parseInt(yearStr);
@@ -977,20 +1104,19 @@
 
             saveToStorage();
             renderTable();
-            cloudWrite(window.firebaseBridge.saveDays(changedDays));
-            alert("تم توزيع الورديات وتعيين اليوم الطويل بنجاح!");
+            cloudWrite(window.firebaseBridge.saveDays(changedDays), 'تم توزيع الورديات وتعيين اليوم الطويل بنجاح.');
         }
 
-        function quickFillPresent() {
+        async function quickFillPresent() {
             if (!isAdmin || !activeTeam) return;
-            if (!confirm("هل تريد تعيين الأيام غير المسجلة حتى اليوم إلى (حضور) لجميع الموظفين؟")) return;
+            if (!await askConfirmation('هل تريد تعيين الأيام غير المسجلة حتى اليوم إلى حضور لجميع الموظفين؟', { accept: 'تعيين الحضور' })) return;
 
             const dates = Object.keys(attendanceData).filter(d => d.startsWith(currentMonth) && d <= localDateKey());
             const changes = [];
             dates.forEach(d => {
                 if (!attendanceData[d].records) attendanceData[d].records = {};
                 employees.forEach(emp => {
-                    if (emp.team !== activeTeam || isMorningFriday(d, emp)) return;
+                    if (emp.team !== activeTeam || isFixedRest(d, emp)) return;
                     if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
                         attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
                         changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
@@ -1001,7 +1127,8 @@
 
             saveToStorage();
             renderTable();
-            cloudWrite(window.firebaseBridge.saveRecords(changes));
+            if (changes.length) cloudWrite(window.firebaseBridge.saveRecords(changes), 'تم تعيين الحضور للأيام غير المسجلة.');
+            else showNotice('لا توجد أيام غير مسجلة لتعديلها.', 'info');
         }
 
         // ==========================================
@@ -1231,10 +1358,10 @@
                 const shift = calculateShiftForDate(Number(date.slice(-2)), activeTeam);
                 const people = teamEmployees.length ? teamEmployees.map(emp => {
                     const rec = effectiveRecord(date, emp, day.records?.[emp.id]);
-                    const canEdit = !isMorningFriday(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
+                    const canEdit = !isFixedRest(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
                     return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
                         <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
-                        <span class="text-left">${getStatusBadge(rec.status)}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isMorningFriday(date, emp) ? 'إجازة ثابتة' : 'بدون تأخير')}</small></span>
+                        <span class="text-left">${getStatusBadge(rec.status)}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
                     </button>`;
                 }).join('') : '<p class="p-3 text-slate-500">لا يوجد موظفون في هذه الوردية.</p>';
                 return `<article class="day-card"><div class="day-card-head"><strong>${escapeHTML(day.day)} · ${date}</strong><span class="text-xs font-bold text-cyan-800">${escapeHTML(shift)}</span></div>${people}</article>`;
@@ -1403,7 +1530,9 @@
             document.getElementById('cancelEditEmpBtn').classList.add('hidden');
         }
 
+        let employeeSaveInProgress = false;
         async function saveEmployeeFromForm() {
+            if (employeeSaveInProgress) return;
             const id = document.getElementById('formEmpId').value.trim();
             if (!isAdmin && !id) return;
             const name = document.getElementById('formEmpName').value.trim();
@@ -1416,19 +1545,20 @@
             const perm = Number(document.getElementById('formEmpPermHours').value);
 
             if (!name) {
-                alert("يرجى إدخال اسم الموظف!");
+                showNotice('يرجى إدخال اسم الموظف.', 'warning');
                 return;
             }
             if (!/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job) || employees.some(e => e.id !== id && e.code.toLowerCase() === code.toLowerCase())) {
-                alert('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الإدارة والوردية.');
+                showNotice('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الإدارة والوردية.', 'warning');
                 return;
             }
             if (![annual, casual, perm].every(value => Number.isFinite(value) && value >= 0)) {
-                alert('أدخل أرصدة صحيحة لا تقل عن صفر.');
+                showNotice('أدخل أرصدة صحيحة لا تقل عن صفر.', 'warning');
                 return;
             }
 
             const button = document.getElementById('saveEmpBtn');
+            employeeSaveInProgress = true;
             button.disabled = true;
             try {
                 if (id) {
@@ -1451,10 +1581,10 @@
                 renderEmployeeCards();
                 resetEmployeeForm();
                 renderTable();
-                alert(isAdmin && !id ? 'تم إنشاء حساب الموظف. كلمة المرور الافتراضية: 1234567' : 'تم حفظ بيانات الموظف وأرصدته.');
+                showNotice(isAdmin && !id ? 'تم إنشاء حساب الموظف. كلمة المرور الافتراضية: 1234567' : 'تم حفظ بيانات الموظف وأرصدته.');
             } catch (error) {
-                alert(`تعذر حفظ الحساب: ${error.message}`);
-            } finally { button.disabled = false; }
+                showNotice(`تعذر حفظ الحساب: ${error.message}`, 'error');
+            } finally { employeeSaveInProgress = false; button.disabled = false; }
         }
 
         async function deleteEmployee(empId) {
@@ -1462,7 +1592,7 @@
             const emp = employees.find(e => e.id === empId);
             if (!emp) return;
 
-            if (!confirm(`هل أنت متأكد تماماً من حذف الموظف (${emp.name}) من النظام؟`)) return;
+            if (!await askConfirmation(`سيُحذف حساب ${emp.name} وسجلات حضوره. هل تريد المتابعة؟`, { title: 'حذف الموظف', accept: 'حذف الموظف', danger: true })) return;
 
             const updatedEmployees = employees.filter(e => e.id !== empId);
 
@@ -1481,7 +1611,8 @@
                 renderEmployeesDirectory();
                 renderEmployeeCards();
                 renderTable();
-            } catch (error) { alert(`تعذر حذف الموظف: ${error.message}`); }
+                showNotice('تم حذف الموظف وسجلات حضوره.');
+            } catch (error) { showNotice(`تعذر حذف الموظف: ${error.message}`, 'error'); }
         }
 
         // ==========================================
@@ -1614,7 +1745,7 @@
 
         function openEditModal(date, empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isMorningFriday(date, emp)) return;
+            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
             editingCell = { date, empId };
             const dayData = attendanceData[date] || {};
             const rec = effectiveRecord(date, emp, dayData.records && dayData.records[empId]);
@@ -1668,7 +1799,7 @@
             if (!editingCell) return;
             const { date, empId } = editingCell;
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isMorningFriday(date, emp)) return;
+            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
 
             if (!attendanceData[date]) {
                 attendanceData[date] = { shift: "الصباحيه", day: "", records: {} };
@@ -1682,7 +1813,8 @@
                 delete attendanceData[date].records[empId];
                 closeEditModal();
                 renderTable();
-                if (hadRecord) cloudWrite(window.firebaseBridge.clearRecord(date, empId));
+                if (hadRecord) cloudWrite(window.firebaseBridge.clearRecord(date, empId), 'تم مسح حالة اليوم وإعادتها فارغة.');
+                else showNotice('حالة اليوم فارغة بالفعل.', 'info');
                 return;
             }
 
@@ -1701,7 +1833,7 @@
             saveToStorage();
             closeEditModal();
             renderTable();
-            syncRecordToCloud(date, empId);
+            syncRecordToCloud(date, empId, 'تم حفظ حالة اليوم.');
         }
 
         // ==========================================
@@ -1765,7 +1897,103 @@
         // ==========================================
         // 8. ROTATION MATRIX MODAL
         // ==========================================
+        const SHIFT_TYPES = [
+            { key: 'morning', label: 'الصباحية' },
+            { key: 'evening', label: 'المسائية' },
+            { key: 'night', label: 'الليلية' },
+            { key: 'long', label: 'اليوم الطويل' }
+        ];
+        const SHIFT_TEAM_LABELS = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء' };
+
+        function renderShiftEditor() {
+            const details = document.getElementById('shiftDetailsList');
+            details.innerHTML = SHIFT_TYPES.map(shift => {
+                const time = shiftSettings.times?.[shift.key] || {};
+                const range = time.start && time.end ? `${time.start} – ${time.end}` : 'لم يُحدد الموعد بعد';
+                return `<div class="rounded-lg border border-slate-200 bg-white p-3"><strong class="block text-sm">${shift.label}</strong><span class="text-xs text-slate-600">${escapeHTML(range)}</span></div>`;
+            }).join('');
+            document.getElementById('shiftEditorPanel').classList.toggle('hidden', !isAdmin);
+            if (!isAdmin) return;
+            document.getElementById('shiftTimesEditor').innerHTML = SHIFT_TYPES.map(shift => {
+                const time = shiftSettings.times?.[shift.key] || {};
+                return `<div class="rounded-lg border border-cyan-100 bg-white p-3"><strong class="block text-xs mb-2">${shift.label}</strong><div class="grid grid-cols-2 gap-2"><label class="text-xs">من<input type="time" id="shiftStart-${shift.key}" value="${escapeHTML(time.start || '')}" class="mt-1 w-full rounded-lg border border-slate-300 p-2"></label><label class="text-xs">إلى<input type="time" id="shiftEnd-${shift.key}" value="${escapeHTML(time.end || '')}" class="mt-1 w-full rounded-lg border border-slate-300 p-2"></label></div></div>`;
+            }).join('');
+            const today = localDateKey();
+            document.getElementById('shiftEditDate').value = today.startsWith(currentMonth) ? today : `${currentMonth}-01`;
+            const entries = Object.entries(shiftSettings.overrides || {}).filter(([date, teams]) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date.startsWith(currentMonth) && teams && typeof teams === 'object')
+                .flatMap(([date, teams]) => Object.entries(teams).filter(([team, value]) => Object.hasOwn(SHIFT_TEAM_LABELS, team) && value && typeof value === 'object').map(([team, value]) => ({ date, team, ...value })));
+            document.getElementById('shiftOverrideList').innerHTML = entries.length ? entries.map(item => `
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-2 text-xs">
+                    <span><strong>${escapeHTML(item.date)} · ${SHIFT_TEAM_LABELS[item.team] || '—'} · ${escapeHTML(item.type)}</strong>${item.note ? ` · ${escapeHTML(item.note)}` : ''}</span>
+                    <span class="flex gap-1"><button type="button" onclick="editShiftOverride('${item.date}','${item.team}')" class="rounded bg-cyan-50 px-2 py-1 font-bold text-cyan-800">تعديل</button><button type="button" onclick="removeShiftOverride('${item.date}','${item.team}')" class="rounded bg-red-50 px-2 py-1 font-bold text-red-700">إلغاء التغيير</button></span>
+                </div>`).join('') : '<p class="text-xs text-slate-500">لا توجد تغييرات يدوية لهذا الشهر.</p>';
+        }
+
+        async function saveShiftTimes() {
+            if (!isAdmin) return;
+            const times = {};
+            for (const shift of SHIFT_TYPES) {
+                const start = document.getElementById(`shiftStart-${shift.key}`).value;
+                const end = document.getElementById(`shiftEnd-${shift.key}`).value;
+                if (Boolean(start) !== Boolean(end)) { showNotice(`أدخل وقت البداية والنهاية للوردية ${shift.label} معاً.`, 'warning'); return; }
+                times[shift.key] = { start, end };
+            }
+            const next = { ...shiftSettings, times };
+            if (await cloudWrite(window.firebaseBridge.saveShiftSettings(next), 'تم حفظ مواعيد الورديات.')) {
+                shiftSettings = next;
+                renderShiftEditor();
+            }
+        }
+
+        function editShiftOverride(date, team) {
+            if (!isAdmin) return;
+            const value = shiftSettings.overrides?.[date]?.[team];
+            if (!value) return;
+            document.getElementById('shiftEditDate').value = date;
+            document.getElementById('shiftEditTeam').value = team;
+            document.getElementById('shiftEditType').value = value.type;
+            document.getElementById('shiftEditNote').value = value.note || '';
+            document.getElementById('shiftEditDate').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function saveShiftOverride() {
+            if (!isAdmin) return;
+            const date = document.getElementById('shiftEditDate').value;
+            const team = document.getElementById('shiftEditTeam').value;
+            const type = document.getElementById('shiftEditType').value;
+            const note = document.getElementById('shiftEditNote').value.trim();
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Object.hasOwn(SHIFT_TEAM_LABELS, team) || !['الصباحيه', 'المسائيه', 'الليليه', 'اليوم الطويل'].includes(type)) {
+                showNotice('اختر التاريخ والفريق والوردية بشكل صحيح.', 'warning'); return;
+            }
+            if (!date.startsWith(currentMonth)) { showNotice('اختر تاريخاً من الشهر المعروض، أو غيّر الشهر أولاً.', 'warning'); return; }
+            if (isFixedRest(date, { team })) {
+                showNotice('هذا اليوم راحة إجبارية للفريق ولا يمكن تغيير ورديته.', 'warning'); return;
+            }
+            const overrides = { ...shiftSettings.overrides, [date]: { ...(shiftSettings.overrides?.[date] || {}), [team]: { type, note } } };
+            const next = { ...shiftSettings, overrides };
+            if (await cloudWrite(window.firebaseBridge.saveShiftSettings(next), 'تم حفظ تغيير الوردية لهذا اليوم.')) {
+                shiftSettings = next;
+                renderShiftEditor();
+                renderTable();
+            }
+        }
+
+        async function removeShiftOverride(date, team) {
+            if (!isAdmin || !shiftSettings.overrides?.[date]?.[team]) return;
+            if (!await askConfirmation(`هل تريد إلغاء تغيير وردية ${SHIFT_TEAM_LABELS[team]} يوم ${date} والعودة للجدول المعتاد؟`, { accept: 'إلغاء التغيير' })) return;
+            const overrides = { ...shiftSettings.overrides, [date]: { ...shiftSettings.overrides[date] } };
+            delete overrides[date][team];
+            if (!Object.keys(overrides[date]).length) delete overrides[date];
+            const next = { ...shiftSettings, overrides };
+            if (await cloudWrite(window.firebaseBridge.saveShiftSettings(next), 'عادت الوردية إلى جدولها المعتاد.')) {
+                shiftSettings = next;
+                renderShiftEditor();
+                renderTable();
+            }
+        }
+
         function openRotationMatrixModal() {
+            renderShiftEditor();
             document.getElementById('rotationMatrixModal').classList.remove('hidden');
         }
 
@@ -1802,8 +2030,10 @@
             document.getElementById(show ? 'registerName' : 'loginCode').focus();
         }
 
+        let registrationInProgress = false;
         async function registerNewEmployee(event) {
             event.preventDefault();
+            if (registrationInProgress) return;
             const name = document.getElementById('registerName').value.trim();
             const code = document.getElementById('registerCode').value.trim();
             const team = document.getElementById('registerTeam').value;
@@ -1816,6 +2046,7 @@
                 errorLabel.classList.remove('hidden');
                 return;
             }
+            registrationInProgress = true;
             button.disabled = true;
             button.textContent = 'جارٍ إنشاء الحساب...';
             try {
@@ -1827,7 +2058,7 @@
             } catch (error) {
                 errorLabel.textContent = error.code === 'auth/email-already-in-use' ? 'هذا الكود مسجل بالفعل. استخدم شاشة الدخول.' : `تعذر إنشاء الحساب: ${error.message}`;
                 errorLabel.classList.remove('hidden');
-            } finally { button.disabled = false; button.textContent = 'إنشاء الحساب'; }
+            } finally { registrationInProgress = false; button.disabled = false; button.textContent = 'إنشاء الحساب'; }
         }
 
         function logoutEmployee() { window.firebaseBridge.logout(); }
@@ -1851,6 +2082,7 @@
             if (next !== confirmation) {
                 message.textContent = 'كلمتا المرور الجديدتان غير متطابقتين.';
                 message.className = 'text-xs mt-2 text-red-700';
+                showNotice(message.textContent, 'warning');
                 return;
             }
             try {
@@ -1860,9 +2092,11 @@
                 document.getElementById('confirmPassword').value = '';
                 message.textContent = 'تم تغيير كلمة المرور.';
                 message.className = 'text-xs mt-2 text-emerald-700';
+                showNotice(message.textContent);
             } catch (error) {
                 message.textContent = ['auth/wrong-password', 'auth/invalid-credential'].includes(error.code) ? 'كلمة المرور الحالية غير صحيحة.' : error.message;
                 message.className = 'text-xs mt-2 text-red-700';
+                showNotice(message.textContent, 'error');
             }
         }
 
@@ -1873,6 +2107,7 @@
             activeTeam = null;
             employees = [];
             attendanceData = {};
+            shiftSettings = { times: {}, overrides: {} };
             workspaceEmployees = [];
             registeredEmployees = [];
             workspaceLoaded = false;
@@ -1925,6 +2160,7 @@
             ensureMonthDates(currentMonth);
             showSignedInProfile();
             renderEmployeeCards();
+            if (!document.getElementById('rotationMatrixModal').classList.contains('hidden')) renderShiftEditor();
             if (!activeTeam && currentProfile && !isAdmin) switchTeam(currentProfile.team);
             else renderTable();
         }
@@ -1987,6 +2223,9 @@
                         applyingCloudData = true;
                         workspaceEmployees = data.employees;
                         attendanceData = data.attendanceData;
+                        shiftSettings = data.shiftSettings && typeof data.shiftSettings === 'object'
+                            ? { times: data.shiftSettings.times || {}, overrides: data.shiftSettings.overrides || {} }
+                            : { times: {}, overrides: {} };
                         workspaceLoaded = true;
                         applyingCloudData = false;
                         applyCloudSnapshots();
@@ -1996,6 +2235,7 @@
                         if (isAdmin) {
                             employees = INITIAL_EMPLOYEES;
                             attendanceData = INITIAL_ATTENDANCE;
+                            shiftSettings = { times: {}, overrides: {} };
                             syncToCloud();
                         }
                     },
@@ -2012,29 +2252,35 @@
             }
         }
 
-        function cloudWrite(promise) {
+        function cloudWrite(promise, successMessage) {
             updateCloudUI('المزامنة قيد التنفيذ');
-            promise.then(() => updateCloudUI('Firebase متصل', true))
+            return promise.then(() => {
+                updateCloudUI('Firebase متصل', true);
+                if (successMessage) showNotice(successMessage);
+                return true;
+            })
                 .catch(error => {
                     updateCloudUI('فشلت مزامنة Firebase');
                     setFirebaseMessage(error.message, true);
+                    showNotice(`تعذر حفظ التغييرات: ${error.message}`, 'error');
+                    return false;
                 });
         }
 
         function syncToCloud() {
             if (applyingCloudData || !firebaseUser || !isAdmin) return;
-            cloudWrite(window.firebaseBridge.save({ employees, attendanceData, updatedAt: new Date().toISOString() }));
+            return cloudWrite(window.firebaseBridge.save({ employees, attendanceData, shiftSettings, updatedAt: new Date().toISOString() }));
         }
 
-        function syncRecordToCloud(date, empId) {
+        function syncRecordToCloud(date, empId, successMessage) {
             if (!firebaseUser) return;
             const day = attendanceData[date];
-            cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
-                employeeId: empId, record: day.records[empId] }]));
+            return cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
+                employeeId: empId, record: day.records[empId] }]), successMessage);
         }
 
         function downloadBackupJSON() {
-            const backup = { employees, attendanceData, exportedAt: new Date().toISOString() };
+            const backup = { employees, attendanceData, shiftSettings, exportedAt: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -2047,23 +2293,25 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
                     if (isValidWorkspace(data)) {
-                        if (!confirm('ستستبدل النسخة الاحتياطية البيانات الحالية. هل تريد المتابعة؟')) return;
+                        if (!await askConfirmation('ستستبدل النسخة الاحتياطية البيانات الحالية. هل تريد المتابعة؟', { title: 'استعادة نسخة احتياطية', accept: 'استعادة البيانات', danger: true })) return;
                         employees = data.employees;
                         attendanceData = data.attendanceData;
+                        shiftSettings = data.shiftSettings && typeof data.shiftSettings === 'object'
+                            ? { times: data.shiftSettings.times || {}, overrides: data.shiftSettings.overrides || {} }
+                            : { times: {}, overrides: {} };
                         saveToStorage();
                         renderTable();
-                        syncToCloud();
-                        alert("تم استعادة النسخة الاحتياطية بنجاح!");
-                        closeCloudModal();
+                        const saved = await cloudWrite(window.firebaseBridge.save({ employees, attendanceData, shiftSettings, updatedAt: new Date().toISOString() }), 'تم استعادة النسخة الاحتياطية بنجاح.');
+                        if (saved) closeCloudModal();
                     } else {
-                        alert('النسخة الاحتياطية لا تحتوي على بيانات صحيحة.');
+                        showNotice('النسخة الاحتياطية لا تحتوي على بيانات صحيحة.', 'warning');
                     }
                 } catch(err) {
-                    alert("الملف غير صالح أو تالف!");
+                    showNotice('الملف غير صالح أو تالف.', 'error');
                 }
             };
             reader.readAsText(file);
@@ -2073,7 +2321,7 @@
         // 10. EXCEL EXPORT
         // ==========================================
         function exportToExcel() {
-            if (!activeTeam) { alert('اختر وردية أولاً.'); return; }
+            if (!activeTeam) { showNotice('اختر وردية أولاً.', 'warning'); return; }
             const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
             const exportRows = [];
             const visibleEmployees = employees.filter(emp => emp.team === activeTeam && (isAdmin || emp.job === currentProfile?.job));

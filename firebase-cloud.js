@@ -133,6 +133,10 @@ function saveEmployees(employees) {
     return patch([[['employees'], employees]]);
 }
 
+function saveShiftSettings(settings) {
+    return patch([[['shiftSettings'], settings]]);
+}
+
 async function createEmployeeAccount(employee, employees) {
     if (!auth?.currentUser || !database || !configInUse) throw new Error('سجّل الدخول أولاً.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
@@ -196,6 +200,7 @@ window.firebaseBridge = {
     clearRecord,
     saveDays,
     saveEmployees,
+    saveShiftSettings,
     createEmployeeAccount,
     updateEmployeeAccount,
     updatePeerProfile,
