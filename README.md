@@ -4,7 +4,11 @@
 
 يمكن تعيين الموظف إلى إحدى أربع فرق: الحمراء والزرقاء والصفراء بنظام المناوبة، أو الفريق الصباحي الذي يعمل وردية صباحية ثابتة طوال الشهر. يعرض الجدول وردية كل موظف على حدة.
 
-**رابط التطبيق المنشور:** https://shifts-attendance-am-2026.web.app
+**رابط التطبيق على Vercel:** https://shifts-attendance-app.vercel.app
+
+**المستودع على GitHub:** https://github.com/ahmedmorgan86/shifts-attendance-app (خاص)
+
+نسخة Firebase Hosting السابقة متاحة أيضاً: https://shifts-attendance-am-2026.web.app
 
 ## تشغيل محلي اختياري
 
@@ -30,4 +34,4 @@ python server.py
 
 ## تحديث الموقع المنشور
 
-بعد تعديل `index.html` أو `firebase-cloud.js`، شغّل `python build_public.py` ثم `npx firebase-tools deploy --only hosting`. مجلد `public` يحتوي على ملفات الواجهة المنشورة فقط.
+بعد تعديل `index.html` أو `firebase-cloud.js`، شغّل `python build_public.py`، ثم ارفع التغييرات إلى الفرع `main` على GitHub لينشرها Vercel تلقائياً. مجلد `public` يحتوي على ملفات الواجهة المنشورة فقط. لتحديث نسخة Firebase Hosting أيضاً، شغّل `npx firebase-tools deploy --only hosting`.
