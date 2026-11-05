@@ -616,7 +616,7 @@
                         </span>
                         <span class="bg-red-200 text-red-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 11</span>
                     </div>
-                    <p class="text-[11px] text-red-700 mt-1">راحة إجبارية يوم 1 · اليوم الطويل يوم 11</p>
+                    <p class="text-[11px] text-red-700 mt-1">راحة الوردية يوم 1 · اليوم الطويل يوم 11</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
@@ -627,7 +627,7 @@
                         </span>
                         <span class="bg-blue-200 text-blue-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 1</span>
                     </div>
-                    <p class="text-[11px] text-blue-700 mt-1">راحة إجبارية يوم 21 · اليوم الطويل يوم 1</p>
+                    <p class="text-[11px] text-blue-700 mt-1">راحة الوردية يوم 21 · اليوم الطويل يوم 1</p>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
@@ -638,7 +638,7 @@
                         </span>
                         <span class="bg-amber-200 text-amber-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 21</span>
                     </div>
-                    <p class="text-[11px] text-amber-700 mt-1">راحة إجبارية يوم 11 · اليوم الطويل يوم 21</p>
+                    <p class="text-[11px] text-amber-700 mt-1">راحة الوردية يوم 11 · اليوم الطويل يوم 21</p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                     <div class="flex items-center justify-between">
@@ -664,7 +664,7 @@
                     <tbody class="divide-y divide-slate-100">
                         <tr class="hover:bg-slate-50">
                             <td class="p-2.5 font-bold text-slate-800">يوم 1</td>
-                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة الوردية</td>
                             <td class="p-2.5 text-center bg-blue-100/60 font-black text-blue-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
@@ -680,7 +680,7 @@
                             <td class="p-2.5 font-bold text-slate-800">يوم 11</td>
                             <td class="p-2.5 text-center bg-red-100/60 font-black text-red-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
-                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة الوردية</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
                         </tr>
                         <tr class="hover:bg-slate-50 bg-slate-50/30">
@@ -693,7 +693,7 @@
                         <tr class="hover:bg-slate-50">
                             <td class="p-2.5 font-bold text-slate-800">يوم 21</td>
                             <td class="p-2.5 text-center text-slate-600">الليلية</td>
-                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة إجبارية</td>
+                            <td class="p-2.5 text-center font-black text-slate-700 bg-slate-100">راحة الوردية</td>
                             <td class="p-2.5 text-center bg-amber-100/60 font-black text-amber-900">⭐ اليوم الطويل (تسليم)</td>
                             <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
                         </tr>
@@ -709,7 +709,7 @@
             </div>
 
             <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
-                <div><h4 class="font-black text-slate-900">تفاصيل الورديات</h4><p class="text-xs text-slate-500">المواعيد المسجلة تظهر للجميع. الراحة الإجبارية: الحمراء يوم 1، الزرقاء يوم 21، الصفراء يوم 11. الجمعة إجازة ثابتة للوردية الصباحية.</p></div>
+                <div><h4 class="font-black text-slate-900">تفاصيل الورديات</h4><p class="text-xs text-slate-500">المواعيد المسجلة تظهر للجميع. راحة الوردية: الحمراء يوم 1، الزرقاء يوم 21، الصفراء يوم 11. الجمعة إجازة ثابتة للوردية الصباحية.</p></div>
                 <div id="shiftDetailsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
             </section>
 
@@ -1021,7 +1021,7 @@
         function fixedRestReason(date, employee) {
             if (employee.team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5) return 'إجازة الجمعة الثابتة';
             const restDays = { red: 1, blue: 21, yellow: 11 };
-            if (Number(date.slice(-2)) === restDays[employee.team]) return 'راحة الوردية الإجبارية';
+            if (Number(date.slice(-2)) === restDays[employee.team]) return 'راحة الوردية';
             return '';
         }
 
@@ -1034,6 +1034,10 @@
             return restReason
                 ? { status: 'راحة', delay: 0, permissionMinutes: 0, notes: restReason }
                 : (record || { status: '', delay: 0, notes: '' });
+        }
+
+        function displayedStatus(date, employee, record) {
+            return fixedRestReason(date, employee) === 'راحة الوردية' ? 'راحة الوردية' : (record.status || '');
         }
 
         function switchTeam(team) {
@@ -1188,7 +1192,7 @@
             if (!status || status === '') return '<span class="text-slate-300">-</span>';
             const clean = status.trim();
             if (clean === 'حضور') return '<span class="status-present px-2 py-0.5 rounded text-[11px] font-bold border">حضور</span>';
-            if (clean === 'راحة') return '<span class="status-rest px-2 py-0.5 rounded text-[11px] font-bold border">راحة</span>';
+            if (clean === 'راحة' || clean === 'راحة الوردية') return `<span class="status-rest px-2 py-0.5 rounded text-[11px] font-bold border">${escapeHTML(clean)}</span>`;
             if (clean === 'إعتيادي') return '<span class="status-annual px-2 py-0.5 rounded text-[11px] font-bold border">إعتيادي</span>';
             if (clean === 'عارضة') return '<span class="status-casual px-2 py-0.5 rounded text-[11px] font-bold border">عارضة</span>';
             if (clean === 'إذن') return '<span class="status-permission px-2 py-0.5 rounded text-[11px] font-bold border">إذن</span>';
@@ -1304,7 +1308,7 @@
                     bodyHTML += `
                         <td onclick="openEditModal('${date}', '${emp.id}')" class="p-2 text-center border-r border-slate-200 cursor-pointer hover:bg-blue-50/80 transition" title="${escapeHTML(rec.notes || 'انقر لتعديل الحالة')}">
                             <div class="flex items-center justify-center space-x-1 space-x-reverse">
-                                ${getStatusBadge(rec.status)}
+                                ${getStatusBadge(displayedStatus(date, emp, rec))}
                                 ${rec.notes ? '<i class="fa-solid fa-comment-dots text-slate-400 text-[10px]" title="'+escapeHTML(rec.notes)+'"></i>' : ''}
                             </div>
                             <span class="text-[9px] text-slate-500">${escapeHTML(employeeShift)}</span>
@@ -1362,7 +1366,7 @@
                     const canEdit = !isFixedRest(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
                     return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
                         <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
-                        <span class="text-left">${getStatusBadge(rec.status)}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
+                        <span class="text-left">${getStatusBadge(displayedStatus(date, emp, rec))}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
                     </button>`;
                 }).join('') : '<p class="p-3 text-slate-500">لا يوجد موظفون في هذه الوردية.</p>';
                 return `<article class="day-card"><div class="day-card-head"><strong>${escapeHTML(day.day)} · ${date}</strong><span class="text-xs font-bold text-cyan-800">${escapeHTML(shift)}</span></div>${people}</article>`;
@@ -1652,7 +1656,7 @@
                 delay += del;
 
                 if (st || del > 0 || rec.notes) {
-                    detailRows.push({ date: d, day: day.day, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'), status: st || '-', delay: del, notes: rec.notes || '' });
+                    detailRows.push({ date: d, day: day.day, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'), status: displayedStatus(d, emp, rec) || '-', delay: del, notes: rec.notes || '' });
                 }
             });
 
@@ -1968,7 +1972,7 @@
             }
             if (!date.startsWith(currentMonth)) { showNotice('اختر تاريخاً من الشهر المعروض، أو غيّر الشهر أولاً.', 'warning'); return; }
             if (isFixedRest(date, { team })) {
-                showNotice('هذا اليوم راحة إجبارية للفريق ولا يمكن تغيير ورديته.', 'warning'); return;
+                showNotice('هذا اليوم راحة الوردية للفريق ولا يمكن تغيير ورديته.', 'warning'); return;
             }
             const overrides = { ...shiftSettings.overrides, [date]: { ...(shiftSettings.overrides?.[date] || {}), [team]: { type, note } } };
             const next = { ...shiftSettings, overrides };
@@ -2355,7 +2359,7 @@
                 const row = [date, day.day, calculateShiftForDate(Number(date.slice(-2)), activeTeam)];
                 visibleEmployees.forEach(emp => {
                     const rec = effectiveRecord(date, emp, day.records && day.records[emp.id]);
-                    row.push(calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red'), rec.status || "", rec.delay || 0);
+                    row.push(calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red'), displayedStatus(date, emp, rec), rec.delay || 0);
                 });
                 exportRows.push(row);
             });
