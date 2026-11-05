@@ -952,6 +952,7 @@
         let applyingCloudData = false;
         let firebaseReady = false;
         let firebaseConnected = false;
+        let cacheStatusTimer = null;
         const FIREBASE_CONFIG = {
             apiKey: 'AIzaSyAJZjmcx7fBS236CdHdcFMT_EwZ8G19Ipc',
             authDomain: 'shifts-attendance-am-2026.firebaseapp.com',
@@ -2193,8 +2194,9 @@
             try {
                 firebaseConnected = true;
                 window.firebaseBridge.connect(config, {
-                    onSignedOut() { showSignedOut(); },
+                    onSignedOut() { clearTimeout(cacheStatusTimer); showSignedOut(); },
                     onAuth(user, claims) {
+                        clearTimeout(cacheStatusTimer);
                         if (firebaseUser?.uid !== user.uid) {
                             workspaceLoaded = false;
                             profilesLoaded = false;
@@ -2229,7 +2231,15 @@
                         workspaceLoaded = true;
                         applyingCloudData = false;
                         applyCloudSnapshots();
-                        updateCloudUI(metadata.fromCache ? 'بيانات محفوظة دون اتصال' : 'Firebase متصل', !metadata.fromCache);
+                        clearTimeout(cacheStatusTimer);
+                        if (metadata.fromCache) {
+                            updateCloudUI(navigator.onLine ? 'جاري تحديث البيانات' : 'بيانات محفوظة دون اتصال');
+                            if (navigator.onLine) cacheStatusTimer = setTimeout(() => {
+                                updateCloudUI('تعذر تحديث البيانات؛ تُعرض نسخة محفوظة');
+                            }, 10000);
+                        } else {
+                            updateCloudUI('Firebase متصل', true);
+                        }
                     },
                     onEmpty() {
                         if (isAdmin) {
@@ -2240,6 +2250,7 @@
                         }
                     },
                     onError(error) {
+                        clearTimeout(cacheStatusTimer);
                         updateCloudUI('فشلت مزامنة Firebase');
                         setFirebaseMessage(error.message, true);
                         if (error.code === 'permission-denied') window.firebaseBridge.logout();
@@ -2255,6 +2266,7 @@
         function cloudWrite(promise, successMessage) {
             updateCloudUI('المزامنة قيد التنفيذ');
             return promise.then(() => {
+                clearTimeout(cacheStatusTimer);
                 updateCloudUI('Firebase متصل', true);
                 if (successMessage) showNotice(successMessage);
                 return true;

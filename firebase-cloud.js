@@ -39,7 +39,7 @@ function connect(config, callbacks) {
             callbacks.onProfiles(snapshot.docs.map(item => ({ uid: item.id, ...item.data() })));
         }, callbacks.onError);
         const workspace = doc(database, 'shared', 'workspace');
-        stopListening = onSnapshot(workspace, snapshot => {
+        stopListening = onSnapshot(workspace, { includeMetadataChanges: true }, snapshot => {
             if (!snapshot.exists()) {
                 // A missing cached document does not prove that the server is empty.
                 if (!snapshot.metadata.fromCache) callbacks.onEmpty();
