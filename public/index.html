@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الحضور والورديات والإجازات السحابي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .status-present { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+        .status-rest { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .status-annual { background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+        .status-casual { background-color: #ffedd5; color: #c2410c; border-color: #fdba74; }
+        .status-permission { background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+        .status-mission { background-color: #ccfbf1; color: #0f766e; border-color: #5eead4; }
+        .badge-shift-morning { background-color: #dbeafe; color: #1e40af; }
+        .badge-shift-long { background-color: #fef3c7; color: #b45309; }
+        .badge-shift-evening { background-color: #ede9fe; color: #6d28d9; }
+        .badge-shift-night { background-color: #e2e8f0; color: #334155; }
+        .sticky-col-1 { position: sticky; right: 0; z-index: 20; }
+        .sticky-col-2 { position: sticky; right: 100px; z-index: 20; }
+        .sticky-col-3 { position: sticky; right: 180px; z-index: 20; }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 text-sm">
+    <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
+            <h2 class="font-bold text-lg">جاري تحميل بيانات الحضور</h2>
+            <p class="text-sm text-slate-600">يتم الاتصال بقاعدة البيانات المشتركة.</p>
+            <button onclick="location.reload()" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-bold">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Brand Title -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                        <i class="fa-solid fa-calendar-check text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <h1 class="text-lg font-bold text-slate-900 leading-tight">نظام الورديات والإجازات السحابي</h1>
+                            <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-full">v2.0 Pro</span>
+                        </div>
+                        <p class="text-xs text-slate-500">إدارة الموظفين المتقدمة، توزيع الورديات، الأرصدة والربط السحابي</p>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <!-- Cloud Connection Status -->
+                    <button onclick="openCloudModal()" id="cloudStatusBtn" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg border text-xs font-semibold bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="cloudStatusDot"></span>
+                        <span id="cloudStatusText">جاري الاتصال بـ Firebase</span>
+                        <i class="fa-solid fa-cloud text-slate-400 mr-1"></i>
+                    </button>
+
+                    <button onclick="openRotationMatrixModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-arrows-rotate text-amber-600"></i>
+                        <span>الفرق الأربع</span>
+                    </button>
+
+                    <button onclick="openEmployeesManagerModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-users-gear text-blue-600"></i>
+                        <span>إدارة الموظفين (إضافة / تعديل / حذف)</span>
+                    </button>
+
+                    <button onclick="openBalancesModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-wallet text-indigo-600"></i>
+                        <span>أرصدة الإجازات</span>
+                    </button>
+
+                    <button onclick="exportToExcel()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>تصدير Excel</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Controls & Filter Toolbar -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <!-- Month Selector -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <span class="text-xs font-bold text-slate-500">اختر الفترة:</span>
+                    <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+                        <button onclick="switchMonth('2026-10')" id="btn-2026-10" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">أكتوبر 2026</button>
+                        <button onclick="switchMonth('2026-11')" id="btn-2026-11" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">نوفمبر 2026</button>
+                        <button onclick="switchMonth('2026-12')" id="btn-2026-12" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">ديسمبر 2026</button>
+                    </div>
+                    <input type="month" id="monthPicker" onchange="switchMonth(this.value)" aria-label="اختر شهراً آخر" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
+                </div>
+
+                <!-- Team Selection -->
+                <div class="flex items-center space-x-2 space-x-reverse bg-slate-50 p-1 rounded-lg border border-slate-200">
+                    <span class="text-xs font-bold text-slate-500 px-1">الفريق المعروض:</span>
+                    <button onclick="switchTeam('red')" id="btnTeamRed" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-red-600 text-white shadow-sm" title="اليوم الطويل: يوم 11">
+                        <span class="w-2 h-2 rounded-full bg-white"></span>
+                        <span>الوردية الحمراء (طويل: 11)</span>
+                    </button>
+                    <button onclick="switchTeam('blue')" id="btnTeamBlue" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:text-blue-700" title="اليوم الطويل: يوم 1">
+                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                        <span>الوردية الزرقاء (طويل: 1)</span>
+                    </button>
+                    <button onclick="switchTeam('yellow')" id="btnTeamYellow" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:text-amber-700" title="اليوم الطويل: يوم 21">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span>الوردية الصفراء (طويل: 21)</span>
+                    </button>
+                    <button onclick="switchTeam('morning')" id="btnTeamMorning" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:text-emerald-700" title="صباحية ثابتة طوال الشهر">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span>الفريق الصباحي الثابت</span>
+                    </button>
+                </div>
+
+                <!-- Smart Auto-Fill & Bulk Tools -->
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <button onclick="autoFillMonthShifts()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-amber-100/70 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition" title="توليد وتوزيع ورديات الشهر تلقائياً وفق لون الوردية واليوم الطويل">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+                        <span>توزيع ورديات الشهر تلقائياً</span>
+                    </button>
+                    <button onclick="quickFillPresent()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition" title="ملء الأيام غير المسجلة بحضور">
+                        <i class="fa-solid fa-check-double text-slate-500"></i>
+                        <span>ملء سريع (حضور)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Second Line: Filter & Legend -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+                <!-- Badges Guide -->
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="font-bold text-slate-400">دليل الحالات:</span>
+                    <span class="px-2 py-0.5 rounded status-present border font-semibold">حضور</span>
+                    <span class="px-2 py-0.5 rounded status-rest border font-semibold">راحة</span>
+                    <span class="px-2 py-0.5 rounded status-annual border font-semibold">إعتيادي</span>
+                    <span class="px-2 py-0.5 rounded status-casual border font-semibold">عارضة</span>
+                    <span class="px-2 py-0.5 rounded status-permission border font-semibold">إذن</span>
+                    <span class="px-2 py-0.5 rounded status-mission border font-semibold">مأمورية</span>
+                </div>
+
+                <!-- Quick Filters -->
+                <div class="flex items-center space-x-3 space-x-reverse">
+                    <div class="flex items-center space-x-1.5 space-x-reverse">
+                        <label for="shiftFilter" class="text-xs font-bold text-slate-500">فلتر الوردية:</label>
+                        <select id="shiftFilter" onchange="renderTable()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">جميع الورديات</option>
+                            <option value="الصباحيه">الصباحية</option>
+                            <option value="اليوم الطويل">اليوم الطويل</option>
+                            <option value="المسائيه">المسائية</option>
+                            <option value="الليليه">الليلية</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center space-x-1.5 space-x-reverse">
+                        <label for="searchEmployeeInput" class="text-xs font-bold text-slate-500">بحث موظف:</label>
+                        <input type="text" id="searchEmployeeInput" oninput="renderTable()" placeholder="ابحث بالاسم..." class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly KPI Statistics Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 no-print" id="kpiStatsContainer">
+            <!-- Dynamic stats rendered in JS -->
+        </div>
+
+        <!-- Attendance Grid Section -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <i class="fa-solid fa-table-cells text-slate-400"></i>
+                    <h2 class="font-bold text-slate-800" id="tableTitle">جدول الحضور والورديات</h2>
+                    <span id="activeTeamBadge" class="bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold px-2 py-0.5 rounded-full">الوردية الحمراء (طويل: يوم 11)</span>
+                </div>
+                <div class="text-xs text-slate-500 flex items-center space-x-3 space-x-reverse">
+                    <span>💡 انقر على أي خلية لتغيير الحالة أو تسجيل التأخير والملاحظات</span>
+                    <button onclick="window.print()" class="text-slate-600 hover:text-slate-900 font-bold border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
+                        <i class="fa-solid fa-print"></i> طباعة الجدول
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scrollable Table -->
+            <div class="overflow-x-auto max-h-[620px] overflow-y-auto">
+                <table class="w-full text-right border-collapse" id="attendanceTable">
+                    <thead class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200 sticky top-0 z-30">
+                        <tr id="tableHeaderRow">
+                            <!-- Injected by JS -->
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-xs" id="tableBody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                    <tfoot class="bg-slate-100 font-bold border-t-2 border-slate-300 text-xs sticky bottom-0 z-30" id="tableFooter">
+                        <!-- Injected by JS -->
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================= -->
+    <!-- 1. FULL EMPLOYEE MANAGEMENT MODAL (إدارة الموظفين: إضافة / تعديل / حذف) -->
+    <!-- ============================================================= -->
+    <div id="employeesManagerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-4xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-users-gear"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">دليل وإدارة الموظفين</h3>
+                        <p class="text-xs text-slate-500">إضافة موظف جديد، تعديل البيانات والأرصدة، أو حذف موظف</p>
+                    </div>
+                </div>
+                <button onclick="closeEmployeesManagerModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Employee Form (For Add or Edit) -->
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <div class="flex justify-between items-center">
+                    <h4 class="text-xs font-bold text-slate-800" id="empFormHeading">
+                        <i class="fa-solid fa-user-plus text-blue-600 ml-1"></i> إضافة موظف جديد
+                    </h4>
+                    <button type="button" id="cancelEditEmpBtn" onclick="resetEmployeeForm()" class="hidden text-xs text-red-600 hover:underline">
+                        إلغاء التعديل
+                    </button>
+                </div>
+
+                <input type="hidden" id="formEmpId" value="">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">اسم الموظف: <span class="text-red-500">*</span></label>
+                        <input type="text" id="formEmpName" placeholder="مثال: أحمد نادر" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">الكود / الرقم الوظيفي:</label>
+                        <input type="text" id="formEmpCode" placeholder="مثال: EMP-101" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">الوردية المخصصة:</label>
+                        <select id="formEmpTeam" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="red">🔴 الوردية الحمراء (طويل: 11)</option>
+                            <option value="blue">🔵 الوردية الزرقاء (طويل: 1)</option>
+                            <option value="yellow">🟡 الوردية الصفراء (طويل: 21)</option>
+                            <option value="morning">🟢 الفريق الصباحي الثابت</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">القسم / الإدارة:</label>
+                        <input type="text" id="formEmpDept" value="العمليات والتشغيل" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رصيد الإعتيادي (سنوي):</label>
+                        <input type="number" id="formEmpAnnual" value="21" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">رصيد العارضة (سنوي):</label>
+                        <input type="number" id="formEmpCasual" value="7" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">ساعات الإذن الشهرية:</label>
+                        <input type="number" id="formEmpPermHours" value="4" step="0.5" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="saveEmployeeFromForm()" id="saveEmpBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-sm transition">
+                            <i class="fa-solid fa-plus-circle ml-1"></i> حفظ الموظف
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees List Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">#</th>
+                            <th class="p-3">اسم الموظف</th>
+                            <th class="p-3">الكود</th>
+                            <th class="p-3">الوردية</th>
+                            <th class="p-3 text-center">رصيد إعتيادي</th>
+                            <th class="p-3 text-center">رصيد عارضة</th>
+                            <th class="p-3 text-center">إذن شهري</th>
+                            <th class="p-3 text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesDirectoryTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-100">
+                <button onclick="closeEmployeesManagerModal()" class="px-5 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">
+                    تم / إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- 2. EMPLOYEE MONTHLY REPORT MODAL (تقرير وكشف حساب للموظف للطباعة) -->
+    <!-- ============================================================= -->
+    <div id="employeeReportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900" id="repEmpName">كشف حضور موظف</h3>
+                        <p class="text-xs text-slate-500" id="repMonthInfo">تقرير الشهر</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 space-x-reverse no-print">
+                    <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300">
+                        <i class="fa-solid fa-print ml-1"></i> طباعة التقرير
+                    </button>
+                    <button onclick="closeEmployeeReportModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Report Card Content -->
+            <div class="space-y-4" id="employeeReportContent">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="flex justify-end no-print pt-2 border-t border-slate-100">
+                <button onclick="closeEmployeeReportModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- 3. CELL EDIT MODAL (تعديل الحالة / الإجازات / التأخير) -->
+    <!-- ============================================================= -->
+    <div id="cellEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900" id="modalEmployeeName">تعديل سجل الموظف</h3>
+                    <p class="text-xs text-slate-500" id="modalDateInfo">المعلومات</p>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Status Selection (The core leaves + attendance + mission) -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">الحالة / البيان:</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="selectStatus('حضور')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="حضور">
+                            <i class="fa-solid fa-check-circle text-emerald-600 block mb-1 text-base"></i> حضور
+                        </button>
+                        <button type="button" onclick="selectStatus('راحة')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="راحة">
+                            <i class="fa-solid fa-bed text-slate-500 block mb-1 text-base"></i> راحة
+                        </button>
+                        <button type="button" onclick="selectStatus('إعتيادي')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="إعتيادي">
+                            <i class="fa-solid fa-umbrella-beach text-sky-600 block mb-1 text-base"></i> إعتيادي
+                        </button>
+                        <button type="button" onclick="selectStatus('عارضة')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="عارضة">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600 block mb-1 text-base"></i> عارضة
+                        </button>
+                        <button type="button" onclick="selectStatus('إذن')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="إذن">
+                            <i class="fa-solid fa-clock-rotate-left text-purple-600 block mb-1 text-base"></i> إذن
+                        </button>
+                        <button type="button" onclick="selectStatus('مأمورية')" class="status-btn px-3 py-2 rounded-lg border text-center font-bold text-xs transition" data-status="مأمورية">
+                            <i class="fa-solid fa-briefcase text-teal-600 block mb-1 text-base"></i> مأمورية
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Delay in minutes -->
+                <div>
+                    <label for="modalDelay" class="block text-xs font-bold text-slate-700 mb-1">دقائق التأخير:</label>
+                    <div class="relative">
+                        <input type="number" id="modalDelay" min="0" step="1" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span class="absolute left-3 top-2 text-xs text-slate-400">دقيقة</span>
+                    </div>
+                </div>
+                <div id="permissionMinutesField" class="hidden">
+                    <label for="modalPermissionMinutes" class="block text-xs font-bold text-slate-700 mb-1">مدة الإذن بالدقائق:</label>
+                    <input type="number" id="modalPermissionMinutes" min="0" step="1" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs">
+                </div>
+
+                <!-- Notes / Modifications -->
+                <div>
+                    <label for="modalNotes" class="block text-xs font-bold text-slate-700 mb-1">ملاحظات / تعديل وردية:</label>
+                    <input type="text" id="modalNotes" placeholder="مثال: تعديل الوردية الصفراء، مأمورية خارجية..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 space-x-reverse pt-2 border-t border-slate-100">
+                <button onclick="closeEditModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+                <button onclick="saveCellData()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20">حفظ التغييرات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- 4. ROTATION MATRIX MODAL (4 Teams) -->
+    <!-- ============================================================= -->
+    <div id="rotationMatrixModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">مخطط الفرق الأربع</h3>
+                        <p class="text-xs text-slate-500">ثلاث فرق متناوبة وفريق صباحي ثابت</p>
+                    </div>
+                </div>
+                <button onclick="closeRotationMatrixModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Summary Cards of Long Days -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div class="bg-red-50 border border-red-200 p-3 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-red-800 text-xs flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                            الوردية الحمراء
+                        </span>
+                        <span class="bg-red-200 text-red-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 11</span>
+                    </div>
+                    <p class="text-[11px] text-red-700 mt-1">اليوم الطويل: يوم 11 (تسليم من الصباحية إلى المسائية)</p>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-blue-800 text-xs flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                            الوردية الزرقاء
+                        </span>
+                        <span class="bg-blue-200 text-blue-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 1</span>
+                    </div>
+                    <p class="text-[11px] text-blue-700 mt-1">اليوم الطويل: يوم 1 (تسليم من الصباحية إلى المسائية)</p>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-amber-800 text-xs flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            الوردية الصفراء
+                        </span>
+                        <span class="bg-amber-200 text-amber-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 21</span>
+                    </div>
+                    <p class="text-[11px] text-amber-700 mt-1">اليوم الطويل: يوم 21 (تسليم من الصباحية إلى المسائية)</p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-emerald-800 text-xs">🟢 الفريق الصباحي</span>
+                        <span class="bg-emerald-200 text-emerald-900 text-[11px] font-black px-2 py-0.5 rounded">ثابت</span>
+                    </div>
+                    <p class="text-[11px] text-emerald-700 mt-1">الصباحية طوال الشهر، دون يوم طويل.</p>
+                </div>
+            </div>
+
+            <!-- Master Schedule Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">الفترة خلال الشهر</th>
+                            <th class="p-3 text-center text-red-700 bg-red-50/50">الوردية الحمراء</th>
+                            <th class="p-3 text-center text-blue-700 bg-blue-50/50">الوردية الزرقاء</th>
+                            <th class="p-3 text-center text-amber-700 bg-amber-50/50">الوردية الصفراء</th>
+                            <th class="p-3 text-center text-emerald-700 bg-emerald-50/50">الفريق الصباحي الثابت</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-bold text-slate-800">يوم 1</td>
+                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center bg-blue-100/60 font-black text-blue-900">⭐ اليوم الطويل (تسليم)</td>
+                            <td class="p-2.5 text-center text-slate-600">الليلية</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 bg-slate-50/30">
+                            <td class="p-2.5 font-bold text-slate-800">الأيام (2 إلى 10)</td>
+                            <td class="p-2.5 text-center font-bold text-emerald-700 bg-emerald-50/40">الصباحية</td>
+                            <td class="p-2.5 text-center font-bold text-purple-700 bg-purple-50/40">المسائية</td>
+                            <td class="p-2.5 text-center font-bold text-slate-700 bg-slate-100/60">الليلية</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-bold text-slate-800">يوم 11</td>
+                            <td class="p-2.5 text-center bg-red-100/60 font-black text-red-900">⭐ اليوم الطويل (تسليم)</td>
+                            <td class="p-2.5 text-center text-slate-600">الليلية</td>
+                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 bg-slate-50/30">
+                            <td class="p-2.5 font-bold text-slate-800">الأيام (12 إلى 20)</td>
+                            <td class="p-2.5 text-center font-bold text-purple-700 bg-purple-50/40">المسائية</td>
+                            <td class="p-2.5 text-center font-bold text-slate-700 bg-slate-100/60">الليلية</td>
+                            <td class="p-2.5 text-center font-bold text-emerald-700 bg-emerald-50/40">الصباحية</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50">
+                            <td class="p-2.5 font-bold text-slate-800">يوم 21</td>
+                            <td class="p-2.5 text-center text-slate-600">الليلية</td>
+                            <td class="p-2.5 text-center text-slate-600">الصباحية</td>
+                            <td class="p-2.5 text-center bg-amber-100/60 font-black text-amber-900">⭐ اليوم الطويل (تسليم)</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 bg-slate-50/30">
+                            <td class="p-2.5 font-bold text-slate-800">الأيام (22 إلى نهاية الشهر)</td>
+                            <td class="p-2.5 text-center font-bold text-slate-700 bg-slate-100/60">الليلية</td>
+                            <td class="p-2.5 text-center font-bold text-emerald-700 bg-emerald-50/40">الصباحية</td>
+                            <td class="p-2.5 text-center font-bold text-purple-700 bg-purple-50/40">المسائية</td>
+                            <td class="p-2.5 text-center text-emerald-700 font-bold">الصباحية</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeRotationMatrixModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- 5. LEAVE BALANCES MODAL (سجل أرصدة الإجازات) -->
+    <!-- ============================================================= -->
+    <div id="balancesModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">سجل أرصدة الإجازات السنوية والعارضة</h3>
+                        <p class="text-xs text-slate-500">متابعة المستهلك والمتبقي من رصيد كل موظف بدقة</p>
+                    </div>
+                </div>
+                <button onclick="closeBalancesModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                            <th class="p-2.5">الموظف</th>
+                            <th class="p-2.5 text-center">الوردية</th>
+                            <th class="p-2.5 text-center">رصيد الإعتيادي</th>
+                            <th class="p-2.5 text-center text-red-600">المستهلك (إعتيادي)</th>
+                            <th class="p-2.5 text-center text-emerald-700">المتبقي (إعتيادي)</th>
+                            <th class="p-2.5 text-center">رصيد العارضة</th>
+                            <th class="p-2.5 text-center text-amber-600">المستهلك (عارضة)</th>
+                            <th class="p-2.5 text-center text-amber-700">المتبقي (عارضة)</th>
+                            <th class="p-2.5 text-center">إذن الشهر (مستخدم / متبقٍ)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="balancesTableBody" class="divide-y divide-slate-100">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-blue-50 p-3 rounded-lg border border-blue-100 text-xs text-blue-800 flex items-start space-x-2 space-x-reverse">
+                <i class="fa-solid fa-circle-info mt-0.5"></i>
+                <span>يتم خصم أيام الإعتيادي والعارضة تلقائياً بمجرد إدراجها في جدول الحضور اليومي للموظف. يمكنك تعديل الرصيد السنوي من شاشة "إدارة الموظفين".</span>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeBalancesModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold hover:bg-slate-900">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- 6. CLOUD CONNECTION MODAL (Supabase / Firebase / Local) -->
+    <!-- ============================================================= -->
+    <div id="cloudModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <i class="fa-solid fa-cloud"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">إعدادات قاعدة البيانات السحابية</h3>
+                        <p class="text-xs text-slate-500">مزامنة بيانات الحضور المشتركة عبر Firebase</p>
+                    </div>
+                </div>
+                <button onclick="closeCloudModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Shifts Attendance</strong>. البيانات مشتركة؛ يستطيع كل من يفتح الرابط الاطلاع عليها وتعديلها.</p>
+                <p id="firebaseMessage" role="status" class="text-xs text-slate-600"></p>
+
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <button onclick="downloadBackupJSON()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center space-x-1 space-x-reverse">
+                        <i class="fa-solid fa-download"></i>
+                        <span>تحميل نسخة احتياطية (JSON)</span>
+                    </button>
+                    <label class="cursor-pointer text-xs text-slate-600 hover:text-slate-800 font-semibold flex items-center space-x-1 space-x-reverse">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>استعادة نسخة احتياطية</span>
+                        <input type="file" id="jsonFileInput" onchange="uploadBackupJSON(event)" accept=".json" class="hidden">
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-2 space-x-reverse pt-2 border-t border-slate-100">
+                <button onclick="closeCloudModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+                <a href="https://console.firebase.google.com/project/shifts-attendance-am-2026/overview" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">لوحة Firebase</a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================= -->
+    <!-- APPLICATION JAVASCRIPT ENGINE -->
+    <!-- ============================================================= -->
+    <script>
+        // ==========================================
+        // 1. Initial State & Seed Data
+        // ==========================================
+        const INITIAL_EMPLOYEES = [
+            { id: "emp_1", code: "EMP-01", name: "احمد نادر", team: "red", dept: "تشغيل", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_2", code: "EMP-02", name: "محمد سالم", team: "red", dept: "تشغيل", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_3", code: "EMP-03", name: "العملاق", team: "red", dept: "صيانة", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_4", code: "EMP-04", name: "عزازي", team: "red", dept: "أمن", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
+        ];
+
+        // Seed data for October and November 2026
+        const INITIAL_ATTENDANCE = {
+            "2026-10-02": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-03": { shift: "الصباحيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-04": { shift: "الصباحيه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-05": { shift: "الصباحيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
+            "2026-10-06": { shift: "الصباحيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-07": { shift: "الصباحيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
+            "2026-10-08": { shift: "الصباحيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 5 } } },
+            "2026-10-09": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-10": { shift: "الصباحيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-11": { shift: "اليوم الطويل", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-12": { shift: "المسائيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
+            "2026-10-13": { shift: "المسائيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 5 } } },
+            "2026-10-14": { shift: "المسائيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-15": { shift: "المسائيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 4 }, "emp_2": { status: "حضور", delay: 1 } } },
+            "2026-10-16": { shift: "المسائيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 6 } } },
+            "2026-10-17": { shift: "المسائيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "إذن", delay: 0 } } },
+            "2026-10-18": { shift: "المسائيه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-19": { shift: "المسائيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 5 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-20": { shift: "المسائيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 6 }, "emp_2": { status: "حضور", delay: 6 } } },
+            "2026-10-21": { shift: "الليليه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
+            "2026-10-22": { shift: "الليليه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-23": { shift: "الليليه", day: "الجمعه", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
+            "2026-10-24": { shift: "الليليه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-25": { shift: "الليليه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
+            "2026-10-26": { shift: "الليليه", day: "الاثنين", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-27": { shift: "الليليه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 3 } } },
+            "2026-10-28": { shift: "الليليه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 2 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-29": { shift: "الليليه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
+            "2026-10-30": { shift: "الليليه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
+            "2026-10-31": { shift: "الليليه", day: "السبت", records: { "emp_1": { status: "", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
+
+            // November 2026
+            "2026-11-02": { shift: "الصباحيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 }, "emp_3": { status: "راحة", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
+            "2026-11-03": { shift: "الصباحيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0, notes: "تعديل الوردية الصفراء" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
+            "2026-11-04": { shift: "الصباحيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0, notes: "تعديل الوردية الصفراء" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
+            "2026-11-05": { shift: "الصباحيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0, notes: "مأمورية" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
+            "2026-11-06": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "", delay: 0 }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
+            "2026-11-07": { shift: "الصباحيه", day: "السبت", records: {} },
+            "2026-11-08": { shift: "الصباحيه", day: "الاحد", records: {} },
+            "2026-11-09": { shift: "الصباحيه", day: "الاثنين", records: {} },
+            "2026-11-10": { shift: "الصباحيه", day: "الثلاثاء", records: {} },
+            "2026-11-11": { shift: "اليوم الطويل", day: "الأربعاء", records: {} },
+            "2026-11-12": { shift: "المسائيه", day: "الخميس", records: { "emp_2": { status: "راحة", delay: 0 } } },
+            "2026-11-13": { shift: "المسائيه", day: "الجمعه", records: {} },
+            "2026-11-14": { shift: "المسائيه", day: "السبت", records: {} },
+            "2026-11-15": { shift: "المسائيه", day: "الاحد", records: {} },
+            "2026-11-16": { shift: "المسائيه", day: "الاثنين", records: {} },
+            "2026-11-17": { shift: "المسائيه", day: "الثلاثاء", records: {} },
+            "2026-11-18": { shift: "المسائيه", day: "الأربعاء", records: {} },
+            "2026-11-19": { shift: "المسائيه", day: "الخميس", records: {} },
+            "2026-11-20": { shift: "المسائيه", day: "الجمعه", records: {} },
+            "2026-11-21": { shift: "الليليه", day: "السبت", records: {} },
+            "2026-11-22": { shift: "الليليه", day: "الاحد", records: {} },
+            "2026-11-23": { shift: "الليليه", day: "الاثنين", records: {} },
+            "2026-11-24": { shift: "الليليه", day: "الثلاثاء", records: {} },
+            "2026-11-25": { shift: "الليليه", day: "الأربعاء", records: {} },
+            "2026-11-26": { shift: "الليليه", day: "الخميس", records: {} },
+            "2026-11-27": { shift: "الليليه", day: "الجمعه", records: {} },
+            "2026-11-28": { shift: "الليليه", day: "السبت", records: {} },
+            "2026-11-29": { shift: "الليليه", day: "الاحد", records: {} },
+            "2026-11-30": { shift: "الليليه", day: "الاثنين", records: {} },
+            "2026-12-01": { shift: "الليليه", day: "الثلاثاء", records: {} }
+        };
+
+        // Application State
+        let employees = JSON.parse(localStorage.getItem('app_employees_v2')) || INITIAL_EMPLOYEES;
+        let attendanceData = JSON.parse(localStorage.getItem('app_attendance_v2')) || INITIAL_ATTENDANCE;
+        function localDateKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+        let currentMonth = localDateKey().slice(0, 7);
+        let activeTeam = "red"; // Red, blue and yellow rotate; morning is fixed.
+        let editingCell = null;
+        let firebaseUser = null;
+        let applyingCloudData = false;
+        let firebaseReady = false;
+        let firebaseConnected = false;
+        const FIREBASE_CONFIG = {
+            apiKey: 'AIzaSyAJZjmcx7fBS236CdHdcFMT_EwZ8G19Ipc',
+            authDomain: 'shifts-attendance-am-2026.firebaseapp.com',
+            projectId: 'shifts-attendance-am-2026',
+            appId: '1:955779831664:web:889525f217e158b3b221b5',
+            messagingSenderId: '955779831664',
+            storageBucket: 'shifts-attendance-am-2026.firebasestorage.app'
+        };
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        }
+
+        function isValidWorkspace(data) {
+            if (!data || !Array.isArray(data.employees) || !data.attendanceData ||
+                typeof data.attendanceData !== 'object' || Array.isArray(data.attendanceData)) return false;
+            if (!data.employees.every(emp => emp && /^[A-Za-z0-9_-]+$/.test(emp.id) &&
+                !['__proto__', 'constructor', 'prototype'].includes(emp.id) &&
+                typeof emp.name === 'string' && typeof (emp.code ?? '') === 'string' &&
+                ['red', 'blue', 'yellow', 'morning'].includes(emp.team || 'red') &&
+                ['annual_balance', 'casual_balance', 'perm_hours'].every(key =>
+                    emp[key] == null || (typeof emp[key] === 'number' && Number.isFinite(emp[key]) && emp[key] >= 0)))) return false;
+            return Object.entries(data.attendanceData).every(([date, day]) =>
+                /^\d{4}-\d{2}-\d{2}$/.test(date) && day && typeof day === 'object' &&
+                (!day.records || (typeof day.records === 'object' && !Array.isArray(day.records) &&
+                    Object.values(day.records).every(rec => rec && typeof rec === 'object' &&
+                        typeof (rec.status ?? '') === 'string' && typeof (rec.notes ?? '') === 'string' &&
+                        Number.isFinite(Number(rec.delay ?? 0)) && Number.isFinite(Number(rec.permissionMinutes ?? 0))))));
+        }
+
+        const ARABIC_DAYS = ['الاحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعه', 'السبت'];
+
+        // ==========================================
+        // 2. Shift Rotation & Calculation Engine
+        // ==========================================
+        // Returns the shift for a dayOfMonth (1..31) based on active team color:
+        // - Red (الحمراء): 1-10 الصباحيه | 11 اليوم الطويل | 12-20 المسائيه | 21-31 الليليه
+        // - Blue (الزرقاء): 1 اليوم الطويل | 2-10 المسائيه | 11-20 الليليه | 21-31 الصباحيه
+        // - Yellow (الصفراء): 1-10 الليليه | 11-20 الصباحيه | 21 اليوم الطويل | 22-31 المسائيه
+        // - Morning (الصباحية الثابتة): الصباحية في كل أيام الشهر
+        function calculateShiftForDate(dayNum, team) {
+            if (team === 'morning') return 'الصباحيه';
+            if (team === 'red') {
+                if (dayNum === 11) return 'اليوم الطويل';
+                if (dayNum >= 1 && dayNum <= 10) return 'الصباحيه';
+                if (dayNum >= 12 && dayNum <= 20) return 'المسائيه';
+                return 'الليليه';
+            } else if (team === 'blue') {
+                if (dayNum === 1) return 'اليوم الطويل';
+                if (dayNum >= 2 && dayNum <= 10) return 'المسائيه';
+                if (dayNum >= 11 && dayNum <= 20) return 'الليليه';
+                return 'الصباحيه';
+            } else if (team === 'yellow') {
+                if (dayNum === 21) return 'اليوم الطويل';
+                if (dayNum >= 1 && dayNum <= 10) return 'الليليه';
+                if (dayNum >= 11 && dayNum <= 20) return 'الصباحيه';
+                return 'المسائيه';
+            }
+            return 'الصباحيه';
+        }
+
+        function switchTeam(team) {
+            activeTeam = team;
+            // Update UI buttons
+            document.querySelectorAll('.team-tab-btn').forEach(btn => {
+                btn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:bg-slate-200/50";
+            });
+
+            const teamButtons = { red: 'btnTeamRed', blue: 'btnTeamBlue', yellow: 'btnTeamYellow', morning: 'btnTeamMorning' };
+            const activeBtn = document.getElementById(teamButtons[team]);
+            if (!activeBtn) return;
+            const badge = document.getElementById('activeTeamBadge');
+
+            if (team === 'red') {
+                activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-red-600 text-white shadow-sm";
+                badge.className = "bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.innerText = "الوردية الحمراء (اليوم الطويل: يوم 11)";
+            } else if (team === 'blue') {
+                activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-blue-600 text-white shadow-sm";
+                badge.className = "bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.innerText = "الوردية الزرقاء (اليوم الطويل: يوم 1)";
+            } else if (team === 'yellow') {
+                activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-amber-500 text-white shadow-sm";
+                badge.className = "bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.innerText = "الوردية الصفراء (اليوم الطويل: يوم 21)";
+            } else if (team === 'morning') {
+                activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-emerald-600 text-white shadow-sm";
+                badge.className = "bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.innerText = "الفريق الصباحي الثابت";
+            }
+
+            renderTable();
+        }
+
+        function autoFillMonthShifts() {
+            if (!confirm(`هل تريد تطبيق نظام الورديات التلقائي لشهر ${currentMonth} وفق نمط الوردية المعتمدة؟`)) return;
+
+            const [yearStr, monthStr] = currentMonth.split('-');
+            const year = parseInt(yearStr);
+            const month = parseInt(monthStr);
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const changedDays = [];
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = d < 10 ? `0${d}` : `${d}`;
+                const dateKey = `${yearStr}-${monthStr}-${dayStr}`;
+                const dateObj = new Date(year, month - 1, d);
+                const dayName = ARABIC_DAYS[dateObj.getDay()];
+                const shiftName = calculateShiftForDate(d, activeTeam);
+
+                if (!attendanceData[dateKey]) {
+                    attendanceData[dateKey] = { shift: shiftName, day: dayName, records: {} };
+                } else {
+                    attendanceData[dateKey].shift = shiftName;
+                    attendanceData[dateKey].day = dayName;
+                }
+                changedDays.push({ date: dateKey, day: dayName, shift: shiftName });
+            }
+
+            saveToStorage();
+            renderTable();
+            cloudWrite(window.firebaseBridge.saveDays(changedDays));
+            alert("تم توزيع الورديات وتعيين اليوم الطويل بنجاح!");
+        }
+
+        function quickFillPresent() {
+            if (!confirm("هل تريد تعيين الأيام غير المسجلة حتى اليوم إلى (حضور) لجميع الموظفين؟")) return;
+
+            const dates = Object.keys(attendanceData).filter(d => d.startsWith(currentMonth) && d <= localDateKey());
+            const changes = [];
+            dates.forEach(d => {
+                if (!attendanceData[d].records) attendanceData[d].records = {};
+                employees.forEach(emp => {
+                    if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
+                        attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
+                        changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
+                            employeeId: emp.id, record: attendanceData[d].records[emp.id] });
+                    }
+                });
+            });
+
+            saveToStorage();
+            renderTable();
+            cloudWrite(window.firebaseBridge.saveRecords(changes));
+        }
+
+        // ==========================================
+        // 3. Render Table & KPI UI
+        // ==========================================
+        function switchMonth(m) {
+            currentMonth = m;
+            document.getElementById('monthPicker').value = m;
+            document.querySelectorAll('.month-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+            const activeBtn = document.getElementById(`btn-${m}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-blue-700', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600');
+            }
+
+            const monthNames = { '2026-10': 'أكتوبر 2026', '2026-11': 'نوفمبر 2026', '2026-12': 'ديسمبر 2026' };
+            document.getElementById('tableTitle').innerText = `جدول الحضور والورديات - ${monthNames[m] || m}`;
+            
+            // Ensure month dates exist
+            ensureMonthDates(m);
+            renderTable();
+        }
+
+        function ensureMonthDates(monthPrefix) {
+            const [y, m] = monthPrefix.split('-').map(Number);
+            const daysInMonth = new Date(y, m, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = d < 10 ? `0${d}` : `${d}`;
+                const key = `${monthPrefix}-${dayStr}`;
+                if (!attendanceData[key]) {
+                    const dateObj = new Date(y, m - 1, d);
+                    const shiftName = calculateShiftForDate(d, activeTeam);
+                    attendanceData[key] = {
+                        shift: shiftName,
+                        day: ARABIC_DAYS[dateObj.getDay()],
+                        records: {}
+                    };
+                }
+            }
+        }
+
+        function getShiftBadgeClass(shift) {
+            if (!shift) return 'bg-slate-100 text-slate-600';
+            if (shift.includes('الصباح')) return 'badge-shift-morning';
+            if (shift.includes('الطويل')) return 'badge-shift-long';
+            if (shift.includes('المسائ')) return 'badge-shift-evening';
+            if (shift.includes('الليل')) return 'badge-shift-night';
+            return 'bg-slate-100 text-slate-600';
+        }
+
+        function getStatusBadge(status) {
+            if (!status || status === '') return '<span class="text-slate-300">-</span>';
+            const clean = status.trim();
+            if (clean === 'حضور') return '<span class="status-present px-2 py-0.5 rounded text-[11px] font-bold border">حضور</span>';
+            if (clean === 'راحة') return '<span class="status-rest px-2 py-0.5 rounded text-[11px] font-bold border">راحة</span>';
+            if (clean === 'إعتيادي') return '<span class="status-annual px-2 py-0.5 rounded text-[11px] font-bold border">إعتيادي</span>';
+            if (clean === 'عارضة') return '<span class="status-casual px-2 py-0.5 rounded text-[11px] font-bold border">عارضة</span>';
+            if (clean === 'إذن') return '<span class="status-permission px-2 py-0.5 rounded text-[11px] font-bold border">إذن</span>';
+            if (clean === 'مأمورية') return '<span class="status-mission px-2 py-0.5 rounded text-[11px] font-bold border">مأمورية</span>';
+            return `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold border">${escapeHTML(clean)}</span>`;
+        }
+
+        function renderTable() {
+            if (!firebaseUser) {
+                document.getElementById('tableHeaderRow').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = '';
+                document.getElementById('tableFooter').innerHTML = '';
+                document.getElementById('kpiStatsContainer').innerHTML = '';
+                return;
+            }
+            const shiftFilter = document.getElementById('shiftFilter').value;
+            const searchTerm = (document.getElementById('searchEmployeeInput').value || '').trim().toLowerCase();
+            const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
+            
+            // Filter employees by search
+            const filteredEmployees = employees.filter(emp => 
+                emp.name.toLowerCase().includes(searchTerm) || (emp.code && emp.code.toLowerCase().includes(searchTerm))
+            );
+
+            // 1. Build Header
+            const headerRow = document.getElementById('tableHeaderRow');
+            let headerHTML = `
+                <th class="p-3 text-right bg-slate-100 sticky-col-1 w-24">التاريخ</th>
+                <th class="p-3 text-right bg-slate-100 sticky-col-2 w-20">اليوم</th>
+                <th class="p-3 text-right bg-slate-100 sticky-col-3 w-28">وردية الفريق المعروض</th>
+            `;
+            filteredEmployees.forEach(emp => {
+                const teamIcon = ({ blue: '🔵', yellow: '🟡', morning: '🟢' })[emp.team] || '🔴';
+                headerHTML += `
+                    <th colspan="2" class="p-2.5 text-center border-r border-slate-200">
+                        <div class="flex items-center justify-center space-x-1.5 space-x-reverse font-bold text-slate-900">
+                            <span>${teamIcon}</span>
+                            <span>${escapeHTML(emp.name)}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-slate-400 font-normal mt-1 px-2">
+                            <span>البيان</span>
+                            <span>التأخير</span>
+                        </div>
+                    </th>
+                `;
+            });
+            headerRow.innerHTML = headerHTML;
+
+            // 2. Build Rows & Accumulate Totals
+            const tbody = document.getElementById('tableBody');
+            let bodyHTML = '';
+            
+            const totals = {};
+            filteredEmployees.forEach(emp => {
+                totals[emp.id] = { present: 0, rest: 0, annual: 0, casual: 0, permission: 0, mission: 0, delay: 0 };
+            });
+
+            dates.forEach(date => {
+                const dayData = attendanceData[date];
+                const displayedShift = calculateShiftForDate(Number(date.slice(-2)), activeTeam);
+                if (shiftFilter !== 'all' && displayedShift !== shiftFilter) return;
+
+                const isToday = date === localDateKey();
+                const isLongDay = displayedShift === "اليوم الطويل";
+                const rowClass = isLongDay ? "bg-amber-50/70 font-semibold" : (isToday ? "bg-blue-50/50" : "hover:bg-slate-50");
+
+                bodyHTML += `
+                    <tr class="${rowClass} transition">
+                        <td class="p-2.5 font-mono text-slate-600 sticky-col-1 bg-inherit">
+                            ${date}
+                            ${isToday ? '<span class="text-[9px] bg-blue-600 text-white px-1 rounded mr-1">اليوم</span>' : ''}
+                        </td>
+                        <td class="p-2.5 text-slate-700 sticky-col-2 bg-inherit">${escapeHTML(dayData.day)}</td>
+                        <td class="p-2.5 sticky-col-3 bg-inherit">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${getShiftBadgeClass(displayedShift)} flex items-center gap-1 w-max">
+                                ${isLongDay ? '<i class="fa-solid fa-star text-amber-500"></i>' : ''}
+                                ${escapeHTML(displayedShift)}
+                            </span>
+                        </td>
+                `;
+
+                filteredEmployees.forEach(emp => {
+                    const rec = (dayData.records && dayData.records[emp.id]) || { status: "", delay: 0, notes: "" };
+                    const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red');
+                    
+                    const st = (rec.status || "").trim();
+                    if (st === 'حضور') totals[emp.id].present++;
+                    else if (st === 'راحة') totals[emp.id].rest++;
+                    else if (st === 'إعتيادي') totals[emp.id].annual++;
+                    else if (st === 'عارضة') totals[emp.id].casual++;
+                    else if (st === 'إذن') totals[emp.id].permission++;
+                    else if (st === 'مأمورية') totals[emp.id].mission++;
+
+                    const delayNum = parseInt(rec.delay) || 0;
+                    totals[emp.id].delay += delayNum;
+
+                    const delayBadge = delayNum > 0 
+                        ? `<span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-[11px]">${delayNum} د</span>` 
+                        : (rec.status ? '<span class="text-slate-400">0</span>' : '-');
+
+                    bodyHTML += `
+                        <td onclick="openEditModal('${date}', '${emp.id}')" class="p-2 text-center border-r border-slate-200 cursor-pointer hover:bg-blue-50/80 transition" title="${escapeHTML(rec.notes || 'انقر لتعديل الحالة')}">
+                            <div class="flex items-center justify-center space-x-1 space-x-reverse">
+                                ${getStatusBadge(rec.status)}
+                                ${rec.notes ? '<i class="fa-solid fa-comment-dots text-slate-400 text-[10px]" title="'+escapeHTML(rec.notes)+'"></i>' : ''}
+                            </div>
+                            <span class="text-[9px] text-slate-500">${escapeHTML(employeeShift)}</span>
+                        </td>
+                        <td onclick="openEditModal('${date}', '${emp.id}')" class="p-2 text-center cursor-pointer hover:bg-blue-50/80 transition">
+                            ${delayBadge}
+                        </td>
+                    `;
+                });
+
+                bodyHTML += `</tr>`;
+            });
+
+            tbody.innerHTML = bodyHTML;
+
+            // 3. Build Footer Totals
+            const footer = document.getElementById('tableFooter');
+            let footerHTML = `
+                <tr>
+                    <td colspan="3" class="p-3 text-slate-800 font-bold text-center bg-slate-200">
+                        إجمالي الشهر
+                    </td>
+            `;
+
+            filteredEmployees.forEach(emp => {
+                const t = totals[emp.id];
+                footerHTML += `
+                    <td class="p-3 text-center border-r border-slate-200 bg-slate-100">
+                        <div class="text-[11px] space-y-0.5">
+                            <div>حضور: <span class="font-bold text-emerald-700">${t.present}</span> | راحة: <span class="font-bold text-slate-700">${t.rest}</span></div>
+                            <div class="text-[10px] text-slate-500">إعتيادي: ${t.annual} | عارضة: ${t.casual} | إذن: ${t.permission}</div>
+                        </div>
+                    </td>
+                    <td class="p-3 text-center bg-slate-100">
+                        <span class="text-xs font-extrabold text-red-600 block">${t.delay} د</span>
+                        <span class="text-[9px] text-slate-400 block">${(t.delay/60).toFixed(1)} س</span>
+                    </td>
+                `;
+            });
+            footerHTML += `</tr>`;
+            footer.innerHTML = footerHTML;
+
+            renderKPICards(totals);
+        }
+
+        function renderKPICards(totals) {
+            let totalPres = 0, totalRest = 0, totalAnnual = 0, totalCasual = 0, totalPerm = 0, totalDel = 0;
+            Object.values(totals).forEach(t => {
+                totalPres += t.present;
+                totalRest += t.rest;
+                totalAnnual += t.annual;
+                totalCasual += t.casual;
+                totalPerm += t.permission;
+                totalDel += t.delay;
+            });
+
+            const kpis = [
+                { label: "أيام الحضور", value: totalPres, icon: "fa-solid fa-user-check", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+                { label: "أيام الراحة", value: totalRest, icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
+                { label: "إجازات إعتيادي", value: totalAnnual, icon: "fa-solid fa-umbrella-beach", color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
+                { label: "إجازات عارضة", value: totalCasual, icon: "fa-solid fa-triangle-exclamation", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+                { label: "أذونات العمل", value: totalPerm, icon: "fa-solid fa-clock-rotate-left", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200" },
+                { label: "إجمالي التأخير", value: `${totalDel} دقيقة`, sub: `${(totalDel/60).toFixed(1)} ساعة`, icon: "fa-solid fa-stopwatch", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+            ];
+
+            const container = document.getElementById('kpiStatsContainer');
+            container.innerHTML = kpis.map(k => `
+                <div class="bg-white p-3.5 rounded-xl border ${k.border} shadow-sm flex items-center space-x-3 space-x-reverse">
+                    <div class="w-10 h-10 rounded-lg ${k.bg} ${k.color} flex items-center justify-center text-lg flex-shrink-0">
+                        <i class="${k.icon}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[11px] text-slate-500 block leading-tight">${k.label}</span>
+                        <span class="text-base font-bold text-slate-900 block">${k.value}</span>
+                        ${k.sub ? `<span class="text-[10px] text-slate-400 block">${k.sub}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // 4. ADVANCED EMPLOYEE CRUD MANAGEMENT
+        // ==========================================
+        function openEmployeesManagerModal() {
+            renderEmployeesDirectory();
+            document.getElementById('employeesManagerModal').classList.remove('hidden');
+        }
+
+        function closeEmployeesManagerModal() {
+            document.getElementById('employeesManagerModal').classList.add('hidden');
+            resetEmployeeForm();
+        }
+
+        function renderEmployeesDirectory() {
+            const tbody = document.getElementById('employeesDirectoryTableBody');
+            let html = '';
+
+            employees.forEach((emp, index) => {
+                const teamBadge = {
+                    blue: '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">الزرقاء (طويل 1)</span>',
+                    yellow: '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">الصفراء (طويل 21)</span>',
+                    morning: '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">الصباحية الثابتة</span>'
+                }[emp.team] || '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-[10px] font-bold">الحمراء (طويل 11)</span>';
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-400 font-mono">${index + 1}</td>
+                        <td class="p-3 font-bold text-slate-800">${escapeHTML(emp.name)}</td>
+                        <td class="p-3 font-mono text-slate-500">${escapeHTML(emp.code || '-')}</td>
+                        <td class="p-3">${teamBadge}</td>
+                        <td class="p-3 text-center font-bold text-sky-700">${emp.annual_balance ?? 21} يوم</td>
+                        <td class="p-3 text-center font-bold text-amber-700">${emp.casual_balance ?? 7} أيام</td>
+                        <td class="p-3 text-center font-mono">${emp.perm_hours ?? 4} س</td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center space-x-2 space-x-reverse">
+                                <button onclick="editEmployee('${emp.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs" title="تعديل بيانات الموظف">
+                                    <i class="fa-solid fa-pen-to-square"></i> تعديل
+                                </button>
+                                <button onclick="openEmployeeReport('${emp.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold text-xs" title="كشف حضور الموظف">
+                                    <i class="fa-solid fa-file-invoice"></i> كشف
+                                </button>
+                                <button onclick="deleteEmployee('${emp.id}')" class="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs" title="حذف الموظف">
+                                    <i class="fa-solid fa-trash-can"></i> حذف
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function editEmployee(empId) {
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            document.getElementById('formEmpId').value = emp.id;
+            document.getElementById('formEmpName').value = emp.name;
+            document.getElementById('formEmpCode').value = emp.code || '';
+            document.getElementById('formEmpTeam').value = emp.team || 'red';
+            document.getElementById('formEmpDept').value = emp.dept || 'العمليات';
+            document.getElementById('formEmpAnnual').value = emp.annual_balance ?? 21;
+            document.getElementById('formEmpCasual').value = emp.casual_balance ?? 7;
+            document.getElementById('formEmpPermHours').value = emp.perm_hours ?? 4;
+
+            document.getElementById('empFormHeading').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600 ml-1"></i> تعديل بيانات: ${escapeHTML(emp.name)}`;
+            document.getElementById('saveEmpBtn').innerHTML = `<i class="fa-solid fa-check ml-1"></i> حفظ التعديلات`;
+            document.getElementById('saveEmpBtn').className = "w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-lg shadow-sm transition";
+            document.getElementById('cancelEditEmpBtn').classList.remove('hidden');
+        }
+
+        function resetEmployeeForm() {
+            document.getElementById('formEmpId').value = '';
+            document.getElementById('formEmpName').value = '';
+            document.getElementById('formEmpCode').value = '';
+            document.getElementById('formEmpTeam').value = 'red';
+            document.getElementById('formEmpDept').value = 'العمليات والتشغيل';
+            document.getElementById('formEmpAnnual').value = '21';
+            document.getElementById('formEmpCasual').value = '7';
+            document.getElementById('formEmpPermHours').value = '4';
+
+            document.getElementById('empFormHeading').innerHTML = `<i class="fa-solid fa-user-plus text-blue-600 ml-1"></i> إضافة موظف جديد`;
+            document.getElementById('saveEmpBtn').innerHTML = `<i class="fa-solid fa-plus-circle ml-1"></i> حفظ الموظف`;
+            document.getElementById('saveEmpBtn').className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-sm transition";
+            document.getElementById('cancelEditEmpBtn').classList.add('hidden');
+        }
+
+        function saveEmployeeFromForm() {
+            const id = document.getElementById('formEmpId').value.trim();
+            const name = document.getElementById('formEmpName').value.trim();
+            const code = document.getElementById('formEmpCode').value.trim();
+            const team = document.getElementById('formEmpTeam').value;
+            const dept = document.getElementById('formEmpDept').value.trim();
+            const annual = Number(document.getElementById('formEmpAnnual').value);
+            const casual = Number(document.getElementById('formEmpCasual').value);
+            const perm = Number(document.getElementById('formEmpPermHours').value);
+
+            if (!name) {
+                alert("يرجى إدخال اسم الموظف!");
+                return;
+            }
+            if (![annual, casual, perm].every(value => Number.isFinite(value) && value >= 0)) {
+                alert('أدخل أرصدة صحيحة لا تقل عن صفر.');
+                return;
+            }
+
+            if (id) {
+                // Update existing
+                const index = employees.findIndex(e => e.id === id);
+                if (index !== -1) {
+                    employees[index] = { ...employees[index], name, code, team, dept, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                }
+            } else {
+                // Add new
+                const newId = `emp_${Date.now()}`;
+                employees.push({ id: newId, name, code, team, dept, annual_balance: annual, casual_balance: casual, perm_hours: perm });
+            }
+
+            saveToStorage();
+            renderEmployeesDirectory();
+            resetEmployeeForm();
+            renderTable();
+            cloudWrite(window.firebaseBridge.saveEmployees(employees));
+        }
+
+        function deleteEmployee(empId) {
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            if (!confirm(`هل أنت متأكد تماماً من حذف الموظف (${emp.name}) من النظام؟`)) return;
+
+            // Remove from employee array
+            employees = employees.filter(e => e.id !== empId);
+
+            // Clean records
+            const affectedDates = [];
+            Object.entries(attendanceData).forEach(([date, day]) => {
+                if (day.records && day.records[empId]) {
+                    delete day.records[empId];
+                    affectedDates.push(date);
+                }
+            });
+
+            saveToStorage();
+            renderEmployeesDirectory();
+            renderTable();
+            cloudWrite(window.firebaseBridge.deleteEmployeeRecords(employees, empId, affectedDates));
+        }
+
+        // ==========================================
+        // 5. EMPLOYEE MONTHLY REPORT CARD
+        // ==========================================
+        function openEmployeeReport(empId) {
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+
+            document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
+            document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.dept || 'العمليات'}`;
+
+            // Calculate stats for current month
+            let pres = 0, rest = 0, annual = 0, casual = 0, perm = 0, delay = 0;
+            const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
+            const detailRows = [];
+            let annualUsedThisYear = 0, casualUsedThisYear = 0;
+            Object.entries(attendanceData).forEach(([date, day]) => {
+                if (!date.startsWith(currentMonth.slice(0, 4) + '-') || date > localDateKey()) return;
+                const status = day.records?.[empId]?.status;
+                if (status === 'إعتيادي') annualUsedThisYear++;
+                if (status === 'عارضة') casualUsedThisYear++;
+            });
+
+            dates.forEach(d => {
+                const day = attendanceData[d];
+                const rec = (day.records && day.records[empId]) || {};
+                const st = (rec.status || "").trim();
+                const del = parseInt(rec.delay) || 0;
+
+                if (st === 'حضور') pres++;
+                else if (st === 'راحة') rest++;
+                else if (st === 'إعتيادي') annual++;
+                else if (st === 'عارضة') casual++;
+                else if (st === 'إذن') perm++;
+                delay += del;
+
+                if (st || del > 0 || rec.notes) {
+                    detailRows.push({ date: d, day: day.day, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'), status: st || '-', delay: del, notes: rec.notes || '' });
+                }
+            });
+
+            const content = document.getElementById('employeeReportContent');
+            content.innerHTML = `
+                <!-- Summary Metrics -->
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+                    <div class="bg-emerald-50 border border-emerald-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-emerald-700 block">الحضور</span>
+                        <span class="text-sm font-black text-emerald-900">${pres} يوم</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-slate-600 block">الراحات</span>
+                        <span class="text-sm font-black text-slate-900">${rest} يوم</span>
+                    </div>
+                    <div class="bg-sky-50 border border-sky-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-sky-700 block">إعتيادي</span>
+                        <span class="text-sm font-black text-sky-900">${annual} يوم</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-amber-700 block">عارضة</span>
+                        <span class="text-sm font-black text-amber-900">${casual} يوم</span>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-purple-700 block">أذونات</span>
+                        <span class="text-sm font-black text-purple-900">${perm}</span>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-red-700 block">تأخير</span>
+                        <span class="text-sm font-black text-red-900">${delay} دقيقة</span>
+                    </div>
+                </div>
+
+                <!-- Leaves Balance Status -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-around">
+                    <div>رصيد الإعتيادي المتبقي هذا العام: <span class="font-bold text-emerald-700">${(emp.annual_balance ?? 21) - annualUsedThisYear} يوم</span></div>
+                    <div>رصيد العارضة المتبقي هذا العام: <span class="font-bold text-amber-700">${(emp.casual_balance ?? 7) - casualUsedThisYear} أيام</span></div>
+                    <div>ساعات التأخير: <span class="font-bold text-red-700">${(delay/60).toFixed(1)} ساعة</span></div>
+                </div>
+
+                <!-- Breakdown Table -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-100 border-b border-slate-200 font-bold">
+                            <tr>
+                                <th class="p-2">التاريخ</th>
+                                <th class="p-2">اليوم</th>
+                                <th class="p-2">الوردية</th>
+                                <th class="p-2 text-center">البيان</th>
+                                <th class="p-2 text-center">التأخير</th>
+                                <th class="p-2">ملاحظات</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${detailRows.map(r => `
+                                <tr>
+                                    <td class="p-2 font-mono">${r.date}</td>
+                                    <td class="p-2">${escapeHTML(r.day)}</td>
+                                    <td class="p-2">${escapeHTML(r.shift)}</td>
+                                    <td class="p-2 text-center">${getStatusBadge(r.status)}</td>
+                                    <td class="p-2 text-center font-bold ${r.delay > 0 ? 'text-red-600' : 'text-slate-400'}">${r.delay} د</td>
+                                    <td class="p-2 text-slate-500">${escapeHTML(r.notes || '-')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Signatures (Visible on Print) -->
+                <div class="pt-6 grid grid-cols-2 text-center text-xs font-bold text-slate-700">
+                    <div>توقيع المشرف / مدير الوردية: ..........................</div>
+                    <div>توقيع الموظف بالعلم: ..........................</div>
+                </div>
+            `;
+
+            document.getElementById('employeeReportModal').classList.remove('hidden');
+        }
+
+        function closeEmployeeReportModal() {
+            document.getElementById('employeeReportModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 6. CELL EDIT HANDLERS
+        // ==========================================
+        let selectedModalStatus = "";
+
+        function openEditModal(date, empId) {
+            editingCell = { date, empId };
+            const emp = employees.find(e => e.id === empId);
+            const dayData = attendanceData[date] || {};
+            const rec = (dayData.records && dayData.records[empId]) || { status: "", delay: 0, notes: "" };
+
+            document.getElementById('modalEmployeeName').innerText = `تعديل: ${emp ? emp.name : ''}`;
+            const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp?.team || 'red');
+            document.getElementById('modalDateInfo').innerText = `${dayData.day || ''}، ${date} - الوردية: ${employeeShift}`;
+            
+            selectedModalStatus = rec.status || "حضور";
+            updateStatusButtonsUI();
+
+            document.getElementById('modalDelay').value = rec.delay ?? 0;
+            document.getElementById('modalPermissionMinutes').value = rec.permissionMinutes ?? 0;
+            document.getElementById('modalNotes').value = rec.notes || "";
+
+            document.getElementById('cellEditModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('cellEditModal').classList.add('hidden');
+            editingCell = null;
+        }
+
+        function selectStatus(status) {
+            selectedModalStatus = status;
+            updateStatusButtonsUI();
+            if (status === 'راحة' || status === 'إعتيادي' || status === 'عارضة') {
+                document.getElementById('modalDelay').value = 0;
+            }
+            document.getElementById('permissionMinutesField').classList.toggle('hidden', status !== 'إذن');
+        }
+
+        function updateStatusButtonsUI() {
+            document.getElementById('permissionMinutesField').classList.toggle('hidden', selectedModalStatus !== 'إذن');
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                const s = btn.getAttribute('data-status');
+                if (s === selectedModalStatus) {
+                    btn.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50/50', 'border-blue-400');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50/50', 'border-blue-400');
+                }
+            });
+        }
+
+        function saveCellData() {
+            if (!editingCell) return;
+            const { date, empId } = editingCell;
+
+            if (!attendanceData[date]) {
+                attendanceData[date] = { shift: "الصباحيه", day: "", records: {} };
+            }
+            if (!attendanceData[date].records) {
+                attendanceData[date].records = {};
+            }
+
+            const delayVal = Math.max(0, parseInt(document.getElementById('modalDelay').value, 10) || 0);
+            const permissionMinutes = selectedModalStatus === 'إذن'
+                ? Math.max(0, parseInt(document.getElementById('modalPermissionMinutes').value, 10) || 0) : 0;
+            const notesVal = document.getElementById('modalNotes').value.trim();
+
+            attendanceData[date].records[empId] = {
+                status: selectedModalStatus,
+                delay: delayVal,
+                permissionMinutes,
+                notes: notesVal
+            };
+
+            saveToStorage();
+            closeEditModal();
+            renderTable();
+            syncRecordToCloud(date, empId);
+        }
+
+        // ==========================================
+        // 7. LEAVE BALANCES OVERVIEW
+        // ==========================================
+        function openBalancesModal() {
+            const tbody = document.getElementById('balancesTableBody');
+            let html = '';
+
+            const usedLeaves = {};
+            employees.forEach(emp => {
+                usedLeaves[emp.id] = { annual: 0, casual: 0, permMinutes: 0 };
+            });
+
+            Object.entries(attendanceData).forEach(([date, day]) => {
+                if (!date.startsWith(currentMonth.slice(0, 4) + '-') || date > localDateKey()) return;
+                if (day.records) {
+                    Object.entries(day.records).forEach(([empId, rec]) => {
+                        if (usedLeaves[empId]) {
+                            const st = (rec.status || "").trim();
+                            if (st === 'إعتيادي') usedLeaves[empId].annual++;
+                            if (st === 'عارضة') usedLeaves[empId].casual++;
+                            if (st === 'إذن' && date.startsWith(currentMonth)) usedLeaves[empId].permMinutes += (parseInt(rec.permissionMinutes, 10) || 0);
+                        }
+                    });
+                }
+            });
+
+            employees.forEach(emp => {
+                const u = usedLeaves[emp.id] || { annual: 0, casual: 0, permMinutes: 0 };
+                const remAnnual = (emp.annual_balance ?? 21) - u.annual;
+                const remCasual = (emp.casual_balance ?? 7) - u.casual;
+                const teamName = ({ blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية الثابتة' })[emp.team] || 'الحمراء';
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition font-medium">
+                        <td class="p-2.5 font-bold text-slate-800">${escapeHTML(emp.name)}</td>
+                        <td class="p-2.5 text-center text-slate-600">${teamName}</td>
+                        <td class="p-2.5 text-center">${emp.annual_balance ?? 21} يوم</td>
+                        <td class="p-2.5 text-center text-red-600 font-bold">${u.annual} يوم</td>
+                        <td class="p-2.5 text-center text-emerald-700 font-bold bg-emerald-50/50">${remAnnual} يوم</td>
+                        <td class="p-2.5 text-center">${emp.casual_balance ?? 7} أيام</td>
+                        <td class="p-2.5 text-center text-amber-600 font-bold">${u.casual} أيام</td>
+                        <td class="p-2.5 text-center text-amber-700 font-bold bg-amber-50/50">${remCasual} أيام</td>
+                        <td class="p-2.5 text-center text-purple-700 font-mono">${(u.permMinutes / 60).toFixed(1)} / ${((emp.perm_hours ?? 4) - u.permMinutes / 60).toFixed(1)} س</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('balancesModal').classList.remove('hidden');
+        }
+
+        function closeBalancesModal() {
+            document.getElementById('balancesModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 8. ROTATION MATRIX MODAL
+        // ==========================================
+        function openRotationMatrixModal() {
+            document.getElementById('rotationMatrixModal').classList.remove('hidden');
+        }
+
+        function closeRotationMatrixModal() {
+            document.getElementById('rotationMatrixModal').classList.add('hidden');
+        }
+
+        // ==========================================
+        // 9. CLOUD SYNC & LOCAL STORAGE
+        // ==========================================
+        function saveToStorage() {
+            localStorage.setItem('app_employees_v2', JSON.stringify(employees));
+            localStorage.setItem('app_attendance_v2', JSON.stringify(attendanceData));
+        }
+
+        function openCloudModal() {
+            document.getElementById('cloudModal').classList.remove('hidden');
+        }
+
+        function closeCloudModal() {
+            document.getElementById('cloudModal').classList.add('hidden');
+        }
+
+        function setFirebaseMessage(message, isError = false) {
+            const label = document.getElementById('firebaseMessage');
+            label.textContent = message;
+            label.className = `text-xs ${isError ? 'text-red-700' : 'text-slate-600'}`;
+        }
+
+        function updateCloudUI(message, connected = false) {
+            const dot = document.getElementById('cloudStatusDot');
+            dot.className = `w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500'}`;
+            document.getElementById('cloudStatusText').innerText = message;
+        }
+
+        function connectFirebase(config) {
+            if (!firebaseReady) {
+                updateCloudUI('تعذر تحميل Firebase');
+                return;
+            }
+            try {
+                firebaseConnected = true;
+                window.firebaseBridge.connect(config, {
+                    onAuth(user) {
+                        firebaseUser = user;
+                        updateCloudUI('جاري تحميل بيانات Firebase');
+                        setFirebaseMessage('تم الاتصال تلقائياً. البيانات مشتركة بين جميع الزوار.');
+                    },
+                    onData(data, metadata) {
+                        if (metadata.hasPendingWrites) {
+                            updateCloudUI('المزامنة قيد التنفيذ');
+                            return;
+                        }
+                        if (!isValidWorkspace(data)) {
+                            setFirebaseMessage('بيانات السحابة غير صالحة.', true);
+                            return;
+                        }
+                        applyingCloudData = true;
+                        employees = data.employees;
+                        attendanceData = data.attendanceData;
+                        saveToStorage();
+                        applyingCloudData = false;
+                        renderTable();
+                        document.getElementById('authGate').classList.add('hidden');
+                        updateCloudUI(metadata.fromCache ? 'بيانات محفوظة دون اتصال' : 'Firebase متصل', !metadata.fromCache);
+                    },
+                    onEmpty() {
+                        // Initialize the shared workspace only if the server has no document.
+                        syncToCloud();
+                    },
+                    onError(error) {
+                        updateCloudUI('فشلت مزامنة Firebase');
+                        setFirebaseMessage(error.message, true);
+                    }
+                });
+            } catch (error) {
+                firebaseConnected = false;
+                updateCloudUI('فشل إعداد Firebase');
+                setFirebaseMessage(error.message, true);
+            }
+        }
+
+        function cloudWrite(promise) {
+            updateCloudUI('المزامنة قيد التنفيذ');
+            promise.then(() => updateCloudUI('Firebase متصل', true))
+                .catch(error => {
+                    updateCloudUI('فشلت مزامنة Firebase');
+                    setFirebaseMessage(error.message, true);
+                });
+        }
+
+        function syncToCloud() {
+            if (applyingCloudData || !firebaseUser) return;
+            cloudWrite(window.firebaseBridge.save({ employees, attendanceData, updatedAt: new Date().toISOString() }));
+        }
+
+        function syncRecordToCloud(date, empId) {
+            if (!firebaseUser) return;
+            const day = attendanceData[date];
+            cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
+                employeeId: empId, record: day.records[empId] }]));
+        }
+
+        function downloadBackupJSON() {
+            const backup = { employees, attendanceData, exportedAt: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function uploadBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (isValidWorkspace(data)) {
+                        if (!confirm('ستستبدل النسخة الاحتياطية البيانات الحالية. هل تريد المتابعة؟')) return;
+                        employees = data.employees;
+                        attendanceData = data.attendanceData;
+                        saveToStorage();
+                        renderTable();
+                        syncToCloud();
+                        alert("تم استعادة النسخة الاحتياطية بنجاح!");
+                        closeCloudModal();
+                    } else {
+                        alert('النسخة الاحتياطية لا تحتوي على بيانات صحيحة.');
+                    }
+                } catch(err) {
+                    alert("الملف غير صالح أو تالف!");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==========================================
+        // 10. EXCEL EXPORT
+        // ==========================================
+        function exportToExcel() {
+            const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
+            const exportRows = [];
+
+            const h1 = ["التاريخ", "اليوم", "الوردية"];
+            employees.forEach(emp => {
+                h1.push(emp.name, "", "");
+            });
+            exportRows.push(h1);
+
+            const h2 = ["", "", ""];
+            employees.forEach(() => {
+                h2.push("وردية الموظف", "البيان", "التأخير (دقيقة)");
+            });
+            exportRows.push(h2);
+
+            dates.forEach(date => {
+                const day = attendanceData[date];
+                const row = [date, day.day, calculateShiftForDate(Number(date.slice(-2)), activeTeam)];
+                employees.forEach(emp => {
+                    const rec = (day.records && day.records[emp.id]) || { status: "", delay: 0 };
+                    row.push(calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red'), rec.status || "", rec.delay || 0);
+                });
+                exportRows.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(exportRows);
+            XLSX.utils.book_append_sheet(wb, ws, "الورديات والغياب");
+            XLSX.writeFile(wb, `attendance_sheet_${currentMonth}.xlsx`);
+        }
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', () => {
+            switchMonth(currentMonth);
+            document.getElementById('authGate').classList.remove('hidden');
+            if (firebaseReady && !firebaseConnected) connectFirebase(FIREBASE_CONFIG);
+        });
+        window.addEventListener('firebase-bridge-ready', () => {
+            firebaseReady = true;
+            if (!firebaseConnected) connectFirebase(FIREBASE_CONFIG);
+        });
+    </script>
+    <script type="module" src="./firebase-cloud.js" onerror="updateCloudUI('تعذر تحميل Firebase')"></script>
+</body>
+</html>

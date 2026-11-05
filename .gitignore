@@ -1,0 +1,7 @@
+.firebase/
+.vercel/
+__pycache__/
+*.pyc
+.chrome-*/
+firebase-debug.log
+supabase_schema.sql
