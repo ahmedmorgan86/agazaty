@@ -42,6 +42,59 @@
         .sticky-col-1 { position: sticky; right: 0; z-index: 20; }
         .sticky-col-2 { position: sticky; right: 100px; z-index: 20; }
         .sticky-col-3 { position: sticky; right: 180px; z-index: 20; }
+        .attendance-scroll { overscroll-behavior-inline: contain; }
+        #attendanceTable { width: max-content; min-width: 100%; }
+        .attendance-grid th, .attendance-grid td { white-space: nowrap; }
+        .attendance-grid .sticky-col-1 { min-width: 100px; }
+        .attendance-grid .sticky-col-2 { min-width: 80px; }
+        .attendance-grid .sticky-col-3 { min-width: 150px; }
+        .modal-table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+        .modal-table-scroll > table { min-width: 680px; }
+        @media (max-width: 1023px) {
+            .app-header-inner.h-16 { height: auto; flex-wrap: wrap; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+            .app-actions { width: 100%; flex-wrap: wrap; gap: 8px; }
+            .app-actions > button { min-height: 40px; }
+        }
+        @media (max-width: 639px) {
+            body { overflow-x: hidden; }
+            .app-brand { min-width: 0; }
+            .app-brand h1 { font-size: 14px; line-height: 1.4; }
+            .app-brand p { display: none; }
+            .app-brand .brand-version { display: none; }
+            body .app-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .app-actions > button, .team-controls > button, .bulk-controls > button { margin: 0; }
+            .app-actions > button { justify-content: center; min-width: 0; padding: 9px 8px; text-align: center; }
+            .app-actions > button span { overflow-wrap: anywhere; }
+            #cloudStatusBtn { grid-column: 1 / -1; }
+            .period-controls, .quick-filters { width: 100%; flex-wrap: wrap; gap: 8px; }
+            .month-tabs { max-width: 100%; overflow-x: auto; }
+            .month-tabs button { flex: 0 0 auto; min-height: 40px; }
+            #monthPicker { min-height: 40px; }
+            body .team-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+            .team-controls > span { grid-column: 1 / -1; }
+            .team-controls button { justify-content: center; min-height: 44px; white-space: normal; line-height: 1.4; text-align: center; }
+            body .bulk-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .bulk-controls button { justify-content: center; min-height: 44px; white-space: normal; line-height: 1.4; }
+            .quick-filters > div { width: 100%; justify-content: space-between; }
+            .quick-filters select, .quick-filters input { width: 60%; min-width: 0; min-height: 40px; }
+            .table-section-heading { align-items: flex-start; }
+            .table-section-heading > div { width: 100%; flex-wrap: wrap; }
+            .attendance-scroll { max-height: min(65vh, 620px); }
+            #attendanceTable .sticky-col-1 { min-width: 92px; width: 92px; max-width: 92px; right: 0; }
+            #attendanceTable .sticky-col-1 span { display: block; width: max-content; margin: 3px 0 0; }
+            #attendanceTable .sticky-col-2 { min-width: 62px; width: 62px; max-width: 62px; }
+            #attendanceTable .sticky-col-3 { min-width: 112px; width: 112px; max-width: 112px; white-space: normal; }
+            #attendanceTable .sticky-col-3 span { max-width: 100%; width: auto; white-space: normal; }
+            .attendance-grid .sticky-col-2, .attendance-grid .sticky-col-3 { position: static; }
+            .attendance-grid th, .attendance-grid td { padding: 8px; }
+            .app-modal { padding: 8px; }
+            .app-modal > div { width: 100%; max-height: calc(100dvh - 16px); padding: 16px; border-radius: 14px; overflow-y: auto; }
+            .app-modal button { min-height: 40px; }
+            .app-modal .modal-header { align-items: flex-start; gap: 8px; }
+            .app-modal .modal-header > div { min-width: 0; }
+            .modal-table-scroll > table { min-width: 680px; }
+            #employeesManagerModal .modal-table-scroll > table { min-width: 760px; }
+        }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -60,23 +113,23 @@
     <!-- Top Navigation Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
+            <div class="app-header-inner flex justify-between items-center h-16">
                 <!-- Brand Title -->
-                <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="app-brand flex items-center space-x-3 space-x-reverse">
                     <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
                         <i class="fa-solid fa-calendar-check text-xl"></i>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2 space-x-reverse">
                             <h1 class="text-lg font-bold text-slate-900 leading-tight">نظام الورديات والإجازات السحابي</h1>
-                            <span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-full">v2.0 Pro</span>
+                            <span class="brand-version bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-full">v2.0 Pro</span>
                         </div>
                         <p class="text-xs text-slate-500">إدارة الموظفين المتقدمة، توزيع الورديات، الأرصدة والربط السحابي</p>
                     </div>
                 </div>
 
                 <!-- Action Controls -->
-                <div class="flex items-center space-x-2 space-x-reverse">
+                <div class="app-actions flex items-center space-x-2 space-x-reverse">
                     <!-- Cloud Connection Status -->
                     <button onclick="openCloudModal()" id="cloudStatusBtn" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg border text-xs font-semibold bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 transition">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="cloudStatusDot"></span>
@@ -115,9 +168,9 @@
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <!-- Month Selector -->
-                <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="period-controls flex items-center space-x-3 space-x-reverse">
                     <span class="text-xs font-bold text-slate-500">اختر الفترة:</span>
-                    <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+                    <div class="month-tabs inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
                         <button onclick="switchMonth('2026-10')" id="btn-2026-10" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">أكتوبر 2026</button>
                         <button onclick="switchMonth('2026-11')" id="btn-2026-11" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">نوفمبر 2026</button>
                         <button onclick="switchMonth('2026-12')" id="btn-2026-12" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">ديسمبر 2026</button>
@@ -126,7 +179,7 @@
                 </div>
 
                 <!-- Team Selection -->
-                <div class="flex items-center space-x-2 space-x-reverse bg-slate-50 p-1 rounded-lg border border-slate-200">
+                <div class="team-controls flex items-center space-x-2 space-x-reverse bg-slate-50 p-1 rounded-lg border border-slate-200">
                     <span class="text-xs font-bold text-slate-500 px-1">الفريق المعروض:</span>
                     <button onclick="switchTeam('red')" id="btnTeamRed" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-red-600 text-white shadow-sm" title="اليوم الطويل: يوم 11">
                         <span class="w-2 h-2 rounded-full bg-white"></span>
@@ -142,12 +195,12 @@
                     </button>
                     <button onclick="switchTeam('morning')" id="btnTeamMorning" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:text-emerald-700" title="صباحية ثابتة طوال الشهر">
                         <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                        <span>الفريق الصباحي الثابت</span>
+                        <span>الوردية الصباحية</span>
                     </button>
                 </div>
 
                 <!-- Smart Auto-Fill & Bulk Tools -->
-                <div class="flex items-center space-x-2 space-x-reverse">
+                <div class="bulk-controls flex items-center space-x-2 space-x-reverse">
                     <button onclick="autoFillMonthShifts()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-amber-100/70 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition" title="توليد وتوزيع ورديات الشهر تلقائياً وفق لون الوردية واليوم الطويل">
                         <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
                         <span>توزيع ورديات الشهر تلقائياً</span>
@@ -173,7 +226,7 @@
                 </div>
 
                 <!-- Quick Filters -->
-                <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="quick-filters flex items-center space-x-3 space-x-reverse">
                     <div class="flex items-center space-x-1.5 space-x-reverse">
                         <label for="shiftFilter" class="text-xs font-bold text-slate-500">فلتر الوردية:</label>
                         <select id="shiftFilter" onchange="renderTable()" class="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -200,7 +253,7 @@
 
         <!-- Attendance Grid Section -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50">
+            <div class="table-section-heading p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50">
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <i class="fa-solid fa-table-cells text-slate-400"></i>
                     <h2 class="font-bold text-slate-800" id="tableTitle">جدول الحضور والورديات</h2>
@@ -214,9 +267,11 @@
                 </div>
             </div>
 
+            <p class="sm:hidden px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 border-b border-blue-100">اسحب الجدول أفقياً لعرض الموظفين وتعديل حضورهم ←</p>
+
             <!-- Scrollable Table -->
-            <div class="overflow-x-auto max-h-[620px] overflow-y-auto">
-                <table class="w-full text-right border-collapse" id="attendanceTable">
+            <div class="attendance-scroll overflow-x-auto max-h-[620px] overflow-y-auto" role="region" aria-label="جدول الحضور، مرر أفقياً لعرض الموظفين">
+                <table class="attendance-grid w-full text-right border-collapse" id="attendanceTable">
                     <thead class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200 sticky top-0 z-30">
                         <tr id="tableHeaderRow">
                             <!-- Injected by JS -->
@@ -237,9 +292,9 @@
     <!-- ============================================================= -->
     <!-- 1. FULL EMPLOYEE MANAGEMENT MODAL (إدارة الموظفين: إضافة / تعديل / حذف) -->
     <!-- ============================================================= -->
-    <div id="employeesManagerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+    <div id="employeesManagerModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-4xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div class="modal-header flex justify-between items-center border-b border-slate-100 pb-3">
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-lg">
                         <i class="fa-solid fa-users-gear"></i>
@@ -282,7 +337,7 @@
                             <option value="red">🔴 الوردية الحمراء (طويل: 11)</option>
                             <option value="blue">🔵 الوردية الزرقاء (طويل: 1)</option>
                             <option value="yellow">🟡 الوردية الصفراء (طويل: 21)</option>
-                            <option value="morning">🟢 الفريق الصباحي الثابت</option>
+                            <option value="morning">🟢 الوردية الصباحية</option>
                         </select>
                     </div>
                     <div>
@@ -310,7 +365,7 @@
             </div>
 
             <!-- Employees List Table -->
-            <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="modal-table-scroll border border-slate-200 rounded-xl">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                         <tr>
@@ -341,7 +396,7 @@
     <!-- ============================================================= -->
     <!-- 2. EMPLOYEE MONTHLY REPORT MODAL (تقرير وكشف حساب للموظف للطباعة) -->
     <!-- ============================================================= -->
-    <div id="employeeReportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div id="employeeReportModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-200 pb-3">
                 <div class="flex items-center space-x-2 space-x-reverse">
@@ -377,7 +432,7 @@
     <!-- ============================================================= -->
     <!-- 3. CELL EDIT MODAL (تعديل الحالة / الإجازات / التأخير) -->
     <!-- ============================================================= -->
-    <div id="cellEditModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+    <div id="cellEditModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div>
@@ -445,7 +500,7 @@
     <!-- ============================================================= -->
     <!-- 4. ROTATION MATRIX MODAL (4 Teams) -->
     <!-- ============================================================= -->
-    <div id="rotationMatrixModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+    <div id="rotationMatrixModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div class="flex items-center space-x-2 space-x-reverse">
@@ -498,7 +553,7 @@
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-emerald-800 text-xs">🟢 الفريق الصباحي</span>
+                        <span class="font-bold text-emerald-800 text-xs">🟢 الوردية الصباحية</span>
                         <span class="bg-emerald-200 text-emerald-900 text-[11px] font-black px-2 py-0.5 rounded">ثابت</span>
                     </div>
                     <p class="text-[11px] text-emerald-700 mt-1">الصباحية طوال الشهر، دون يوم طويل.</p>
@@ -506,7 +561,7 @@
             </div>
 
             <!-- Master Schedule Table -->
-            <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="modal-table-scroll border border-slate-200 rounded-xl">
                 <table class="w-full text-right border-collapse text-xs">
                     <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                         <tr>
@@ -514,7 +569,7 @@
                             <th class="p-3 text-center text-red-700 bg-red-50/50">الوردية الحمراء</th>
                             <th class="p-3 text-center text-blue-700 bg-blue-50/50">الوردية الزرقاء</th>
                             <th class="p-3 text-center text-amber-700 bg-amber-50/50">الوردية الصفراء</th>
-                            <th class="p-3 text-center text-emerald-700 bg-emerald-50/50">الفريق الصباحي الثابت</th>
+                            <th class="p-3 text-center text-emerald-700 bg-emerald-50/50">الوردية الصباحية</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -573,7 +628,7 @@
     <!-- ============================================================= -->
     <!-- 5. LEAVE BALANCES MODAL (سجل أرصدة الإجازات) -->
     <!-- ============================================================= -->
-    <div id="balancesModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+    <div id="balancesModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-3xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div class="flex items-center space-x-2 space-x-reverse">
@@ -849,7 +904,7 @@
             } else if (team === 'morning') {
                 activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-emerald-600 text-white shadow-sm";
                 badge.className = "bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
-                badge.innerText = "الفريق الصباحي الثابت";
+                badge.innerText = "الوردية الصباحية";
             }
 
             renderTable();
@@ -1168,7 +1223,7 @@
                 const teamBadge = {
                     blue: '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">الزرقاء (طويل 1)</span>',
                     yellow: '<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">الصفراء (طويل 21)</span>',
-                    morning: '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">الصباحية الثابتة</span>'
+                    morning: '<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">الوردية الصباحية</span>'
                 }[emp.team] || '<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-[10px] font-bold">الحمراء (طويل 11)</span>';
 
                 html += `
@@ -1526,7 +1581,7 @@
                 const u = usedLeaves[emp.id] || { annual: 0, casual: 0, permMinutes: 0 };
                 const remAnnual = (emp.annual_balance ?? 21) - u.annual;
                 const remCasual = (emp.casual_balance ?? 7) - u.casual;
-                const teamName = ({ blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية الثابتة' })[emp.team] || 'الحمراء';
+                const teamName = ({ blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الوردية الصباحية' })[emp.team] || 'الحمراء';
 
                 html += `
                     <tr class="hover:bg-slate-50 transition font-medium">
