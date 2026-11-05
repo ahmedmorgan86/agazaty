@@ -1,31 +1,43 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, onSnapshot, setDoc, updateDoc, deleteField, FieldPath } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, getIdTokenResult, createUserWithEmailAndPassword, deleteUser, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, updateDoc, deleteField, FieldPath, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 let auth;
 let database;
 let stopListening;
+let stopProfiles;
 let stopAuth;
+let configInUse;
+
+const employeeEmail = code => `${String(code).trim().toLowerCase()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 
 function connect(config, callbacks) {
     if (!config?.apiKey || !config?.authDomain || !config?.projectId || !config?.appId) {
         throw new Error('إعدادات Firebase غير مكتملة. انسخ firebaseConfig كاملاً من إعدادات تطبيق الويب.');
     }
     if (stopListening) stopListening();
+    if (stopProfiles) stopProfiles();
     if (stopAuth) stopAuth();
     const existing = getApps().find(item => item.name === config.projectId);
     const app = existing || initializeApp(config, config.projectId);
+    configInUse = config;
     auth = getAuth(app);
     database = existing ? getFirestore(app) : initializeFirestore(app, {
         localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
     });
-    stopAuth = onAuthStateChanged(auth, user => {
+    stopAuth = onAuthStateChanged(auth, async user => {
         if (stopListening) stopListening();
-        if (!user) {
-            signInAnonymously(auth).catch(callbacks.onError);
+        if (stopProfiles) stopProfiles();
+        if (!user || user.isAnonymous) {
+            if (user?.isAnonymous) await signOut(auth);
+            callbacks.onSignedOut();
             return;
         }
-        callbacks.onAuth(user);
+        const token = await getIdTokenResult(user);
+        callbacks.onAuth(user, token.claims);
+        stopProfiles = onSnapshot(collection(database, 'employeeAccounts'), snapshot => {
+            callbacks.onProfiles(snapshot.docs.map(item => ({ uid: item.id, ...item.data() })));
+        }, callbacks.onError);
         const workspace = doc(database, 'shared', 'workspace');
         stopListening = onSnapshot(workspace, snapshot => {
             if (!snapshot.exists()) {
@@ -36,6 +48,48 @@ function connect(config, callbacks) {
             callbacks.onData(snapshot.data(), snapshot.metadata);
         }, callbacks.onError);
     }, callbacks.onError);
+}
+
+function login(code, password) {
+    if (!auth) throw new Error('لم يكتمل إعداد Firebase.');
+    return signInWithEmailAndPassword(auth, employeeEmail(code), password);
+}
+
+function logout() { return signOut(auth); }
+
+async function changePassword(currentPassword, newPassword) {
+    if (!auth?.currentUser) throw new Error('سجّل الدخول أولاً.');
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    return updatePassword(auth.currentUser, newPassword);
+}
+
+async function registerEmployee(employee) {
+    if (!auth || !database || !configInUse) throw new Error('لم يكتمل إعداد Firebase.');
+    const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
+    const provisioningAuth = getAuth(app);
+    const registrationDb = getFirestore(app);
+    await setPersistence(provisioningAuth, inMemoryPersistence);
+    const created = await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), '1234567');
+    try {
+        await setDoc(doc(registrationDb, 'employeeAccounts', created.user.uid), {
+            employeeId: created.user.uid,
+            team: employee.team,
+            name: employee.name,
+            code: employee.code,
+            job: employee.job,
+            dept: employee.dept || '',
+            annual_balance: 21,
+            casual_balance: 7,
+            perm_hours: 4
+        });
+    } catch (error) {
+        await deleteUser(created.user).catch(() => {});
+        throw error;
+    } finally {
+        await signOut(provisioningAuth).catch(() => {});
+    }
+    return login(employee.code, '1234567');
 }
 
 function save(data) {
@@ -75,17 +129,60 @@ function saveEmployees(employees) {
     return patch([[['employees'], employees]]);
 }
 
-function deleteEmployeeRecords(employees, employeeId, dates) {
-    return patch([[['employees'], employees], ...dates.map(date =>
-        [['attendanceData', date, 'records', employeeId], deleteField()])]);
+async function createEmployeeAccount(employee, employees) {
+    if (!auth?.currentUser || !database || !configInUse) throw new Error('سجّل الدخول أولاً.');
+    const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
+    const provisioningAuth = getAuth(app);
+    await setPersistence(provisioningAuth, inMemoryPersistence);
+    const created = await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), '1234567');
+    const completeEmployee = { ...employee, authUid: created.user.uid };
+    try {
+        const batch = writeBatch(database);
+        batch.update(doc(database, 'shared', 'workspace'), 'employees', [...employees, completeEmployee]);
+        batch.set(doc(database, 'employeeAccounts', created.user.uid), { ...completeEmployee, employeeId: employee.id });
+        batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team });
+        await batch.commit();
+        return completeEmployee;
+    } catch (error) {
+        await deleteUser(created.user).catch(() => {});
+        throw error;
+    } finally {
+        await signOut(provisioningAuth).catch(() => {});
+    }
+}
+
+async function updateEmployeeAccount(employee, employees) {
+    const batch = writeBatch(database);
+    batch.update(doc(database, 'shared', 'workspace'), 'employees', employees);
+    batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team });
+    if (employee.authUid || employee.id.startsWith('emp_')) {
+        batch.set(doc(database, 'employeeAccounts', employee.authUid || employee.id), { ...employee, employeeId: employee.id });
+    }
+    return batch.commit();
+}
+
+function deleteEmployeeRecords(employees, employeeId, dates, uid) {
+    const batch = writeBatch(database);
+    const fields = [['employees', employees], ...dates.map(date =>
+        [new FieldPath('attendanceData', date, 'records', employeeId), deleteField()])];
+    batch.update(doc(database, 'shared', 'workspace'), ...fields.flat());
+    batch.delete(doc(database, 'teamMembership', employeeId));
+    if (uid) batch.delete(doc(database, 'employeeAccounts', uid));
+    return batch.commit();
 }
 
 window.firebaseBridge = {
     connect,
+    login,
+    registerEmployee,
+    logout,
+    changePassword,
     save,
     saveRecords,
     saveDays,
     saveEmployees,
+    createEmployeeAccount,
+    updateEmployeeAccount,
     deleteEmployeeRecords
 };
 window.dispatchEvent(new Event('firebase-bridge-ready'));

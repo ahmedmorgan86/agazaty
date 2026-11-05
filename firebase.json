@@ -4,8 +4,8 @@
   },
   "auth": {
     "providers": {
-      "emailPassword": false,
-      "anonymous": true
+      "emailPassword": true,
+      "anonymous": false
     }
   },
   "hosting": {

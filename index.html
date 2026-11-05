@@ -28,7 +28,40 @@
         }
     </script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Cairo', sans-serif; background: #eef3f8; }
+        .app-header { background: linear-gradient(125deg, #0d253f, #173c5f 62%, #0d5f72); color: white; border: 0; }
+        .app-header .app-brand h1, .app-header .app-brand p { color: white; }
+        .app-header .app-brand p { opacity: .72; }
+        .app-header .brand-icon { background: rgba(255,255,255,.15); box-shadow: none; }
+        .app-header .app-actions > button { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); color: white; box-shadow: none; }
+        .app-header .app-actions > button:hover { background: rgba(255,255,255,.22); }
+        .app-header .app-actions > button i, .app-header .app-actions > button .fa-cloud { color: white; }
+        .app-header .app-actions #cloudStatusBtn { background: rgba(10,26,45,.34); }
+        .app-main { max-width: 1500px; }
+        .app-main > .bg-white, .app-main > .grid + .bg-white { box-shadow: 0 12px 36px rgba(25,55,85,.06); border-color: #dbe5ef; }
+        .app-hero { background: linear-gradient(135deg, #122f4f, #186277); color: white; border-radius: 22px; padding: 24px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; box-shadow: 0 18px 34px rgba(15,61,88,.17); }
+        .app-hero h2 { font-size: clamp(20px, 2.4vw, 30px); font-weight: 900; line-height: 1.4; }
+        .app-hero p { color: #d9ecf4; }
+        .hero-profile { background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.23); border-radius: 16px; padding: 14px 18px; min-width: 210px; }
+        .hero-profile strong, .hero-profile span { display: block; }
+        .hero-profile span { color: #d9ecf4; font-size: 12px; }
+        .selection-empty { padding: 48px 16px; text-align: center; color: #64748b; }
+        .selection-empty i { display: block; font-size: 28px; color: #0d7490; margin-bottom: 12px; }
+        .day-card { border: 1px solid #d9e4ed; border-radius: 16px; background: white; overflow: hidden; box-shadow: 0 6px 22px rgba(22,49,72,.05); }
+        .day-card-head { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; background: #f1f6fa; border-bottom: 1px solid #e1e9f0; }
+        .day-card-person { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: right; padding: 11px 14px; border-bottom: 1px solid #edf1f5; }
+        .day-card-person:last-child { border-bottom: 0; }
+        .day-card-person:disabled { cursor: default; }
+        .day-card-person:not(:disabled):hover { background: #eff7ff; }
+        .day-card-person small { display: block; color: #64748b; }
+        .login-screen { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 85% 10%, #236c83, transparent 35%), linear-gradient(135deg,#0b223b,#153e5b); }
+        .login-card { width: min(100%, 430px); background: white; border-radius: 24px; padding: 30px; box-shadow: 0 25px 65px rgba(0,0,0,.22); }
+        .login-card input { width: 100%; min-height: 48px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 13px; background: #f8fafc; font-size: 16px; }
+        .login-card label { display: block; margin: 15px 0 6px; font-weight: 700; font-size: 13px; }
+        .login-card button[type=submit] { width: 100%; min-height: 48px; margin-top: 20px; border-radius: 12px; background: #0d7490; color: white; font-weight: 800; }
+        .login-card button[type=submit]:hover { background: #0b6179; }
+        .login-screen.hidden, .mobile-attendance.hidden { display: none; }
+        .mobile-attendance { display: none; }
         .status-present { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
         .status-rest { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
         .status-annual { background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
@@ -50,12 +83,14 @@
         .attendance-grid .sticky-col-3 { min-width: 150px; }
         .modal-table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
         .modal-table-scroll > table { min-width: 680px; }
-        @media (max-width: 1023px) {
+        @media screen and (max-width: 1023px) {
             .app-header-inner.h-16 { height: auto; flex-wrap: wrap; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
             .app-actions { width: 100%; flex-wrap: wrap; gap: 8px; }
             .app-actions > button { min-height: 40px; }
+            .mobile-attendance { display: grid; gap: 12px; padding: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
+            .attendance-scroll { display: none; }
         }
-        @media (max-width: 639px) {
+        @media screen and (max-width: 639px) {
             body { overflow-x: hidden; }
             .app-brand { min-width: 0; }
             .app-brand h1 { font-size: 14px; line-height: 1.4; }
@@ -71,6 +106,7 @@
             .month-tabs button { flex: 0 0 auto; min-height: 40px; }
             #monthPicker { min-height: 40px; }
             body .team-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+            body .team-controls.single-team { grid-template-columns: 1fr; }
             .team-controls > span { grid-column: 1 / -1; }
             .team-controls button { justify-content: center; min-height: 44px; white-space: normal; line-height: 1.4; text-align: center; }
             body .bulk-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -94,6 +130,9 @@
             .app-modal .modal-header > div { min-width: 0; }
             .modal-table-scroll > table { min-width: 680px; }
             #employeesManagerModal .modal-table-scroll > table { min-width: 760px; }
+            .app-hero { grid-template-columns: 1fr; padding: 18px; border-radius: 18px; }
+            .hero-profile { min-width: 0; }
+            .mobile-attendance { grid-template-columns: 1fr; }
         }
         @media print {
             .no-print { display: none !important; }
@@ -102,6 +141,37 @@
     </style>
 </head>
 <body class="text-slate-800 text-sm">
+    <div id="loginScreen" class="login-screen">
+        <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-800 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-calendar-check"></i></div>
+            <h1 class="text-2xl font-black text-slate-900">نظام الحضور والورديات</h1>
+            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف وكلمة المرور لعرض ورديتك.</p>
+            <label for="loginCode">كود الموظف</label>
+            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686" dir="ltr">
+            <label for="loginPassword">كلمة المرور</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
+            <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
+            <button type="submit" id="loginButton">دخول الحساب</button>
+            <button type="button" onclick="toggleRegistration(true)" class="w-full mt-3 rounded-xl border border-cyan-700 text-cyan-800 px-4 py-3 font-bold">تسجيل موظف جديد</button>
+            <p class="text-xs text-slate-400 mt-4">إذا كانت هذه أول مرة، استخدم كلمة المرور الافتراضية التي وصلتك من الإدارة.</p>
+            <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
+        </form>
+        <form id="registerForm" class="login-card hidden" onsubmit="registerNewEmployee(event)">
+            <button type="button" onclick="toggleRegistration(false)" class="text-cyan-800 text-sm font-bold mb-3"><i class="fa-solid fa-arrow-right ml-1"></i>العودة للدخول</button>
+            <h2 class="text-2xl font-black text-slate-900">تسجيل موظف جديد</h2>
+            <p class="text-sm text-slate-500 mt-2">أدخل بياناتك واختر ورديتك لإنشاء حسابك.</p>
+            <label for="registerName">اسم الموظف</label><input id="registerName" required autocomplete="name" placeholder="الاسم الكامل">
+            <label for="registerJob">الوظيفة</label><select id="registerJob" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الوظيفة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
+            <label for="registerCode">كود الموظف</label><input id="registerCode" required dir="ltr" autocomplete="username" placeholder="مثال: 8001">
+            <label for="registerDept">القسم / الإدارة</label><input id="registerDept" placeholder="القسم">
+            <label for="registerTeam">الوردية</label>
+            <select id="registerTeam" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الوردية</option><option value="red">الوردية الحمراء</option><option value="blue">الوردية الزرقاء</option><option value="yellow">الوردية الصفراء</option><option value="morning">الوردية الصباحية</option></select>
+            <p class="text-xs text-slate-500 mt-3">كلمة المرور الأولية لحسابك: <strong>1234567</strong>. يمكنك تغييرها بعد الدخول.</p>
+            <p id="registerError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
+            <button type="submit" id="registerButton">إنشاء الحساب</button>
+            <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
+        </form>
+    </div>
     <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
             <h2 class="font-bold text-lg">جاري تحميل بيانات الحضور</h2>
@@ -111,12 +181,12 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm no-print">
+    <header id="appHeader" class="app-header hidden sticky top-0 z-40 shadow-sm no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="app-header-inner flex justify-between items-center h-16">
                 <!-- Brand Title -->
                 <div class="app-brand flex items-center space-x-3 space-x-reverse">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                    <div class="brand-icon w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
                         <i class="fa-solid fa-calendar-check text-xl"></i>
                     </div>
                     <div>
@@ -124,7 +194,7 @@
                             <h1 class="text-lg font-bold text-slate-900 leading-tight">نظام الورديات والإجازات السحابي</h1>
                             <span class="brand-version bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-full">v2.0 Pro</span>
                         </div>
-                        <p class="text-xs text-slate-500">إدارة الموظفين المتقدمة، توزيع الورديات، الأرصدة والربط السحابي</p>
+                        <p class="text-xs text-slate-500">حضورك ووردية فريقك في مكان واحد</p>
                     </div>
                 </div>
 
@@ -142,9 +212,9 @@
                         <span>الفرق الأربع</span>
                     </button>
 
-                    <button onclick="openEmployeesManagerModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition">
+                    <button id="manageEmployeesButton" onclick="openNewEmployeeForm()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-bold transition">
                         <i class="fa-solid fa-users-gear text-blue-600"></i>
-                        <span>إدارة الموظفين (إضافة / تعديل / حذف)</span>
+                        <span>تسجيل موظف جديد</span>
                     </button>
 
                     <button onclick="openBalancesModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-bold transition">
@@ -156,13 +226,20 @@
                         <i class="fa-solid fa-file-excel"></i>
                         <span>تصدير Excel</span>
                     </button>
+                    <button id="myReportButton" onclick="openMyReport()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-lines"></i><span>تقريري</span></button>
+                    <button onclick="showAccountModal()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-user"></i><span>حسابي</span></button>
+                    <button onclick="logoutEmployee()" class="flex items-center space-x-1.5 space-x-reverse px-3 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-right-from-bracket"></i><span>خروج</span></button>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main id="appMain" class="app-main hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <section class="app-hero no-print">
+            <div><span class="text-xs font-bold text-cyan-200">لوحة الحضور</span><h2 id="heroTitle">اختر الوردية لعرض جدول الحضور</h2><p id="heroSubtitle" class="text-sm mt-2">كل أيام الشهر وأرصدة الحضور في عرض واضح.</p></div>
+            <div class="hero-profile"><span>الحساب الحالي</span><strong id="profileName">—</strong><span id="profileDetails">—</span><span id="profileCode">—</span></div>
+        </section>
 
         <!-- Controls & Filter Toolbar -->
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
@@ -181,7 +258,7 @@
                 <!-- Team Selection -->
                 <div class="team-controls flex items-center space-x-2 space-x-reverse bg-slate-50 p-1 rounded-lg border border-slate-200">
                     <span class="text-xs font-bold text-slate-500 px-1">الفريق المعروض:</span>
-                    <button onclick="switchTeam('red')" id="btnTeamRed" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-red-600 text-white shadow-sm" title="اليوم الطويل: يوم 11">
+                    <button onclick="switchTeam('red')" id="btnTeamRed" class="team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:text-red-700" title="اليوم الطويل: يوم 11">
                         <span class="w-2 h-2 rounded-full bg-white"></span>
                         <span>الوردية الحمراء (طويل: 11)</span>
                     </button>
@@ -201,11 +278,11 @@
 
                 <!-- Smart Auto-Fill & Bulk Tools -->
                 <div class="bulk-controls flex items-center space-x-2 space-x-reverse">
-                    <button onclick="autoFillMonthShifts()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-amber-100/70 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition" title="توليد وتوزيع ورديات الشهر تلقائياً وفق لون الوردية واليوم الطويل">
+                    <button id="autoFillButton" onclick="autoFillMonthShifts()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-amber-100/70 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition" title="توليد وتوزيع ورديات الشهر تلقائياً وفق لون الوردية واليوم الطويل">
                         <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
                         <span>توزيع ورديات الشهر تلقائياً</span>
                     </button>
-                    <button onclick="quickFillPresent()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition" title="ملء الأيام غير المسجلة بحضور">
+                    <button id="quickFillButton" onclick="quickFillPresent()" class="flex items-center space-x-1.5 space-x-reverse px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition" title="ملء الأيام غير المسجلة بحضور">
                         <i class="fa-solid fa-check-double text-slate-500"></i>
                         <span>ملء سريع (حضور)</span>
                     </button>
@@ -257,7 +334,7 @@
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <i class="fa-solid fa-table-cells text-slate-400"></i>
                     <h2 class="font-bold text-slate-800" id="tableTitle">جدول الحضور والورديات</h2>
-                    <span id="activeTeamBadge" class="bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold px-2 py-0.5 rounded-full">الوردية الحمراء (طويل: يوم 11)</span>
+                    <span id="activeTeamBadge" class="bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-bold px-2 py-0.5 rounded-full">اختر وردية</span>
                 </div>
                 <div class="text-xs text-slate-500 flex items-center space-x-3 space-x-reverse">
                     <span>💡 انقر على أي خلية لتغيير الحالة أو تسجيل التأخير والملاحظات</span>
@@ -267,7 +344,7 @@
                 </div>
             </div>
 
-            <p class="sm:hidden px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 border-b border-blue-100">اسحب الجدول أفقياً لعرض الموظفين وتعديل حضورهم ←</p>
+            <div id="mobileAttendanceList" class="mobile-attendance"></div>
 
             <!-- Scrollable Table -->
             <div class="attendance-scroll overflow-x-auto max-h-[620px] overflow-y-auto" role="region" aria-label="جدول الحضور، مرر أفقياً لعرض الموظفين">
@@ -287,6 +364,7 @@
             </div>
         </div>
 
+        <footer class="text-center text-xs text-slate-500 pb-2 no-print">© Ahmed Morgan <span class="copyright-year"></span></footer>
     </main>
 
     <!-- ============================================================= -->
@@ -334,6 +412,7 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">الوردية المخصصة:</label>
                         <select id="formEmpTeam" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">اختر الوردية</option>
                             <option value="red">🔴 الوردية الحمراء (طويل: 11)</option>
                             <option value="blue">🔵 الوردية الزرقاء (طويل: 1)</option>
                             <option value="yellow">🟡 الوردية الصفراء (طويل: 21)</option>
@@ -343,6 +422,10 @@
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">القسم / الإدارة:</label>
                         <input type="text" id="formEmpDept" value="العمليات والتشغيل" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">المسمى الوظيفي:</label>
+                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الوظيفة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">رصيد الإعتيادي (سنوي):</label>
@@ -363,6 +446,7 @@
                     </div>
                 </div>
             </div>
+            <p class="text-xs text-slate-500">يُنشأ حساب الموظف الجديد بكوده وكلمة المرور الافتراضية 1234567.</p>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -372,6 +456,7 @@
                             <th class="p-3">#</th>
                             <th class="p-3">اسم الموظف</th>
                             <th class="p-3">الكود</th>
+                            <th class="p-3">الوظيفة</th>
                             <th class="p-3">الوردية</th>
                             <th class="p-3 text-center">رصيد إعتيادي</th>
                             <th class="p-3 text-center">رصيد عارضة</th>
@@ -698,10 +783,10 @@
             </div>
 
             <div class="space-y-3">
-                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Shifts Attendance</strong>. البيانات مشتركة؛ يستطيع كل من يفتح الرابط الاطلاع عليها وتعديلها.</p>
+                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Shifts Attendance</strong>. الدخول متاح لحسابات الموظفين والإدارة.</p>
                 <p id="firebaseMessage" role="status" class="text-xs text-slate-600"></p>
 
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div id="backupControls" class="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <button onclick="downloadBackupJSON()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center space-x-1 space-x-reverse">
                         <i class="fa-solid fa-download"></i>
                         <span>تحميل نسخة احتياطية (JSON)</span>
@@ -721,6 +806,13 @@
         </div>
     </div>
 
+    <div id="accountModal" class="app-modal fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-3"><div><h3 class="font-black text-lg">حسابي</h3><p id="accountProfile" class="text-sm text-slate-500"></p></div><button onclick="closeAccountModal()" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button></div>
+            <form onsubmit="changeEmployeePassword(event)"><h4 class="text-sm font-bold">تغيير كلمة المرور</h4><label for="currentPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الحالية</label><input id="currentPassword" type="password" required autocomplete="current-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="newPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الجديدة</label><input id="newPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="confirmPassword" class="block text-xs font-bold mt-3 mb-1">تأكيد كلمة المرور الجديدة</label><input id="confirmPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><button type="submit" class="w-full mt-4 bg-cyan-700 text-white rounded-xl px-4 py-2 font-bold">حفظ كلمة المرور</button><p id="accountMessage" role="status" class="text-xs mt-2"></p></form>
+        </div>
+    </div>
+
 
     <!-- ============================================================= -->
     <!-- APPLICATION JAVASCRIPT ENGINE -->
@@ -730,89 +822,32 @@
         // 1. Initial State & Seed Data
         // ==========================================
         const INITIAL_EMPLOYEES = [
-            { id: "emp_1", code: "EMP-01", name: "احمد نادر", team: "red", dept: "تشغيل", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_2", code: "EMP-02", name: "محمد سالم", team: "red", dept: "تشغيل", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_3", code: "EMP-03", name: "العملاق", team: "red", dept: "صيانة", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_4", code: "EMP-04", name: "عزازي", team: "red", dept: "أمن", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
+            { id: "emp_1", code: "5686", name: "أحمد نادر", team: "red", dept: "تشغيل", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_2", code: "5979", name: "محمد سالم", team: "red", dept: "تشغيل", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+            { id: "emp_1793875124061", code: "7091", name: "محمد علاء خليل", team: "morning", dept: "البنية التحتية", job: "البنية التحتية", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
         ];
 
-        // Seed data for October and November 2026
-        const INITIAL_ATTENDANCE = {
-            "2026-10-02": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-03": { shift: "الصباحيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-04": { shift: "الصباحيه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-05": { shift: "الصباحيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
-            "2026-10-06": { shift: "الصباحيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-07": { shift: "الصباحيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
-            "2026-10-08": { shift: "الصباحيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 5 } } },
-            "2026-10-09": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-10": { shift: "الصباحيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-11": { shift: "اليوم الطويل", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-12": { shift: "المسائيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
-            "2026-10-13": { shift: "المسائيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 5 } } },
-            "2026-10-14": { shift: "المسائيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-15": { shift: "المسائيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 4 }, "emp_2": { status: "حضور", delay: 1 } } },
-            "2026-10-16": { shift: "المسائيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 6 } } },
-            "2026-10-17": { shift: "المسائيه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "إذن", delay: 0 } } },
-            "2026-10-18": { shift: "المسائيه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-19": { shift: "المسائيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 5 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-20": { shift: "المسائيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 6 }, "emp_2": { status: "حضور", delay: 6 } } },
-            "2026-10-21": { shift: "الليليه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
-            "2026-10-22": { shift: "الليليه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-23": { shift: "الليليه", day: "الجمعه", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
-            "2026-10-24": { shift: "الليليه", day: "السبت", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-25": { shift: "الليليه", day: "الاحد", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 1 } } },
-            "2026-10-26": { shift: "الليليه", day: "الاثنين", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-27": { shift: "الليليه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 3 } } },
-            "2026-10-28": { shift: "الليليه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 2 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-29": { shift: "الليليه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
-            "2026-10-30": { shift: "الليليه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "حضور", delay: 0 } } },
-            "2026-10-31": { shift: "الليليه", day: "السبت", records: { "emp_1": { status: "", delay: 0 }, "emp_2": { status: "راحة", delay: 0 } } },
-
-            // November 2026
-            "2026-11-02": { shift: "الصباحيه", day: "الاثنين", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0 }, "emp_3": { status: "راحة", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
-            "2026-11-03": { shift: "الصباحيه", day: "الثلاثاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0, notes: "تعديل الوردية الصفراء" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
-            "2026-11-04": { shift: "الصباحيه", day: "الأربعاء", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "حضور", delay: 0, notes: "تعديل الوردية الصفراء" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
-            "2026-11-05": { shift: "الصباحيه", day: "الخميس", records: { "emp_1": { status: "حضور", delay: 0 }, "emp_2": { status: "راحة", delay: 0, notes: "مأمورية" }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
-            "2026-11-06": { shift: "الصباحيه", day: "الجمعه", records: { "emp_1": { status: "راحة", delay: 0 }, "emp_2": { status: "", delay: 0 }, "emp_3": { status: "", delay: 0 }, "emp_4": { status: "", delay: 0 } } },
-            "2026-11-07": { shift: "الصباحيه", day: "السبت", records: {} },
-            "2026-11-08": { shift: "الصباحيه", day: "الاحد", records: {} },
-            "2026-11-09": { shift: "الصباحيه", day: "الاثنين", records: {} },
-            "2026-11-10": { shift: "الصباحيه", day: "الثلاثاء", records: {} },
-            "2026-11-11": { shift: "اليوم الطويل", day: "الأربعاء", records: {} },
-            "2026-11-12": { shift: "المسائيه", day: "الخميس", records: { "emp_2": { status: "راحة", delay: 0 } } },
-            "2026-11-13": { shift: "المسائيه", day: "الجمعه", records: {} },
-            "2026-11-14": { shift: "المسائيه", day: "السبت", records: {} },
-            "2026-11-15": { shift: "المسائيه", day: "الاحد", records: {} },
-            "2026-11-16": { shift: "المسائيه", day: "الاثنين", records: {} },
-            "2026-11-17": { shift: "المسائيه", day: "الثلاثاء", records: {} },
-            "2026-11-18": { shift: "المسائيه", day: "الأربعاء", records: {} },
-            "2026-11-19": { shift: "المسائيه", day: "الخميس", records: {} },
-            "2026-11-20": { shift: "المسائيه", day: "الجمعه", records: {} },
-            "2026-11-21": { shift: "الليليه", day: "السبت", records: {} },
-            "2026-11-22": { shift: "الليليه", day: "الاحد", records: {} },
-            "2026-11-23": { shift: "الليليه", day: "الاثنين", records: {} },
-            "2026-11-24": { shift: "الليليه", day: "الثلاثاء", records: {} },
-            "2026-11-25": { shift: "الليليه", day: "الأربعاء", records: {} },
-            "2026-11-26": { shift: "الليليه", day: "الخميس", records: {} },
-            "2026-11-27": { shift: "الليليه", day: "الجمعه", records: {} },
-            "2026-11-28": { shift: "الليليه", day: "السبت", records: {} },
-            "2026-11-29": { shift: "الليليه", day: "الاحد", records: {} },
-            "2026-11-30": { shift: "الليليه", day: "الاثنين", records: {} },
-            "2026-12-01": { shift: "الليليه", day: "الثلاثاء", records: {} }
-        };
+        const INITIAL_ATTENDANCE = {};
 
         // Application State
-        let employees = JSON.parse(localStorage.getItem('app_employees_v2')) || INITIAL_EMPLOYEES;
-        let attendanceData = JSON.parse(localStorage.getItem('app_attendance_v2')) || INITIAL_ATTENDANCE;
+        let employees = [];
+        let attendanceData = {};
+        let workspaceEmployees = [];
+        let registeredEmployees = [];
+        let workspaceLoaded = false;
+        let profilesLoaded = false;
+        localStorage.removeItem('app_employees_v2');
+        localStorage.removeItem('app_attendance_v2');
         function localDateKey() {
             const now = new Date();
             return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
         }
         let currentMonth = localDateKey().slice(0, 7);
-        let activeTeam = "red"; // Red, blue and yellow rotate; morning is fixed.
+        let activeTeam = null;
         let editingCell = null;
         let firebaseUser = null;
+        let currentProfile = null;
+        let isAdmin = false;
         let applyingCloudData = false;
         let firebaseReady = false;
         let firebaseConnected = false;
@@ -835,6 +870,7 @@
             if (!data.employees.every(emp => emp && /^[A-Za-z0-9_-]+$/.test(emp.id) &&
                 !['__proto__', 'constructor', 'prototype'].includes(emp.id) &&
                 typeof emp.name === 'string' && typeof (emp.code ?? '') === 'string' &&
+                typeof (emp.job ?? '') === 'string' &&
                 ['red', 'blue', 'yellow', 'morning'].includes(emp.team || 'red') &&
                 ['annual_balance', 'casual_balance', 'perm_hours'].every(key =>
                     emp[key] == null || (typeof emp[key] === 'number' && Number.isFinite(emp[key]) && emp[key] >= 0)))) return false;
@@ -874,14 +910,27 @@
                 if (dayNum >= 11 && dayNum <= 20) return 'الصباحيه';
                 return 'المسائيه';
             }
-            return 'الصباحيه';
+            return '';
+        }
+
+        function isMorningFriday(date, employee) {
+            return employee.team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5;
+        }
+
+        function effectiveRecord(date, employee, record) {
+            return isMorningFriday(date, employee)
+                ? { status: 'راحة', delay: 0, permissionMinutes: 0, notes: 'إجازة أسبوعية ثابتة' }
+                : (record || { status: '', delay: 0, notes: '' });
         }
 
         function switchTeam(team) {
+            if (!['red', 'blue', 'yellow', 'morning'].includes(team)) return;
+            if (!isAdmin && currentProfile && team !== currentProfile.team) return;
             activeTeam = team;
             // Update UI buttons
             document.querySelectorAll('.team-tab-btn').forEach(btn => {
-                btn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:bg-slate-200/50";
+                const hidden = btn.classList.contains('hidden');
+                btn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition text-slate-600 hover:bg-slate-200/50" + (hidden ? ' hidden' : '');
             });
 
             const teamButtons = { red: 'btnTeamRed', blue: 'btnTeamBlue', yellow: 'btnTeamYellow', morning: 'btnTeamMorning' };
@@ -907,10 +956,16 @@
                 badge.innerText = "الوردية الصباحية";
             }
 
+            document.getElementById('heroTitle').textContent = `جدول ${badge.innerText}`;
+            document.getElementById('heroSubtitle').textContent = isAdmin || team === currentProfile?.team
+                ? 'كل أيام الشهر وبيانات الموظفين في نفس الوردية والوظيفة.'
+                : 'يمكنك مشاهدة هذه الوردية. تعديل الحضور متاح لورديتك فقط.';
+
             renderTable();
         }
 
         function autoFillMonthShifts() {
+            if (!isAdmin || !activeTeam) return;
             if (!confirm(`هل تريد تطبيق نظام الورديات التلقائي لشهر ${currentMonth} وفق نمط الوردية المعتمدة؟`)) return;
 
             const [yearStr, monthStr] = currentMonth.split('-');
@@ -942,6 +997,7 @@
         }
 
         function quickFillPresent() {
+            if (!isAdmin || !activeTeam) return;
             if (!confirm("هل تريد تعيين الأيام غير المسجلة حتى اليوم إلى (حضور) لجميع الموظفين؟")) return;
 
             const dates = Object.keys(attendanceData).filter(d => d.startsWith(currentMonth) && d <= localDateKey());
@@ -949,6 +1005,7 @@
             dates.forEach(d => {
                 if (!attendanceData[d].records) attendanceData[d].records = {};
                 employees.forEach(emp => {
+                    if (emp.team !== activeTeam || isMorningFriday(d, emp)) return;
                     if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
                         attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
                         changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
@@ -966,6 +1023,7 @@
         // 3. Render Table & KPI UI
         // ==========================================
         function switchMonth(m) {
+            if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(m)) return;
             currentMonth = m;
             document.getElementById('monthPicker').value = m;
             document.querySelectorAll('.month-tab-btn').forEach(btn => {
@@ -994,7 +1052,7 @@
                 const key = `${monthPrefix}-${dayStr}`;
                 if (!attendanceData[key]) {
                     const dateObj = new Date(y, m - 1, d);
-                    const shiftName = calculateShiftForDate(d, activeTeam);
+                    const shiftName = activeTeam ? calculateShiftForDate(d, activeTeam) : '';
                     attendanceData[key] = {
                         shift: shiftName,
                         day: ARABIC_DAYS[dateObj.getDay()],
@@ -1031,6 +1089,16 @@
                 document.getElementById('tableBody').innerHTML = '';
                 document.getElementById('tableFooter').innerHTML = '';
                 document.getElementById('kpiStatsContainer').innerHTML = '';
+                document.getElementById('mobileAttendanceList').innerHTML = '';
+                return;
+            }
+            ensureMonthDates(currentMonth);
+            if (!activeTeam) {
+                document.getElementById('tableHeaderRow').innerHTML = '';
+                document.getElementById('tableBody').innerHTML = '<tr><td class="selection-empty"><i class="fa-solid fa-calendar-days"></i>اختر وردية من الأعلى لعرض أيام الشهر والموظفين.</td></tr>';
+                document.getElementById('tableFooter').innerHTML = '';
+                document.getElementById('mobileAttendanceList').innerHTML = '<div class="selection-empty"><i class="fa-solid fa-calendar-days"></i>اختر وردية لعرض الشهر كاملاً.</div>';
+                document.getElementById('kpiStatsContainer').innerHTML = '';
                 return;
             }
             const shiftFilter = document.getElementById('shiftFilter').value;
@@ -1038,8 +1106,9 @@
             const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
             
             // Filter employees by search
-            const filteredEmployees = employees.filter(emp => 
-                emp.name.toLowerCase().includes(searchTerm) || (emp.code && emp.code.toLowerCase().includes(searchTerm))
+            const filteredEmployees = employees.filter(emp => emp.team === activeTeam &&
+                (isAdmin || emp.job === currentProfile?.job) && (
+                emp.name.toLowerCase().includes(searchTerm) || (emp.code && emp.code.toLowerCase().includes(searchTerm)))
             );
 
             // 1. Build Header
@@ -1061,6 +1130,7 @@
                             <span>البيان</span>
                             <span>التأخير</span>
                         </div>
+                        <div class="text-[10px] text-slate-500 font-normal mt-1">${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</div>
                     </th>
                 `;
             });
@@ -1100,7 +1170,7 @@
                 `;
 
                 filteredEmployees.forEach(emp => {
-                    const rec = (dayData.records && dayData.records[emp.id]) || { status: "", delay: 0, notes: "" };
+                    const rec = effectiveRecord(date, emp, dayData.records && dayData.records[emp.id]);
                     const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red');
                     
                     const st = (rec.status || "").trim();
@@ -1165,6 +1235,25 @@
             footer.innerHTML = footerHTML;
 
             renderKPICards(totals);
+            renderMobileAttendance(dates, filteredEmployees, shiftFilter);
+        }
+
+        function renderMobileAttendance(dates, teamEmployees, shiftFilter) {
+            const list = document.getElementById('mobileAttendanceList');
+            const visibleDates = dates.filter(date => shiftFilter === 'all' || calculateShiftForDate(Number(date.slice(-2)), activeTeam) === shiftFilter);
+            list.innerHTML = visibleDates.map(date => {
+                const day = attendanceData[date];
+                const shift = calculateShiftForDate(Number(date.slice(-2)), activeTeam);
+                const people = teamEmployees.length ? teamEmployees.map(emp => {
+                    const rec = effectiveRecord(date, emp, day.records?.[emp.id]);
+                    const canEdit = !isMorningFriday(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
+                    return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
+                        <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
+                        <span class="text-left">${getStatusBadge(rec.status)}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isMorningFriday(date, emp) ? 'إجازة ثابتة' : 'بدون تأخير')}</small></span>
+                    </button>`;
+                }).join('') : '<p class="p-3 text-slate-500">لا يوجد موظفون في هذه الوردية.</p>';
+                return `<article class="day-card"><div class="day-card-head"><strong>${escapeHTML(day.day)} · ${date}</strong><span class="text-xs font-bold text-cyan-800">${escapeHTML(shift)}</span></div>${people}</article>`;
+            }).join('') || '<div class="selection-empty">لا توجد أيام مطابقة للفلتر.</div>';
         }
 
         function renderKPICards(totals) {
@@ -1206,8 +1295,15 @@
         // 4. ADVANCED EMPLOYEE CRUD MANAGEMENT
         // ==========================================
         function openEmployeesManagerModal() {
+            if (!isAdmin) return;
             renderEmployeesDirectory();
             document.getElementById('employeesManagerModal').classList.remove('hidden');
+        }
+
+        function openNewEmployeeForm() {
+            openEmployeesManagerModal();
+            resetEmployeeForm();
+            document.getElementById('formEmpName').focus();
         }
 
         function closeEmployeesManagerModal() {
@@ -1231,6 +1327,7 @@
                         <td class="p-3 text-slate-400 font-mono">${index + 1}</td>
                         <td class="p-3 font-bold text-slate-800">${escapeHTML(emp.name)}</td>
                         <td class="p-3 font-mono text-slate-500">${escapeHTML(emp.code || '-')}</td>
+                        <td class="p-3 text-slate-600">${escapeHTML(emp.job || 'غير محددة')}</td>
                         <td class="p-3">${teamBadge}</td>
                         <td class="p-3 text-center font-bold text-sky-700">${emp.annual_balance ?? 21} يوم</td>
                         <td class="p-3 text-center font-bold text-amber-700">${emp.casual_balance ?? 7} أيام</td>
@@ -1262,8 +1359,10 @@
             document.getElementById('formEmpId').value = emp.id;
             document.getElementById('formEmpName').value = emp.name;
             document.getElementById('formEmpCode').value = emp.code || '';
-            document.getElementById('formEmpTeam').value = emp.team || 'red';
+            document.getElementById('formEmpCode').readOnly = true;
+            document.getElementById('formEmpTeam').value = emp.team || '';
             document.getElementById('formEmpDept').value = emp.dept || 'العمليات';
+            document.getElementById('formEmpJob').value = emp.job || '';
             document.getElementById('formEmpAnnual').value = emp.annual_balance ?? 21;
             document.getElementById('formEmpCasual').value = emp.casual_balance ?? 7;
             document.getElementById('formEmpPermHours').value = emp.perm_hours ?? 4;
@@ -1278,8 +1377,10 @@
             document.getElementById('formEmpId').value = '';
             document.getElementById('formEmpName').value = '';
             document.getElementById('formEmpCode').value = '';
-            document.getElementById('formEmpTeam').value = 'red';
+            document.getElementById('formEmpCode').readOnly = false;
+            document.getElementById('formEmpTeam').value = '';
             document.getElementById('formEmpDept').value = 'العمليات والتشغيل';
+            document.getElementById('formEmpJob').value = '';
             document.getElementById('formEmpAnnual').value = '21';
             document.getElementById('formEmpCasual').value = '7';
             document.getElementById('formEmpPermHours').value = '4';
@@ -1290,12 +1391,14 @@
             document.getElementById('cancelEditEmpBtn').classList.add('hidden');
         }
 
-        function saveEmployeeFromForm() {
+        async function saveEmployeeFromForm() {
+            if (!isAdmin) return;
             const id = document.getElementById('formEmpId').value.trim();
             const name = document.getElementById('formEmpName').value.trim();
             const code = document.getElementById('formEmpCode').value.trim();
             const team = document.getElementById('formEmpTeam').value;
             const dept = document.getElementById('formEmpDept').value.trim();
+            const job = document.getElementById('formEmpJob').value;
             const annual = Number(document.getElementById('formEmpAnnual').value);
             const casual = Number(document.getElementById('formEmpCasual').value);
             const perm = Number(document.getElementById('formEmpPermHours').value);
@@ -1304,52 +1407,63 @@
                 alert("يرجى إدخال اسم الموظف!");
                 return;
             }
+            if (!/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job) || employees.some(e => e.id !== id && e.code.toLowerCase() === code.toLowerCase())) {
+                alert('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الوظيفة والوردية.');
+                return;
+            }
             if (![annual, casual, perm].every(value => Number.isFinite(value) && value >= 0)) {
                 alert('أدخل أرصدة صحيحة لا تقل عن صفر.');
                 return;
             }
 
-            if (id) {
-                // Update existing
-                const index = employees.findIndex(e => e.id === id);
-                if (index !== -1) {
-                    employees[index] = { ...employees[index], name, code, team, dept, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+            const button = document.getElementById('saveEmpBtn');
+            button.disabled = true;
+            try {
+                if (id) {
+                    const index = employees.findIndex(e => e.id === id);
+                    if (index < 0) return;
+                    const changed = { ...employees[index], name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const updated = employees.map(e => e.id === id ? changed : e);
+                    await window.firebaseBridge.updateEmployeeAccount(changed, updated);
+                    employees = updated;
+                } else {
+                    const employee = { id: `emp_${Date.now()}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const created = await window.firebaseBridge.createEmployeeAccount(employee, employees);
+                    employees.push(created);
                 }
-            } else {
-                // Add new
-                const newId = `emp_${Date.now()}`;
-                employees.push({ id: newId, name, code, team, dept, annual_balance: annual, casual_balance: casual, perm_hours: perm });
-            }
-
-            saveToStorage();
-            renderEmployeesDirectory();
-            resetEmployeeForm();
-            renderTable();
-            cloudWrite(window.firebaseBridge.saveEmployees(employees));
+                renderEmployeesDirectory();
+                resetEmployeeForm();
+                renderTable();
+                alert('تم حفظ الموظف وحسابه. كلمة المرور الافتراضية: 1234567');
+            } catch (error) {
+                alert(`تعذر حفظ الحساب: ${error.message}`);
+            } finally { button.disabled = false; }
         }
 
-        function deleteEmployee(empId) {
+        async function deleteEmployee(empId) {
+            if (!isAdmin) return;
             const emp = employees.find(e => e.id === empId);
             if (!emp) return;
 
             if (!confirm(`هل أنت متأكد تماماً من حذف الموظف (${emp.name}) من النظام؟`)) return;
 
-            // Remove from employee array
-            employees = employees.filter(e => e.id !== empId);
+            const updatedEmployees = employees.filter(e => e.id !== empId);
 
             // Clean records
             const affectedDates = [];
             Object.entries(attendanceData).forEach(([date, day]) => {
                 if (day.records && day.records[empId]) {
-                    delete day.records[empId];
                     affectedDates.push(date);
                 }
             });
 
-            saveToStorage();
-            renderEmployeesDirectory();
-            renderTable();
-            cloudWrite(window.firebaseBridge.deleteEmployeeRecords(employees, empId, affectedDates));
+            try {
+                await window.firebaseBridge.deleteEmployeeRecords(updatedEmployees, empId, affectedDates, emp.authUid || emp.id);
+                employees = updatedEmployees;
+                affectedDates.forEach(date => delete attendanceData[date].records[empId]);
+                renderEmployeesDirectory();
+                renderTable();
+            } catch (error) { alert(`تعذر حذف الموظف: ${error.message}`); }
         }
 
         // ==========================================
@@ -1357,7 +1471,7 @@
         // ==========================================
         function openEmployeeReport(empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp) return;
+            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
 
             document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
             document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.dept || 'العمليات'}`;
@@ -1369,14 +1483,14 @@
             let annualUsedThisYear = 0, casualUsedThisYear = 0;
             Object.entries(attendanceData).forEach(([date, day]) => {
                 if (!date.startsWith(currentMonth.slice(0, 4) + '-') || date > localDateKey()) return;
-                const status = day.records?.[empId]?.status;
+                const status = effectiveRecord(date, emp, day.records?.[empId]).status;
                 if (status === 'إعتيادي') annualUsedThisYear++;
                 if (status === 'عارضة') casualUsedThisYear++;
             });
 
             dates.forEach(d => {
                 const day = attendanceData[d];
-                const rec = (day.records && day.records[empId]) || {};
+                const rec = effectiveRecord(d, emp, day.records && day.records[empId]);
                 const st = (rec.status || "").trim();
                 const del = parseInt(rec.delay) || 0;
 
@@ -1471,16 +1585,21 @@
             document.getElementById('employeeReportModal').classList.add('hidden');
         }
 
+        function openMyReport() {
+            if (currentProfile) openEmployeeReport(currentProfile.id);
+        }
+
         // ==========================================
         // 6. CELL EDIT HANDLERS
         // ==========================================
         let selectedModalStatus = "";
 
         function openEditModal(date, empId) {
-            editingCell = { date, empId };
             const emp = employees.find(e => e.id === empId);
+            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isMorningFriday(date, emp)) return;
+            editingCell = { date, empId };
             const dayData = attendanceData[date] || {};
-            const rec = (dayData.records && dayData.records[empId]) || { status: "", delay: 0, notes: "" };
+            const rec = effectiveRecord(date, emp, dayData.records && dayData.records[empId]);
 
             document.getElementById('modalEmployeeName').innerText = `تعديل: ${emp ? emp.name : ''}`;
             const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp?.team || 'red');
@@ -1525,6 +1644,8 @@
         function saveCellData() {
             if (!editingCell) return;
             const { date, empId } = editingCell;
+            const emp = employees.find(e => e.id === empId);
+            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isMorningFriday(date, emp)) return;
 
             if (!attendanceData[date]) {
                 attendanceData[date] = { shift: "الصباحيه", day: "", records: {} };
@@ -1559,7 +1680,8 @@
             let html = '';
 
             const usedLeaves = {};
-            employees.forEach(emp => {
+            const visibleEmployees = employees.filter(emp => isAdmin ? (!activeTeam || emp.team === activeTeam) : (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            visibleEmployees.forEach(emp => {
                 usedLeaves[emp.id] = { annual: 0, casual: 0, permMinutes: 0 };
             });
 
@@ -1568,16 +1690,18 @@
                 if (day.records) {
                     Object.entries(day.records).forEach(([empId, rec]) => {
                         if (usedLeaves[empId]) {
-                            const st = (rec.status || "").trim();
+                            const employee = visibleEmployees.find(emp => emp.id === empId);
+                            const effective = effectiveRecord(date, employee, rec);
+                            const st = (effective.status || "").trim();
                             if (st === 'إعتيادي') usedLeaves[empId].annual++;
                             if (st === 'عارضة') usedLeaves[empId].casual++;
-                            if (st === 'إذن' && date.startsWith(currentMonth)) usedLeaves[empId].permMinutes += (parseInt(rec.permissionMinutes, 10) || 0);
+                            if (st === 'إذن' && date.startsWith(currentMonth)) usedLeaves[empId].permMinutes += (parseInt(effective.permissionMinutes, 10) || 0);
                         }
                     });
                 }
             });
 
-            employees.forEach(emp => {
+            visibleEmployees.forEach(emp => {
                 const u = usedLeaves[emp.id] || { annual: 0, casual: 0, permMinutes: 0 };
                 const remAnnual = (emp.annual_balance ?? 21) - u.annual;
                 const remCasual = (emp.casual_balance ?? 7) - u.casual;
@@ -1621,8 +1745,153 @@
         // 9. CLOUD SYNC & LOCAL STORAGE
         // ==========================================
         function saveToStorage() {
-            localStorage.setItem('app_employees_v2', JSON.stringify(employees));
-            localStorage.setItem('app_attendance_v2', JSON.stringify(attendanceData));
+            // Firestore manages its own offline cache after sign-in.
+        }
+
+        async function loginEmployee(event) {
+            event.preventDefault();
+            const code = document.getElementById('loginCode').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorLabel = document.getElementById('loginError');
+            const button = document.getElementById('loginButton');
+            errorLabel.classList.add('hidden');
+            button.disabled = true;
+            button.textContent = 'جارٍ الدخول...';
+            try { await window.firebaseBridge.login(code, password); }
+            catch (error) {
+                errorLabel.textContent = 'الكود أو كلمة المرور غير صحيحين، أو الحساب غير مفعّل.';
+                errorLabel.classList.remove('hidden');
+            } finally { button.disabled = false; button.textContent = 'دخول الحساب'; }
+        }
+
+        function toggleRegistration(show) {
+            document.getElementById('loginForm').classList.toggle('hidden', show);
+            document.getElementById('registerForm').classList.toggle('hidden', !show);
+            document.getElementById(show ? 'registerName' : 'loginCode').focus();
+        }
+
+        async function registerNewEmployee(event) {
+            event.preventDefault();
+            const name = document.getElementById('registerName').value.trim();
+            const code = document.getElementById('registerCode').value.trim();
+            const team = document.getElementById('registerTeam').value;
+            const errorLabel = document.getElementById('registerError');
+            const button = document.getElementById('registerButton');
+            errorLabel.classList.add('hidden');
+            const job = document.getElementById('registerJob').value;
+            if (!name || !/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job)) {
+                errorLabel.textContent = 'أدخل الاسم والكود بحروف إنجليزية وأرقام، ثم اختر الوظيفة والوردية.';
+                errorLabel.classList.remove('hidden');
+                return;
+            }
+            button.disabled = true;
+            button.textContent = 'جارٍ إنشاء الحساب...';
+            try {
+                await window.firebaseBridge.registerEmployee({
+                    name, code, team,
+                    job,
+                    dept: document.getElementById('registerDept').value.trim()
+                });
+            } catch (error) {
+                errorLabel.textContent = error.code === 'auth/email-already-in-use' ? 'هذا الكود مسجل بالفعل. استخدم شاشة الدخول.' : `تعذر إنشاء الحساب: ${error.message}`;
+                errorLabel.classList.remove('hidden');
+            } finally { button.disabled = false; button.textContent = 'إنشاء الحساب'; }
+        }
+
+        function logoutEmployee() { window.firebaseBridge.logout(); }
+
+        function showAccountModal() {
+            document.getElementById('accountProfile').textContent = currentProfile
+                ? `${currentProfile.name} · ${currentProfile.job} · ${currentProfile.code}${isAdmin ? ' · مدير النظام' : ''}`
+                : 'حساب الإدارة';
+            document.getElementById('accountMessage').textContent = '';
+            document.getElementById('accountModal').classList.remove('hidden');
+        }
+
+        function closeAccountModal() { document.getElementById('accountModal').classList.add('hidden'); }
+
+        async function changeEmployeePassword(event) {
+            event.preventDefault();
+            const message = document.getElementById('accountMessage');
+            const current = document.getElementById('currentPassword').value;
+            const next = document.getElementById('newPassword').value;
+            const confirmation = document.getElementById('confirmPassword').value;
+            if (next !== confirmation) {
+                message.textContent = 'كلمتا المرور الجديدتان غير متطابقتين.';
+                message.className = 'text-xs mt-2 text-red-700';
+                return;
+            }
+            try {
+                await window.firebaseBridge.changePassword(current, next);
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                message.textContent = 'تم تغيير كلمة المرور.';
+                message.className = 'text-xs mt-2 text-emerald-700';
+            } catch (error) {
+                message.textContent = ['auth/wrong-password', 'auth/invalid-credential'].includes(error.code) ? 'كلمة المرور الحالية غير صحيحة.' : error.message;
+                message.className = 'text-xs mt-2 text-red-700';
+            }
+        }
+
+        function showSignedOut() {
+            firebaseUser = null;
+            currentProfile = null;
+            isAdmin = false;
+            activeTeam = null;
+            employees = [];
+            attendanceData = {};
+            workspaceEmployees = [];
+            registeredEmployees = [];
+            workspaceLoaded = false;
+            profilesLoaded = false;
+            document.getElementById('appHeader').classList.add('hidden');
+            document.getElementById('appMain').classList.add('hidden');
+            document.getElementById('authGate').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginPassword').value = '';
+            document.querySelectorAll('.app-modal, #cloudModal').forEach(el => el.classList.add('hidden'));
+        }
+
+        function showSignedInProfile() {
+            document.getElementById('profileName').textContent = currentProfile?.name || 'الإدارة';
+            document.getElementById('profileDetails').textContent = currentProfile
+                ? `الوظيفة: ${currentProfile.job || 'غير محددة'} · ${currentProfile.dept || ''}${isAdmin ? ' · مدير النظام' : ''}`
+                : 'إدارة الموظفين والورديات';
+            document.getElementById('profileCode').textContent = currentProfile ? `الكود: ${currentProfile.code}` : 'ADMIN';
+            ['manageEmployeesButton', 'autoFillButton', 'quickFillButton'].forEach(id => document.getElementById(id).classList.toggle('hidden', !isAdmin));
+            [['btnTeamRed', 'red'], ['btnTeamBlue', 'blue'], ['btnTeamYellow', 'yellow'], ['btnTeamMorning', 'morning']]
+                .forEach(([id, team]) => document.getElementById(id).classList.toggle('hidden', !isAdmin && currentProfile?.team !== team));
+            document.querySelector('.team-controls').classList.toggle('single-team', !isAdmin);
+            document.getElementById('backupControls').classList.toggle('hidden', !isAdmin);
+            document.getElementById('myReportButton').classList.toggle('hidden', !currentProfile);
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appHeader').classList.remove('hidden');
+            document.getElementById('appMain').classList.remove('hidden');
+            document.getElementById('authGate').classList.add('hidden');
+        }
+
+        function applyCloudSnapshots() {
+            if (!firebaseUser || !workspaceLoaded || !profilesLoaded) return;
+            const byId = new Map(workspaceEmployees.map(emp => [emp.id, emp]));
+            registeredEmployees.forEach(profile => {
+                if (!profile.name || !profile.code) return;
+                const id = profile.employeeId || profile.uid;
+                byId.set(id, { ...byId.get(id), ...profile, id, authUid: profile.uid });
+            });
+            employees = [...byId.values()];
+            currentProfile = employees.find(emp => (emp.authUid || emp.id) === firebaseUser.uid) || null;
+            if (!isAdmin && !currentProfile) {
+                setFirebaseMessage('هذا الحساب غير مرتبط بموظف.', true);
+                window.firebaseBridge.logout();
+                return;
+            }
+            ensureMonthDates(currentMonth);
+            showSignedInProfile();
+            if (!activeTeam && currentProfile && !isAdmin) switchTeam(currentProfile.team);
+            else renderTable();
         }
 
         function openCloudModal() {
@@ -1653,10 +1922,23 @@
             try {
                 firebaseConnected = true;
                 window.firebaseBridge.connect(config, {
-                    onAuth(user) {
+                    onSignedOut() { showSignedOut(); },
+                    onAuth(user, claims) {
+                        if (firebaseUser?.uid !== user.uid) {
+                            workspaceLoaded = false;
+                            profilesLoaded = false;
+                            activeTeam = null;
+                        }
                         firebaseUser = user;
+                        isAdmin = claims.admin === true;
                         updateCloudUI('جاري تحميل بيانات Firebase');
-                        setFirebaseMessage('تم الاتصال تلقائياً. البيانات مشتركة بين جميع الزوار.');
+                        setFirebaseMessage('تم تسجيل الدخول. جارٍ تحميل بيانات الحضور.');
+                        document.getElementById('authGate').classList.remove('hidden');
+                    },
+                    onProfiles(profiles) {
+                        registeredEmployees = profiles;
+                        profilesLoaded = true;
+                        applyCloudSnapshots();
                     },
                     onData(data, metadata) {
                         if (metadata.hasPendingWrites) {
@@ -1668,21 +1950,24 @@
                             return;
                         }
                         applyingCloudData = true;
-                        employees = data.employees;
+                        workspaceEmployees = data.employees;
                         attendanceData = data.attendanceData;
-                        saveToStorage();
+                        workspaceLoaded = true;
                         applyingCloudData = false;
-                        renderTable();
-                        document.getElementById('authGate').classList.add('hidden');
+                        applyCloudSnapshots();
                         updateCloudUI(metadata.fromCache ? 'بيانات محفوظة دون اتصال' : 'Firebase متصل', !metadata.fromCache);
                     },
                     onEmpty() {
-                        // Initialize the shared workspace only if the server has no document.
-                        syncToCloud();
+                        if (isAdmin) {
+                            employees = INITIAL_EMPLOYEES;
+                            attendanceData = INITIAL_ATTENDANCE;
+                            syncToCloud();
+                        }
                     },
                     onError(error) {
                         updateCloudUI('فشلت مزامنة Firebase');
                         setFirebaseMessage(error.message, true);
+                        if (error.code === 'permission-denied') window.firebaseBridge.logout();
                     }
                 });
             } catch (error) {
@@ -1702,7 +1987,7 @@
         }
 
         function syncToCloud() {
-            if (applyingCloudData || !firebaseUser) return;
+            if (applyingCloudData || !firebaseUser || !isAdmin) return;
             cloudWrite(window.firebaseBridge.save({ employees, attendanceData, updatedAt: new Date().toISOString() }));
         }
 
@@ -1753,17 +2038,19 @@
         // 10. EXCEL EXPORT
         // ==========================================
         function exportToExcel() {
+            if (!activeTeam) { alert('اختر وردية أولاً.'); return; }
             const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
             const exportRows = [];
+            const visibleEmployees = employees.filter(emp => emp.team === activeTeam && (isAdmin || emp.job === currentProfile?.job));
 
             const h1 = ["التاريخ", "اليوم", "الوردية"];
-            employees.forEach(emp => {
+            visibleEmployees.forEach(emp => {
                 h1.push(emp.name, "", "");
             });
             exportRows.push(h1);
 
             const h2 = ["", "", ""];
-            employees.forEach(() => {
+            visibleEmployees.forEach(() => {
                 h2.push("وردية الموظف", "البيان", "التأخير (دقيقة)");
             });
             exportRows.push(h2);
@@ -1771,8 +2058,8 @@
             dates.forEach(date => {
                 const day = attendanceData[date];
                 const row = [date, day.day, calculateShiftForDate(Number(date.slice(-2)), activeTeam)];
-                employees.forEach(emp => {
-                    const rec = (day.records && day.records[emp.id]) || { status: "", delay: 0 };
+                visibleEmployees.forEach(emp => {
+                    const rec = effectiveRecord(date, emp, day.records && day.records[emp.id]);
                     row.push(calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red'), rec.status || "", rec.delay || 0);
                 });
                 exportRows.push(row);
@@ -1788,8 +2075,8 @@
         // INITIALIZATION
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.copyright-year').forEach(item => item.textContent = new Date().getFullYear());
             switchMonth(currentMonth);
-            document.getElementById('authGate').classList.remove('hidden');
             if (firebaseReady && !firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
         window.addEventListener('firebase-bridge-ready', () => {

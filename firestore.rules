@@ -1,14 +1,52 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Every visitor signs in anonymously without a visible login form.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    function isEmployee() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid));
+    }
+
+    match /employeeAccounts/{uid} {
+      allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow list: if isAdmin() || isEmployee();
+      allow create: if isAdmin() || (
+        request.auth != null
+        && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider == 'password'
+        && request.resource.data.keys().hasAll(['employeeId', 'team', 'name', 'code', 'job', 'dept', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && request.resource.data.keys().hasOnly(['employeeId', 'team', 'name', 'code', 'job', 'dept', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && request.resource.data.employeeId == uid
+        && request.resource.data.code is string
+        && request.resource.data.code.matches('^[A-Za-z0-9_-]+$')
+        && request.auth.token.email == request.resource.data.code.lower() + '@accounts.shifts-attendance-am-2026.firebaseapp.com'
+        && request.resource.data.name is string
+        && request.resource.data.job in ['دعم المستخدمين', 'البنية التحتية']
+        && request.resource.data.dept is string
+        && request.resource.data.team in ['red', 'blue', 'yellow', 'morning']
+        && request.resource.data.annual_balance == 21
+        && request.resource.data.casual_balance == 7
+        && request.resource.data.perm_hours == 4
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    match /teamMembership/{employeeId} {
+      allow read, write: if isAdmin();
+    }
+
     match /shared/workspace {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null
-        && request.resource.data.keys().hasAll(['employees', 'attendanceData'])
-        && request.resource.data.keys().hasOnly(['employees', 'attendanceData', 'updatedAt'])
-        && request.resource.data.employees is list
-        && request.resource.data.attendanceData is map;
+      allow read: if isAdmin() || isEmployee();
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (
+        isEmployee()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendanceData'])
+        && request.resource.data.attendanceData is map
+        && request.resource.data.employees == resource.data.employees
+      );
       allow delete: if false;
     }
   }
