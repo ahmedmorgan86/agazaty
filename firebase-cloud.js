@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, getIdTokenResult, createUserWithEmailAndPassword, deleteUser, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, setDoc, updateDoc, deleteField, FieldPath, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, onSnapshot, getDocFromServer, setDoc, updateDoc, deleteField, FieldPath, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 let auth;
 let database;
@@ -64,16 +64,37 @@ async function changePassword(currentPassword, newPassword) {
     return updatePassword(auth.currentUser, newPassword);
 }
 
+async function acquireEmployeeAccount(provisioningAuth, registrationDb, code) {
+    try {
+        const created = await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(code), '1234567');
+        return { user: created.user, createdNow: true };
+    } catch (error) {
+        if (error.code !== 'auth/email-already-in-use') throw error;
+        let existing;
+        try {
+            existing = await signInWithEmailAndPassword(provisioningAuth, employeeEmail(code), '1234567');
+        } catch {
+            throw Object.assign(new Error('هذا الكود له حساب بالفعل. استخدم شاشة الدخول أو اطلب مساعدة المدير.'), { code: 'auth/email-already-in-use' });
+        }
+        const profile = await getDocFromServer(doc(registrationDb, 'employeeAccounts', existing.user.uid));
+        if (profile.exists()) {
+            throw Object.assign(new Error('هذا الكود مسجل بالفعل. استخدم شاشة الدخول.'), { code: 'auth/email-already-in-use' });
+        }
+        return { user: existing.user, createdNow: false };
+    }
+}
+
 async function registerEmployee(employee) {
     if (!auth || !database || !configInUse) throw new Error('لم يكتمل إعداد Firebase.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
     const provisioningAuth = getAuth(app);
     const registrationDb = getFirestore(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
-    const created = await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), '1234567');
+    let account;
     try {
-        await setDoc(doc(registrationDb, 'employeeAccounts', created.user.uid), {
-            employeeId: created.user.uid,
+        account = await acquireEmployeeAccount(provisioningAuth, registrationDb, employee.code);
+        await setDoc(doc(registrationDb, 'employeeAccounts', account.user.uid), {
+            employeeId: account.user.uid,
             team: employee.team,
             name: employee.name,
             code: employee.code,
@@ -84,7 +105,7 @@ async function registerEmployee(employee) {
             perm_hours: 4
         });
     } catch (error) {
-        await deleteUser(created.user).catch(() => {});
+        if (account?.createdNow) await deleteUser(account.user).catch(() => {});
         throw error;
     } finally {
         await signOut(provisioningAuth).catch(() => {});
@@ -141,18 +162,20 @@ async function createEmployeeAccount(employee, employees) {
     if (!auth?.currentUser || !database || !configInUse) throw new Error('سجّل الدخول أولاً.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
     const provisioningAuth = getAuth(app);
+    const registrationDb = getFirestore(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
-    const created = await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), '1234567');
-    const completeEmployee = { ...employee, authUid: created.user.uid };
+    let account;
     try {
+        account = await acquireEmployeeAccount(provisioningAuth, registrationDb, employee.code);
+        const completeEmployee = { ...employee, authUid: account.user.uid };
         const batch = writeBatch(database);
         batch.update(doc(database, 'shared', 'workspace'), 'employees', [...employees, completeEmployee]);
-        batch.set(doc(database, 'employeeAccounts', created.user.uid), { ...completeEmployee, employeeId: employee.id });
+        batch.set(doc(database, 'employeeAccounts', account.user.uid), { ...completeEmployee, employeeId: employee.id });
         batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team });
         await batch.commit();
         return completeEmployee;
     } catch (error) {
-        await deleteUser(created.user).catch(() => {});
+        if (account?.createdNow) await deleteUser(account.user).catch(() => {});
         throw error;
     } finally {
         await signOut(provisioningAuth).catch(() => {});
