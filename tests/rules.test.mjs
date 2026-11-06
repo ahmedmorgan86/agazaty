@@ -5,32 +5,62 @@ const testEnv = await initializeTestEnvironment({
   projectId: 'demo-agazaty',
   firestore: { rules: readFileSync('firestore.rules', 'utf8') }
 });
-const admin = testEnv.authenticatedContext('admin', { admin: true }).firestore();
+const admin = testEnv.authenticatedContext('admin', { admin: true, email: 'ahmed.morgan2009@gmail.com' }).firestore();
 const red = testEnv.authenticatedContext('red-user').firestore();
 const blue = testEnv.authenticatedContext('blue-user').firestore();
-const keyRed = 'red|دعم المستخدمين';
-const keyBlue = 'blue|دعم المستخدمين';
+const owner = testEnv.authenticatedContext('owner-user', { email: 'ahmed.morgan2009@gmail.com' }).firestore();
+const falseOwner = testEnv.authenticatedContext('false-owner').firestore();
+const impostor = testEnv.authenticatedContext('impostor', { admin: true, email: 'other@example.com' }).firestore();
+const applicant = testEnv.authenticatedContext('new-user', { email: '1234@accounts.shifts-attendance-am-2026.firebaseapp.com' }).firestore();
+const anonymous = testEnv.unauthenticatedContext().firestore();
+const keyRed = 'red|دعم المستخدمين للأجهزة';
+const keyBlue = 'blue|دعم المستخدمين للأجهزة';
 
 try {
   await testEnv.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
-    await db.doc('employeeAccounts/red-user').set({ employeeId: 'emp_red', team: 'red', job: 'دعم المستخدمين' });
-    await db.doc('employeeAccounts/blue-user').set({ employeeId: 'emp_blue', team: 'blue', job: 'دعم المستخدمين' });
-    await db.doc('teamMembership/emp_red').set({ team: 'red', job: 'دعم المستخدمين', groupKey: keyRed });
-    await db.doc('teamMembership/emp_blue').set({ team: 'blue', job: 'دعم المستخدمين', groupKey: keyBlue });
-    await db.doc('staff/emp_red').set({ team: 'red', job: 'دعم المستخدمين', groupKey: keyRed });
-    await db.doc('staff/emp_blue').set({ team: 'blue', job: 'دعم المستخدمين', groupKey: keyBlue });
+    await db.doc('employeeAccounts/red-user').set({ employeeId: 'emp_red', team: 'red', job: 'دعم المستخدمين للأجهزة' });
+    await db.doc('employeeAccounts/blue-user').set({ employeeId: 'emp_blue', team: 'blue', job: 'دعم المستخدمين للأجهزة' });
+    await db.doc('teamMembership/emp_red').set({ team: 'red', job: 'دعم المستخدمين للأجهزة', groupKey: keyRed });
+    await db.doc('teamMembership/emp_blue').set({ team: 'blue', job: 'دعم المستخدمين للأجهزة', groupKey: keyBlue });
+    await db.doc('staff/emp_red').set({ team: 'red', job: 'دعم المستخدمين للأجهزة', groupKey: keyRed });
+    await db.doc('staff/emp_blue').set({ team: 'blue', job: 'دعم المستخدمين للأجهزة', groupKey: keyBlue });
     await db.doc('meta/workspace').set({ shiftSettings: {} });
+    await db.doc('ownerAccess/owner-user').set({ role: 'admin' });
+    await db.doc('ownerAccess/false-owner').set({ role: 'member' });
+    await db.doc('jobs/دعم المستخدمين للأجهزة').set({ name: 'دعم المستخدمين للأجهزة', active: true });
+    await db.doc('jobs/البنية التحتية').set({ name: 'البنية التحتية', active: true });
   });
 
-  await assertFails(red.doc('employeeAccounts/fake').set({ employeeId: 'fake', team: 'red', job: 'دعم المستخدمين' }));
+  await assertFails(red.doc('employeeAccounts/fake').set({ employeeId: 'fake', team: 'red', job: 'دعم المستخدمين للأجهزة' }));
+  await assertSucceeds(owner.doc('ownerAccess/owner-user').get());
+  await assertFails(red.doc('ownerAccess/owner-user').get());
+  await assertFails(owner.doc('ownerAccess/other-user').set({ role: 'admin' }));
+  await assertSucceeds(owner.doc('staff/emp_blue').get());
+  await assertFails(falseOwner.doc('staff/emp_blue').get());
+  await assertFails(impostor.doc('staff/emp_blue').get());
+  await assertSucceeds(anonymous.collection('jobs').get());
+  await assertFails(red.doc('jobs/وظيفة جديدة').set({ name: 'وظيفة جديدة', active: true }));
+  await assertSucceeds(admin.doc('jobs/وظيفة جديدة').set({ name: 'وظيفة جديدة', active: true }));
+  const application = { name: 'موظف جديد', code: '1234', team: 'red', job: 'دعم المستخدمين للأجهزة', status: 'pending', createdAt: '2026-11-06T00:00:00Z' };
+  await assertSucceeds(applicant.doc('registrationRequests/new-user').set(application));
+  await assertFails(applicant.doc('registrationRequests/new-user').update({ status: 'approved' }));
+  await assertFails(applicant.doc('registrationRequests/other').set(application));
+  await assertFails(applicant.doc('registrationRequests/new-user').set({ ...application, code: '5686' }));
+  await assertSucceeds(admin.collection('registrationRequests').where('status', '==', 'pending').get());
+  await assertFails(red.collection('registrationRequests').get());
+  await assertSucceeds(admin.doc('registrationRequests/new-user').update({ status: 'approved' }));
   await assertFails(red.doc('shared/workspace').get());
   await assertFails(red.doc('staff/emp_blue').get());
+  await assertSucceeds(red.doc('staff/emp_red').update({ name: 'اسم جديد' }));
+  await assertFails(red.doc('staff/emp_blue').update({ name: 'محاولة' }));
+  await assertFails(red.doc('staff/emp_red').update({ team: 'blue' }));
+  await assertFails(red.doc('staff/emp_red').update({ annual_balance: 999 }));
   await assertSucceeds(red.collection('staff').where('groupKey', '==', keyRed).get());
   await assertSucceeds(admin.doc('staff/emp_blue').get());
   await assertFails(red.doc('meta/workspace').update({ shiftSettings: { times: {} } }));
 
-  const valid = { date: '2026-11-06', team: 'red', job: 'دعم المستخدمين', groupKey: keyRed,
+  const valid = { date: '2026-11-06', team: 'red', job: 'دعم المستخدمين للأجهزة', groupKey: keyRed,
     status: 'حضور', delay: 0, permissionMinutes: 0, notes: '' };
   await assertSucceeds(red.doc('attendance/2026-11-06/records/emp_red').set(valid));
   await assertFails(red.doc('attendance/2026-11-06/records/emp_blue').set({ ...valid, team: 'blue', groupKey: keyBlue }));
