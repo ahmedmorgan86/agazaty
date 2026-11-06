@@ -2,69 +2,60 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth != null && request.auth.token.get('admin', false) == true;
     }
-
+    function profile() {
+      return get(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid)).data;
+    }
     function isEmployee() {
-      return request.auth != null
-        && exists(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid));
+      return request.auth != null && exists(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid));
     }
-
-    function sameGroupProfileEdit() {
-      let caller = get(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid)).data;
-      return isEmployee()
-        && resource.data.team == caller.team
-        && resource.data.job == caller.job
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0
-        && request.resource.data.annual_balance is number
-        && request.resource.data.annual_balance >= 0
-        && request.resource.data.casual_balance is number
-        && request.resource.data.casual_balance >= 0
-        && request.resource.data.perm_hours is number
-        && request.resource.data.perm_hours >= 0;
+    function sameGroup(key) {
+      return isEmployee() && key == profile().team + '|' + profile().job;
     }
-
+    function validRecord(date, employeeId) {
+      let target = get(/databases/$(database)/documents/teamMembership/$(employeeId)).data;
+      return request.resource.data.keys().hasAll(['date', 'team', 'job', 'groupKey', 'status', 'delay', 'permissionMinutes', 'notes'])
+        && request.resource.data.keys().hasOnly(['date', 'team', 'job', 'groupKey', 'status', 'delay', 'permissionMinutes', 'notes'])
+        && date.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$')
+        && request.resource.data.date == date
+        && request.resource.data.team == target.team
+        && request.resource.data.job == target.job
+        && request.resource.data.groupKey == target.groupKey
+        && request.resource.data.status in ['حضور', 'راحة', 'إعتيادي', 'عارضة', 'إذن', 'مأمورية']
+        && request.resource.data.delay is int && request.resource.data.delay >= 0 && request.resource.data.delay <= 1440
+        && request.resource.data.permissionMinutes is int && request.resource.data.permissionMinutes >= 0 && request.resource.data.permissionMinutes <= 1440
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 1000;
+    }
     match /employeeAccounts/{uid} {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
-      allow list: if isAdmin() || isEmployee();
-      allow create: if isAdmin() || (
-        request.auth != null
-        && request.auth.uid == uid
-        && request.auth.token.firebase.sign_in_provider == 'password'
-        && request.resource.data.keys().hasAll(['employeeId', 'team', 'name', 'code', 'job', 'dept', 'annual_balance', 'casual_balance', 'perm_hours'])
-        && request.resource.data.keys().hasOnly(['employeeId', 'team', 'name', 'code', 'job', 'dept', 'annual_balance', 'casual_balance', 'perm_hours'])
-        && request.resource.data.employeeId == uid
-        && request.resource.data.code is string
-        && request.resource.data.code.matches('^[A-Za-z0-9_-]+$')
-        && request.auth.token.email == request.resource.data.code.lower() + '@accounts.shifts-attendance-am-2026.firebaseapp.com'
-        && request.resource.data.name is string
-        && request.resource.data.job in ['دعم المستخدمين', 'البنية التحتية']
-        && request.resource.data.dept is string
-        && request.resource.data.team in ['red', 'blue', 'yellow', 'morning']
-        && request.resource.data.annual_balance == 21
-        && request.resource.data.casual_balance == 7
-        && request.resource.data.perm_hours == 4
-      );
-      allow update: if isAdmin() || sameGroupProfileEdit();
-      allow delete: if isAdmin();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
-
     match /teamMembership/{employeeId} {
       allow read, write: if isAdmin();
     }
-
-    match /shared/workspace {
+    match /staff/{employeeId} {
+      allow get, list: if isAdmin() || (isEmployee() && resource.data.groupKey == profile().team + '|' + profile().job);
+      allow create, update, delete: if isAdmin();
+    }
+    match /meta/workspace {
       allow read: if isAdmin() || isEmployee();
-      allow create: if isAdmin();
-      allow update: if isAdmin() || (
-        isEmployee()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['attendanceData'])
-        && request.resource.data.attendanceData is map
-        && request.resource.data.employees == resource.data.employees
-      );
+      allow create, update: if isAdmin();
       allow delete: if false;
+    }
+    match /{path=**}/records/{employeeId} {
+      allow get, list: if isAdmin() || sameGroup(resource.data.groupKey);
+    }
+    match /attendance/{date}/records/{employeeId} {
+      allow create, update: if isAdmin() || (sameGroup(request.resource.data.groupKey) && validRecord(date, employeeId));
+      allow delete: if isAdmin() || (isEmployee() && sameGroup(resource.data.groupKey)
+        && get(/databases/$(database)/documents/teamMembership/$(employeeId)).data.groupKey == profile().team + '|' + profile().job);
+    }
+    // Legacy data is available only to admins for one-time migration.
+    match /shared/workspace {
+      allow read: if isAdmin();
+      allow write: if false;
     }
   }
 }
