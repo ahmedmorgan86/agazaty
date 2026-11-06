@@ -27,7 +27,7 @@ python -m http.server 8080
 
 ## المشروع الجديد `agazaty`
 
-أُنشئ مشروع Firebase وتطبيق ويب جديدان في حساب المالك، وتم تفعيل Email/Password Authentication. أُنشئت قاعدة Firestore Standard الافتراضية في `me-central1` (الدوحة)، ونُشرت القواعد وفهرس `records.groupKey` لاستعلامات collection group. أنشأ المالك حساب Authentication للبريد المحدد؛ وثيقة صلاحية المدير لم تُنشأ بعد. لم تنتقل بيانات أو هويات المشروع القديم `shifts-attendance-am-2026` إلى هذا المشروع تلقائيًا.
+أُنشئ مشروع Firebase وتطبيق ويب جديدان في حساب المالك، وتم تفعيل Email/Password Authentication. أُنشئت قاعدة Firestore Standard الافتراضية في `me-central1` (الدوحة)، ونُشرت القواعد وفهرس `records.groupKey` لاستعلامات collection group. أنشأ المالك حساب Authentication للبريد المحدد؛ أُنشئت وثيقة صلاحية المدير `ownerAccess/HaYSIH5hGCenN6sR23f8W9BrVvJ3` بالقيمة `role: admin` من لوحة Firestore. لم تنتقل بيانات أو هويات المشروع القديم `shifts-attendance-am-2026` إلى هذا المشروع تلقائيًا.
 
 إذا اخترت مسار custom claim بدل وثيقة `ownerAccess`، استخدم بيئة موثوقة تحتوي على اعتماد مشروع **`agazaty`** فقط. حمّل حساب خدمة من إعدادات المشروع واحتفظ به خارج المستودع، ثم شغّل في طرفية خاصة:
 

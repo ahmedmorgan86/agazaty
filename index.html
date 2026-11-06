@@ -2166,7 +2166,8 @@
             input.value = '';
             input.type = loginAsAdmin ? 'email' : 'text';
             input.inputMode = loginAsAdmin ? 'email' : 'numeric';
-            input.pattern = loginAsAdmin ? '' : '[0-9]{4}';
+            if (loginAsAdmin) input.removeAttribute('pattern');
+            else input.setAttribute('pattern', '[0-9]{4}');
             input.minLength = loginAsAdmin ? 0 : 4;
             input.maxLength = loginAsAdmin ? 254 : 4;
             input.placeholder = loginAsAdmin ? 'بريد مدير النظام' : 'أدخل كودك';
