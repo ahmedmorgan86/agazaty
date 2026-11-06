@@ -1719,7 +1719,7 @@
                     const created = row.code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee, initialPassword);
-                    employees.push(created.employee);
+                    if (!employees.some(existing => existing.id === created.employee.id)) employees.push(created.employee);
                     completed++;
                 }
                 renderEmployeesDirectory();
@@ -1775,7 +1775,7 @@
                     const created = code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee);
-                    employees.push(created.employee);
+                    if (!employees.some(existing => existing.id === created.employee.id)) employees.push(created.employee);
                     if (created.temporaryPassword) showTemporaryPassword(created.employee.code, created.temporaryPassword);
                 }
                 renderEmployeesDirectory();
