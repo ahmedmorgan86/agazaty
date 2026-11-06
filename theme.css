@@ -67,6 +67,9 @@ button:not(:disabled):active { transform: translateY(1px); }
 .mobile-install-card p { color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 4px; }
 .mobile-install-card button { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 13px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 900; }
 .mobile-install-card button:hover { background: var(--accent-hover); }
+.mobile-install-card .apk-download { display: inline-flex; align-items: center; gap: 8px; width: fit-content; margin-top: 12px; padding: 9px 13px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 900; text-decoration: none; }
+.mobile-install-card .apk-download:hover { background: var(--accent-hover); }
+.dark .mobile-install-card .apk-download { color: #12312e; }
 .mobile-install-card .install-link { display: block; width: fit-content; margin-top: 9px; color: var(--accent); font-size: 11px; font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
 .mobile-install-card img { border: 6px solid white; border-radius: 12px; background: white; width: 112px; height: 112px; }
 .mobile-install-card .install-help { font-size: 11px; margin-top: 9px; }
