@@ -26,9 +26,9 @@ python -m http.server 8080
 
 ## المشروع الجديد `agazaty`
 
-أُنشئ مشروع Firebase وتطبيق ويب جديدان في حساب المالك، وتم تفعيل Email/Password Authentication. لم تُنشأ قاعدة Firestore بعد؛ يجب اختيار موقعها الثابت قبل تشغيل التطبيق. لم تنتقل بيانات أو هويات المشروع القديم `shifts-attendance-am-2026` إلى هذا المشروع تلقائيًا.
+أُنشئ مشروع Firebase وتطبيق ويب جديدان في حساب المالك، وتم تفعيل Email/Password Authentication. أُنشئت قاعدة Firestore Standard الافتراضية في `me-central1` (الدوحة)، ونُشرت القواعد وفهرس `records.groupKey` لاستعلامات collection group. لم تنتقل بيانات أو هويات المشروع القديم `shifts-attendance-am-2026` إلى هذا المشروع تلقائيًا، ولم يُنشأ أول حساب مدير بعد.
 
-بعد إنشاء Firestore ونشر القواعد والفهرس، أنشئ أول مدير من بيئة موثوقة تحتوي على اعتماد مشروع **`agazaty`** فقط. حمّل حساب خدمة من إعدادات المشروع واحتفظ به خارج المستودع، ثم شغّل في طرفية خاصة:
+بعد التحقق من Firestore والقواعد والفهرس، أنشئ أول مدير من بيئة موثوقة تحتوي على اعتماد مشروع **`agazaty`** فقط. حمّل حساب خدمة من إعدادات المشروع واحتفظ به خارج المستودع، ثم شغّل في طرفية خاصة:
 
 ```sh
 GOOGLE_APPLICATION_CREDENTIALS=/private/path/service-account.json npm run bootstrap:admin -- admin@example.com
@@ -39,7 +39,7 @@ GOOGLE_APPLICATION_CREDENTIALS=/private/path/service-account.json npm run bootst
 ## الترحيل والنشر
 
 1. خذ نسخة احتياطية من Firestore وAuthentication في **المشروع القديم** قبل التغيير. راجع بيانات `shared/workspace` والحسابات الموجودة.
-2. أنشئ Firestore في مشروع `agazaty`، ثم انشر القواعد والفهرس إليه: `firebase deploy --only firestore --project agazaty`، وبعدها انشر ملفات `public` على الاستضافة المختارة بعد `python build_public.py`.
+2. قاعدة Firestore وقواعدها وفهرسها منشورة في مشروع `agazaty`. عند تعديلها لاحقًا، انشرها من المستودع: `firebase deploy --only firestore --project agazaty`، وبعدها انشر ملفات `public` على الاستضافة المختارة بعد `python build_public.py`.
 3. لن يجد المشروع الجديد `shared/workspace` القديم. إذا حصلت على تصدير موثوق للمستند القديم، استورده إلى `shared/workspace` في المشروع الجديد من بيئة إدارية آمنة قبل دخول المدير أول مرة. **ادخل بحساب المدير أولًا**؛ ينقل التطبيق المستند القديم الموجود في *نفس المشروع* إلى المستندات الجديدة ويضع `legacyMigrated: true` بعد اكتمال الكتابة.
 4. هويات Firebase Authentication لا تنتقل بهذا الترحيل. أنشئ الحسابات المقابلة للموظفين في المشروع الجديد، ثم تحقق من عدد الموظفين وسجلات الحضور لكل شهر ومن حساب موظف في فريق محدد. لا تحذف المصدر قبل المطابقة والنسخ الاحتياطي.
 
