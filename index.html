@@ -439,6 +439,10 @@
                         <label class="block font-bold text-slate-700 mb-1">الإدارة:</label>
                         <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الوظيفة</option></select>
                     </div>
+                    <label class="flex items-center gap-2 font-bold text-slate-700">
+                        <input id="formEmpSelfOnly" type="checkbox" class="w-4 h-4">
+                        عرض حساب هذا الموظف فقط
+                    </label>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">رصيد الإعتيادي (سنوي):</label>
                         <input type="number" id="formEmpAnnual" value="21" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
@@ -459,6 +463,15 @@
                 </div>
             </div>
             <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية للموظف الجديد. عند إدخال الكود 5686 يُربط ملف الموظف بحساب المدير الحالي بعد اختيار الوردية والإدارة، دون إنشاء حساب ثانٍ.</p>
+            <div id="rosterImportPanel" class="rounded-xl border border-slate-200 p-3 space-y-2">
+                <label for="rosterInitialPassword" class="block text-xs font-bold text-slate-700">كلمة بدء الحسابات المستوردة (لا تُحفظ في الملف)</label>
+                <input id="rosterInitialPassword" type="password" autocomplete="new-password" minlength="7" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2" placeholder="أدخل كلمة البدء عند الاستيراد">
+                <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-blue-700">
+                    <i class="fa-solid fa-file-import"></i> استيراد موظفين من JSON
+                    <input type="file" accept=".json,application/json" class="hidden" onchange="importRosterJSON(event)">
+                </label>
+                <p class="text-xs text-slate-500">لا يُنشأ حساب منفصل للكود 5686؛ يُربط بالمدير. تبدأ أرصدة الحسابات المستوردة من صفر حتى يراجعها المدير.</p>
+            </div>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -999,6 +1012,8 @@
         let firebaseConnected = false;
         let cacheStatusTimer = null;
         let loginAsAdmin = false;
+        const employeeKey = emp => emp?.groupKey || (emp?.team && emp?.job ? `${emp.team}|${emp.job}` : '');
+        const canAccessEmployee = emp => isAdmin || Boolean(currentProfile && employeeKey(emp) === employeeKey(currentProfile));
         let registrationListener = null;
         let pendingRegistrations = [];
         let jobListener = null;
@@ -1179,7 +1194,7 @@
                     if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
                         attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
                         changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
-                            employeeId: emp.id, team: emp.team, job: emp.job, record: attendanceData[d].records[emp.id] });
+                            employeeId: emp.id, team: emp.team, job: emp.job, groupKey: employeeKey(emp), record: attendanceData[d].records[emp.id] });
                     }
                 });
             });
@@ -1276,7 +1291,7 @@
             
             // Filter employees by search
             const filteredEmployees = employees.filter(emp => emp.team === activeTeam &&
-                (isAdmin || emp.job === currentProfile?.job) && (
+                canAccessEmployee(emp) && (
                 emp.name.toLowerCase().includes(searchTerm) || (emp.code && emp.code.toLowerCase().includes(searchTerm)))
             );
 
@@ -1415,7 +1430,7 @@
                 const shift = calculateShiftForDate(Number(date.slice(-2)), activeTeam);
                 const people = teamEmployees.length ? teamEmployees.map(emp => {
                     const rec = effectiveRecord(date, emp, day.records?.[emp.id]);
-                    const canEdit = !isFixedRest(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
+                    const canEdit = !isFixedRest(date, emp) && canAccessEmployee(emp);
                     return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
                         <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
                         <span class="text-left">${getStatusBadge(displayedStatus(date, emp, rec))}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
@@ -1484,7 +1499,7 @@
             const tbody = document.getElementById('employeesDirectoryTableBody');
             let html = '';
 
-            const visibleEmployees = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(canAccessEmployee);
             visibleEmployees.forEach((emp, index) => {
                 const teamBadge = {
                     blue: '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">الزرقاء (طويل 1)</span>',
@@ -1523,11 +1538,11 @@
         }
 
         function renderEmployeeCards() {
-            const visible = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visible = employees.filter(canAccessEmployee);
             document.getElementById('addEmployeeButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('employeeDirectorySubtitle').textContent = isAdmin
                 ? 'جميع الموظفين: تعديل البيانات والأرصدة، إضافة الحسابات وحذفها'
-                : 'زملاؤك في نفس الوردية والإدارة';
+                : currentProfile?.accessScope === 'self' ? 'حسابك وسجلاتك فقط' : 'زملاؤك في نفس الوردية والإدارة';
             const teamNames = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
             document.getElementById('employeeCards').innerHTML = visible.length ? visible.map(emp => `
                 <article class="employee-card">
@@ -1544,7 +1559,7 @@
         }
         function editColleagueName(id) {
             const emp = employees.find(item => item.id === id);
-            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
+            if (!emp || !canAccessEmployee(emp)) return;
             document.getElementById('colleagueId').value = id;
             document.getElementById('colleagueName').value = emp.name;
             document.getElementById('colleagueModal').classList.remove('hidden');
@@ -1555,7 +1570,7 @@
             const id = document.getElementById('colleagueId').value;
             const name = document.getElementById('colleagueName').value.trim();
             const emp = employees.find(item => item.id === id);
-            if (!emp || !name || name.length > 80 || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
+            if (!emp || !name || name.length > 80 || !canAccessEmployee(emp)) return;
             try {
                 await window.firebaseBridge.updateColleagueName(id, name);
                 document.getElementById('colleagueModal').classList.add('hidden');
@@ -1628,6 +1643,7 @@
             document.getElementById('formEmpCode').readOnly = true;
             document.getElementById('formEmpTeam').value = emp.team || '';
             document.getElementById('formEmpJob').value = emp.job || '';
+            document.getElementById('formEmpSelfOnly').checked = emp.accessScope === 'self';
             document.getElementById('formEmpTeam').disabled = !isAdmin;
             document.getElementById('formEmpJob').disabled = !isAdmin;
             document.getElementById('employeeFormPanel').classList.remove('hidden');
@@ -1648,6 +1664,7 @@
             document.getElementById('formEmpCode').readOnly = false;
             document.getElementById('formEmpTeam').value = '';
             document.getElementById('formEmpJob').value = '';
+            document.getElementById('formEmpSelfOnly').checked = false;
             document.getElementById('formEmpTeam').disabled = false;
             document.getElementById('formEmpJob').disabled = false;
             document.getElementById('employeeFormPanel').classList.toggle('hidden', !isAdmin);
@@ -1663,6 +1680,56 @@
         }
 
         let employeeSaveInProgress = false;
+        let rosterImportInProgress = false;
+        async function importRosterJSON(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file || rosterImportInProgress || !isAdmin || !firebaseConnected) return;
+            const passwordField = document.getElementById('rosterInitialPassword');
+            const initialPassword = passwordField.value;
+            passwordField.value = '';
+            let completed = 0;
+            try {
+                if (file.size > 1024 * 1024) throw new Error('ملف الموظفين أكبر من ١ ميجابايت.');
+                const data = JSON.parse(await file.text());
+                const rows = data?.employees;
+                if (!Array.isArray(rows) || !rows.length || rows.length > 100 || initialPassword.length < 7) {
+                    throw new Error('اختر ملف موظفين صالحًا وأدخل كلمة بدء لا تقل عن ٧ أحرف.');
+                }
+                const codes = new Set();
+                for (const row of rows) {
+                    if (!row || !/^[0-9]{4}$/.test(row.code) || codes.has(row.code) ||
+                        typeof row.name !== 'string' || !row.name.trim() || row.name.length > 80 ||
+                        !['red', 'blue', 'yellow', 'morning'].includes(row.team) ||
+                        !availableJobs.includes(row.job) || !['group', 'self', undefined].includes(row.accessScope)) {
+                        throw new Error('الملف يحتوي على كود مكرر أو بيانات موظف/وردية/وظيفة غير صالحة.');
+                    }
+                    codes.add(row.code);
+                }
+                const newRows = rows.filter(row => !employees.some(emp => emp.code === row.code));
+                if (!newRows.length) throw new Error('كل الأكواد في الملف مسجلة بالفعل.');
+                if (!await askConfirmation(`سيُنشأ ${newRows.length} حساب وملف موظف. كلمة بدء الموظفين واحدة، بينما يحتفظ المدير بكلمة مروره. هل تريد المتابعة؟`,
+                    { title: 'استيراد الموظفين', accept: 'إنشاء الحسابات' })) return;
+                rosterImportInProgress = true;
+                for (const row of newRows) {
+                    const employee = { id: `emp_${row.code}`, name: row.name.trim(), code: row.code,
+                        team: row.team, job: row.job, dept: '', accessScope: row.accessScope || 'group',
+                        title: typeof row.title === 'string' ? row.title.slice(0, 80) : '',
+                        annual_balance: 0, casual_balance: 0, perm_hours: 0 };
+                    const created = row.code === '5686'
+                        ? await window.firebaseBridge.linkAdminAsEmployee(employee)
+                        : await window.firebaseBridge.createEmployeeAccount(employee, initialPassword);
+                    employees.push(created.employee);
+                    completed++;
+                }
+                renderEmployeesDirectory();
+                renderEmployeeCards();
+                renderTable();
+                showNotice(`تم إنشاء ${completed} حساب وملف موظف.`);
+            } catch (error) {
+                showNotice(`اكتمل ${completed} حساب قبل التوقف: ${error.message}`, 'error');
+            } finally { rosterImportInProgress = false; }
+        }
         async function saveEmployeeFromForm() {
             if (employeeSaveInProgress) return;
             const id = document.getElementById('formEmpId').value.trim();
@@ -1672,6 +1739,7 @@
             const team = document.getElementById('formEmpTeam').value;
             const dept = '';
             const job = document.getElementById('formEmpJob').value;
+            const accessScope = document.getElementById('formEmpSelfOnly').checked ? 'self' : 'group';
             const annual = Number(document.getElementById('formEmpAnnual').value);
             const casual = Number(document.getElementById('formEmpCasual').value);
             const perm = Number(document.getElementById('formEmpPermHours').value);
@@ -1698,12 +1766,12 @@
                     if (index < 0) return;
                     const original = employees[index];
                     const changed = { ...original, name, annual_balance: annual, casual_balance: casual, perm_hours: perm };
-                    if (isAdmin) Object.assign(changed, { code, team, dept, job });
+                    if (isAdmin) Object.assign(changed, { code, team, dept, job, accessScope });
                     const updated = employees.map(e => e.id === id ? changed : e);
                     await window.firebaseBridge.updateEmployeeAccount(changed);
                     employees = updated;
                 } else {
-                    const employee = { id: `emp_${crypto.randomUUID().replaceAll('-', '')}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const employee = { id: `emp_${code}`, name, code, team, dept, job, accessScope, annual_balance: annual, casual_balance: casual, perm_hours: perm };
                     const created = code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee);
@@ -1753,7 +1821,7 @@
         // ==========================================
         function openEmployeeReport(empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
+            if (!emp || !canAccessEmployee(emp)) return;
 
             document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
             document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.job || 'غير محددة'}`;
@@ -1879,7 +1947,7 @@
         function openEditModal(date, empId) {
             if (DEMO_MODE) { showNotice('هذه معاينة للقراءة فقط.', 'info'); return; }
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
+            if (!emp || !canAccessEmployee(emp) || isFixedRest(date, emp)) return;
             editingCell = { date, empId };
             const dayData = attendanceData[date] || {};
             const rec = effectiveRecord(date, emp, dayData.records && dayData.records[empId]);
@@ -1933,7 +2001,7 @@
             if (!editingCell) return;
             const { date, empId } = editingCell;
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
+            if (!emp || !canAccessEmployee(emp) || isFixedRest(date, emp)) return;
 
             if (!attendanceData[date]) {
                 attendanceData[date] = { shift: "الصباحيه", day: "", records: {} };
@@ -1978,7 +2046,7 @@
             let html = '';
 
             const usedLeaves = {};
-            const visibleEmployees = employees.filter(emp => isAdmin ? (!activeTeam || emp.team === activeTeam) : (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(emp => isAdmin ? (!activeTeam || emp.team === activeTeam) : canAccessEmployee(emp));
             visibleEmployees.forEach(emp => {
                 usedLeaves[emp.id] = { annual: 0, casual: 0, permMinutes: 0 };
             });
@@ -2449,7 +2517,7 @@
             const day = attendanceData[date];
             const emp = employees.find(item => item.id === empId);
             return cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
-                employeeId: empId, team: emp.team, job: emp.job, record: day.records[empId] }]), successMessage);
+                employeeId: empId, team: emp.team, job: emp.job, groupKey: employeeKey(emp), record: day.records[empId] }]), successMessage);
         }
 
         function downloadBackupJSON() {
@@ -2488,7 +2556,7 @@
                     }
                     for (const [employeeId, record] of Object.entries(day.records)) {
                         const emp = roster.get(employeeId);
-                        if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) {
+                        if (!emp || !canAccessEmployee(emp)) {
                             throw new Error(`الملف يتضمن موظفًا غير متاح لك: ${employeeId}`);
                         }
                         if (!record || !allowedStatuses.has(record.status) ||
@@ -2497,7 +2565,7 @@
                             typeof (record.notes ?? '') !== 'string' || (record.notes ?? '').length > 1000) {
                             throw new Error(`سجل غير صالح للموظف ${employeeId} في ${date}`);
                         }
-                        changes.push({ date, employeeId, team: emp.team, job: emp.job,
+                        changes.push({ date, employeeId, team: emp.team, job: emp.job, groupKey: employeeKey(emp),
                             record: { status: record.status, delay: record.delay ?? 0,
                                 permissionMinutes: record.permissionMinutes ?? 0, notes: record.notes ?? '' } });
                         if (changes.length > 5000) throw new Error('الملف يتجاوز 5000 سجل. قسّمه إلى ملفات أصغر.');
@@ -2553,7 +2621,7 @@
             if (!activeTeam) { showNotice('اختر وردية أولاً.', 'warning'); return; }
             const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
             const exportRows = [];
-            const visibleEmployees = employees.filter(emp => emp.team === activeTeam && (isAdmin || emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(emp => emp.team === activeTeam && canAccessEmployee(emp));
 
             const h1 = ["التاريخ", "اليوم", "الوردية"];
             visibleEmployees.forEach(emp => {
