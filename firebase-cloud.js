@@ -4,13 +4,13 @@ import { initializeFirestore, getFirestore, persistentLocalCache, persistentMult
 
 let auth, database, configInUse;
 let listeners = [], stopAuth;
-const groupKey = employee => `${employee.team}|${employee.job}`;
+const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
 const adminEmail = 'ahmed.morgan2009@gmail.com';
 const adminCode = '5686';
 const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 const validCode = code => /^[0-9]{4}$/.test(String(code));
 const requestRef = uid => doc(database, 'registrationRequests', uid);
-const defaultJobs = ['دعم المستخدمين للأجهزة', 'البنية التحتية'];
+const defaultJobs = ['دعم المستخدمين للأجهزة', 'دعم المستخدمين', 'البنية التحتية'];
 const metaRef = () => doc(database, 'meta', 'workspace');
 const staffRef = id => doc(database, 'staff', id);
 const recordRef = (date, id) => doc(database, 'attendance', date, 'records', id);
@@ -138,13 +138,14 @@ async function changePassword(current, next) {
     return updatePassword(auth.currentUser, next);
 }
 
-async function createEmployeeAccount(employee) {
+async function createEmployeeAccount(employee, initialPassword = '') {
     if (!auth?.currentUser || !configInUse) throw new Error('سجّل الدخول أولاً.');
     if (!validCode(employee.code)) throw new Error('الكود يجب أن يتكون من أربعة أرقام.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
     const provisioningAuth = getAuth(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
-    const temporaryPassword = password();
+    if (initialPassword && initialPassword.length < 7) throw new Error('كلمة البدء يجب ألا تقل عن ٧ أحرف.');
+    const temporaryPassword = initialPassword || password();
     let created;
     try {
         created = (await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), temporaryPassword)).user;
@@ -231,7 +232,7 @@ async function saveRecords(changes) {
     for (let offset = 0; offset < changes.length; offset += 400) {
         const batch = writeBatch(database);
         changes.slice(offset, offset + 400).forEach(change => {
-            batch.set(recordRef(change.date, change.employeeId), { ...change.record, date: change.date, team: change.team, job: change.job, groupKey: `${change.team}|${change.job}` });
+            batch.set(recordRef(change.date, change.employeeId), { ...change.record, date: change.date, team: change.team, job: change.job, groupKey: change.groupKey || `${change.team}|${change.job}` });
         });
         await batch.commit();
     }
