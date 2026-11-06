@@ -10,7 +10,7 @@ from reportlab.graphics import renderSVG
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
-APP_URL = "https://agazaty-am.vercel.app/"
+APP_URL = "https://agazaty-am.vercel.app/apk"
 
 source = Image.open(ASSETS / "app-logo.png").convert("RGB")
 for size in (192, 512):
