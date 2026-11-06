@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="./assets/app-logo.png">
-    <title>نظام إدارة الحضور والورديات والإجازات السحابي</title>
+    <link rel="icon" type="image/svg+xml" href="./assets/mark.svg">
+    <title>أجازاتي | مساحة الحضور والورديات</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- SheetJS for Excel export -->
@@ -175,36 +175,23 @@
             .print-only { display: block !important; }
         }
     </style>
+    <link rel="stylesheet" href="./theme.css">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
+        <div class="login-intro" aria-hidden="true"><span class="eyebrow">AGAZATY / WORKSPACE</span><div class="intro-symbol"><i class="fa-solid fa-calendar-check"></i></div><h2>يوم عمل أوضح،<br>وفريق أكثر تنظيمًا.</h2><p>الحضور، الورديات، الإجازات والتقارير في مساحة عمل واحدة.</p><div class="intro-line"><span>01 / الحضور</span><span>02 / الورديات</span><span>03 / الأرصدة</span></div></div>
+        <button type="button" class="login-theme-toggle" onclick="toggleTheme()" aria-label="تبديل المظهر"><i class="fa-solid fa-circle-half-stroke"></i> المظهر</button>
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
-            <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/app-logo.png" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
-            <h1 class="text-2xl font-black text-slate-900">نظام الحضور والورديات</h1>
-            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف وكلمة المرور لعرض ورديتك.</p>
-            <label for="loginCode">كود الموظف</label>
-            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686" dir="ltr">
+            <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
+            <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
+            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف أو بريد المدير وكلمة المرور.</p>
+            <label for="loginCode">كود الموظف أو بريد المدير</label>
+            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686 أو admin@example.com" dir="ltr">
             <label for="loginPassword">كلمة المرور</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
             <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
             <button type="submit" id="loginButton">دخول الحساب</button>
-            <button type="button" onclick="toggleRegistration(true)" class="w-full mt-3 rounded-xl border border-cyan-700 text-cyan-800 px-4 py-3 font-bold">تسجيل موظف جديد</button>
-            <p class="text-xs text-slate-400 mt-4">إذا كانت هذه أول مرة، استخدم كلمة المرور الافتراضية التي وصلتك من الإدارة.</p>
-            <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
-        </form>
-        <form id="registerForm" class="login-card hidden" onsubmit="registerNewEmployee(event)">
-            <button type="button" onclick="toggleRegistration(false)" class="text-cyan-800 text-sm font-bold mb-3"><i class="fa-solid fa-arrow-right ml-1"></i>العودة للدخول</button>
-            <img src="./assets/app-logo.png" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain mb-3">
-            <h2 class="text-2xl font-black text-slate-900">تسجيل موظف جديد</h2>
-            <p class="text-sm text-slate-500 mt-2">أدخل بياناتك واختر ورديتك لإنشاء حسابك.</p>
-            <label for="registerName">اسم الموظف</label><input id="registerName" required autocomplete="name" placeholder="الاسم الكامل">
-            <label for="registerJob">الإدارة</label><select id="registerJob" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الإدارة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
-            <label for="registerCode">كود الموظف</label><input id="registerCode" required dir="ltr" autocomplete="username" placeholder="مثال: 8001">
-            <label for="registerTeam">الوردية</label>
-            <select id="registerTeam" required class="w-full min-h-12 border border-slate-300 rounded-xl px-3 bg-slate-50"><option value="">اختر الوردية</option><option value="red">الوردية الحمراء</option><option value="blue">الوردية الزرقاء</option><option value="yellow">الوردية الصفراء</option><option value="morning">الوردية الصباحية</option></select>
-            <p class="text-xs text-slate-500 mt-3">كلمة المرور الأولية لحسابك: <strong>1234567</strong>. يمكنك تغييرها بعد الدخول.</p>
-            <p id="registerError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
-            <button type="submit" id="registerButton">إنشاء الحساب</button>
+            <p class="text-xs text-slate-500 mt-4">لإنشاء حساب جديد أو استعادة الوصول، تواصل مع مدير النظام.</p>
             <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
         </form>
     </div>
@@ -215,10 +202,18 @@
             <button onclick="location.reload()" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-bold">إعادة المحاولة</button>
         </div>
     </div>
+    <div id="temporaryPasswordModal" class="app-modal fixed inset-0 z-[75] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="temporaryPasswordTitle">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <span class="eyebrow">حساب جديد</span><h2 id="temporaryPasswordTitle" class="text-xl font-black mt-2">احفظ بيانات الدخول</h2>
+            <p class="text-sm mt-2 text-slate-500">تظهر كلمة المرور المؤقتة مرة واحدة. سلّمها للموظف عبر قناة آمنة واطلب منه تغييرها بعد الدخول.</p>
+            <div class="credential-box"><span>كود الموظف</span><strong id="temporaryCode" dir="ltr"></strong><span>كلمة المرور المؤقتة</span><strong id="temporaryPassword" dir="ltr"></strong></div>
+            <button type="button" onclick="closeTemporaryPassword()" class="action-primary w-full mt-4">حفظت بيانات الدخول</button>
+        </div>
+    </div>
 
     <header id="appHeader" class="app-header hidden sticky top-0 z-40 no-print">
         <div class="header-top">
-            <div class="header-brand"><div class="header-brand-mark"><img src="./assets/app-logo.png" alt="شعار التطبيق"></div><div><strong>الحضور والورديات</strong><span>لوحة العمل اليومية</span></div></div>
+            <div class="header-brand"><div class="header-brand-mark"><img src="./assets/mark.svg" alt="شعار التطبيق"></div><div><strong>أجازاتي</strong><span>لوحة العمل اليومية</span></div></div>
             <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
         <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">
@@ -228,14 +223,15 @@
             <button type="button" onclick="openBalancesModal()"><i class="fa-solid fa-wallet"></i>أرصدة الإجازات</button>
             <button type="button" id="myReportButton" onclick="openMyReport()"><i class="fa-solid fa-file-lines"></i>تقريري</button>
             <button type="button" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i>تصدير Excel</button>
-            <button type="button" onclick="showAccountModal()"><i class="fa-solid fa-user-gear"></i>حسابي</button>
-            <button type="button" onclick="logoutEmployee()"><i class="fa-solid fa-arrow-right-from-bracket"></i>خروج</button>
+            <button type="button" onclick="toggleTheme()" id="themeButton" aria-label="تبديل المظهر" aria-pressed="false"><i class="fa-solid fa-moon"></i><span>الوضع الليلي</span></button>
+            <button type="button" id="accountButton" onclick="showAccountModal()"><i class="fa-solid fa-user-gear"></i>حسابي</button>
+            <button type="button" id="logoutButton" onclick="logoutEmployee()"><i class="fa-solid fa-arrow-right-from-bracket"></i>خروج</button>
             <button type="button" onclick="openCloudModal()" id="cloudStatusBtn"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="cloudStatusDot"></span><span id="cloudStatusText">جاري الاتصال</span></button>
         </nav></div>
     </header>
 
     <!-- Main Container -->
-    <main id="appMain" class="app-main hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main id="appMain" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <section class="app-hero no-print">
             <div><span class="text-xs font-bold text-cyan-200">لوحة الحضور</span><h2 id="heroTitle">اختر الوردية لعرض جدول الحضور</h2><p id="heroSubtitle" class="text-sm mt-2">كل أيام الشهر وأرصدة الحضور في عرض واضح.</p></div>
             <div class="hero-profile"><span>الحساب الحالي</span><strong id="profileName">—</strong><span id="profileDetails">—</span><span id="profileCode">—</span></div>
@@ -342,7 +338,7 @@
                     <span id="activeTeamBadge" class="bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-bold px-2 py-0.5 rounded-full">اختر وردية</span>
                 </div>
                 <div class="text-xs text-slate-500 flex items-center space-x-3 space-x-reverse">
-                    <span>💡 انقر على أي خلية لتغيير الحالة أو تسجيل التأخير والملاحظات</span>
+                    <span id="attendanceHint">💡 انقر على أي خلية لتغيير الحالة أو تسجيل التأخير والملاحظات</span>
                     <button onclick="window.print()" class="text-slate-600 hover:text-slate-900 font-bold border border-slate-300 rounded px-2 py-0.5 bg-white text-xs">
                         <i class="fa-solid fa-print"></i> طباعة الجدول
                     </button>
@@ -447,7 +443,7 @@
                     </div>
                 </div>
             </div>
-            <p id="employeeFormHelp" class="text-xs text-slate-500">يُنشأ حساب الموظف الجديد بكوده وكلمة المرور الافتراضية 1234567.</p>
+            <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية وتظهر للمدير مرة واحدة بعد حفظ الحساب.</p>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -856,13 +852,37 @@
         // ==========================================
         // 1. Initial State & Seed Data
         // ==========================================
-        const INITIAL_EMPLOYEES = [
-            { id: "emp_1", code: "5686", name: "أحمد نادر", team: "red", dept: "", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_2", code: "5979", name: "محمد سالم", team: "red", dept: "", job: "دعم المستخدمين", annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-            { id: "emp_1793875124061", code: "7091", name: "محمد علاء خليل", team: "morning", dept: "", job: "البنية التحتية", annual_balance: 21, casual_balance: 7, perm_hours: 4 }
-        ];
+        const INITIAL_EMPLOYEES = [];
 
         const INITIAL_ATTENDANCE = {};
+        const DEMO_MODE = new URLSearchParams(location.search).has('preview');
+
+        function applyTheme(mode) {
+            const dark = mode === 'dark';
+            document.documentElement.classList.toggle('dark', dark);
+            document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+            const button = document.getElementById('themeButton');
+            if (button) {
+                button.setAttribute('aria-pressed', String(dark));
+                button.innerHTML = `<i class="fa-solid ${dark ? 'fa-sun' : 'fa-moon'}"></i><span>${dark ? 'الوضع النهاري' : 'الوضع الليلي'}</span>`;
+            }
+        }
+        function toggleTheme() {
+            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('agazaty-theme', next);
+            applyTheme(next);
+        }
+        applyTheme(localStorage.getItem('agazaty-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+
+        function showTemporaryPassword(code, pass) {
+            document.getElementById('temporaryCode').textContent = code;
+            document.getElementById('temporaryPassword').textContent = pass;
+            document.getElementById('temporaryPasswordModal').classList.remove('hidden');
+        }
+        function closeTemporaryPassword() {
+            document.getElementById('temporaryPasswordModal').classList.add('hidden');
+            document.getElementById('temporaryPassword').textContent = '';
+        }
 
         const noticeTypes = {
             success: { title: 'تم بنجاح', icon: 'fa-circle-check' },
@@ -954,12 +974,12 @@
         let firebaseConnected = false;
         let cacheStatusTimer = null;
         const FIREBASE_CONFIG = {
-            apiKey: 'AIzaSyAJZjmcx7fBS236CdHdcFMT_EwZ8G19Ipc',
-            authDomain: 'shifts-attendance-am-2026.firebaseapp.com',
-            projectId: 'shifts-attendance-am-2026',
-            appId: '1:955779831664:web:889525f217e158b3b221b5',
-            messagingSenderId: '955779831664',
-            storageBucket: 'shifts-attendance-am-2026.firebasestorage.app'
+            apiKey: 'AIzaSyCAVUh5QzRgkErTu-BpaWwn2XBAueN92A0',
+            authDomain: 'agazaty.firebaseapp.com',
+            projectId: 'agazaty',
+            appId: '1:785497512315:web:728fb42d12dd733bd185de',
+            messagingSenderId: '785497512315',
+            storageBucket: 'agazaty.firebasestorage.app'
         };
 
         function escapeHTML(value) {
@@ -1129,7 +1149,7 @@
                     if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
                         attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
                         changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
-                            employeeId: emp.id, record: attendanceData[d].records[emp.id] });
+                            employeeId: emp.id, team: emp.team, job: emp.job, record: attendanceData[d].records[emp.id] });
                     }
                 });
             });
@@ -1171,14 +1191,12 @@
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayStr = d < 10 ? `0${d}` : `${d}`;
                 const key = `${monthPrefix}-${dayStr}`;
-                if (!attendanceData[key]) {
-                    const dateObj = new Date(y, m - 1, d);
-                    const shiftName = activeTeam ? calculateShiftForDate(d, activeTeam) : '';
-                    attendanceData[key] = {
-                        shift: shiftName,
-                        day: ARABIC_DAYS[dateObj.getDay()],
-                        records: {}
-                    };
+                const dateObj = new Date(y, m - 1, d);
+                const shiftName = activeTeam ? calculateShiftForDate(d, activeTeam) : '';
+                if (!attendanceData[key]) attendanceData[key] = { shift: shiftName, day: ARABIC_DAYS[dateObj.getDay()], records: {} };
+                else {
+                    attendanceData[key].day ||= ARABIC_DAYS[dateObj.getDay()];
+                    attendanceData[key].shift ||= shiftName;
                 }
             }
         }
@@ -1456,9 +1474,9 @@
                         <td class="p-3 text-center font-mono">${emp.perm_hours ?? 4} س</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-2 space-x-reverse">
-                                <button onclick="editEmployee('${emp.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs" title="تعديل بيانات الموظف">
+                                ${isAdmin ? `<button onclick="editEmployee('${emp.id}')" class="px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs" title="تعديل بيانات الموظف">
                                     <i class="fa-solid fa-pen-to-square"></i> تعديل
-                                </button>
+                                </button>` : ''}
                                 <button onclick="openEmployeeReport('${emp.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold text-xs" title="كشف حضور الموظف">
                                     <i class="fa-solid fa-file-invoice"></i> كشف
                                 </button>
@@ -1479,7 +1497,7 @@
             document.getElementById('addEmployeeButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('employeeDirectorySubtitle').textContent = isAdmin
                 ? 'جميع الموظفين: تعديل البيانات والأرصدة، إضافة الحسابات وحذفها'
-                : 'يمكنك تعديل بيانات وأرصدة زملائك في نفس الوردية والإدارة';
+                : 'زملاؤك في نفس الوردية والإدارة';
             const teamNames = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
             document.getElementById('employeeCards').innerHTML = visible.length ? visible.map(emp => `
                 <article class="employee-card">
@@ -1488,7 +1506,7 @@
                     <p>الإدارة: ${escapeHTML(emp.job || 'غير محددة')}</p>
                     <p>الاعتيادي: ${emp.annual_balance ?? 21} يوم · العارضة: ${emp.casual_balance ?? 7} أيام · الأذونات: ${emp.perm_hours ?? 4} ساعات</p>
                     <div class="employee-card-actions">
-                        <button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات والأرصدة</button>
+                        ${isAdmin ? `<button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات والأرصدة</button>` : ''}
                         <button type="button" class="bg-slate-100 text-slate-700" onclick="openEmployeeReport('${emp.id}')"><i class="fa-solid fa-file-lines ml-1"></i>كشف الحضور</button>
                     </div>
                 </article>
@@ -1497,7 +1515,7 @@
 
         function editEmployee(empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
+            if (!emp || !isAdmin) return;
 
             document.getElementById('formEmpId').value = emp.id;
             document.getElementById('formEmpName').value = emp.name;
@@ -1543,7 +1561,7 @@
         async function saveEmployeeFromForm() {
             if (employeeSaveInProgress) return;
             const id = document.getElementById('formEmpId').value.trim();
-            if (!isAdmin && !id) return;
+            if (!isAdmin) return;
             const name = document.getElementById('formEmpName').value.trim();
             const code = document.getElementById('formEmpCode').value.trim();
             const team = document.getElementById('formEmpTeam').value;
@@ -1574,23 +1592,22 @@
                     const index = employees.findIndex(e => e.id === id);
                     if (index < 0) return;
                     const original = employees[index];
-                    if (!isAdmin && (original.team !== currentProfile?.team || original.job !== currentProfile?.job)) return;
                     const changed = { ...original, name, annual_balance: annual, casual_balance: casual, perm_hours: perm };
                     if (isAdmin) Object.assign(changed, { code, team, dept, job });
                     const updated = employees.map(e => e.id === id ? changed : e);
-                    if (isAdmin) await window.firebaseBridge.updateEmployeeAccount(changed, updated);
-                    else await window.firebaseBridge.updatePeerProfile(changed);
+                    await window.firebaseBridge.updateEmployeeAccount(changed);
                     employees = updated;
                 } else {
-                    const employee = { id: `emp_${Date.now()}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
-                    const created = await window.firebaseBridge.createEmployeeAccount(employee, employees);
-                    employees.push(created);
+                    const employee = { id: `emp_${crypto.randomUUID().replaceAll('-', '')}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const created = await window.firebaseBridge.createEmployeeAccount(employee);
+                    employees.push(created.employee);
+                    showTemporaryPassword(created.employee.code, created.temporaryPassword);
                 }
                 renderEmployeesDirectory();
                 renderEmployeeCards();
                 resetEmployeeForm();
                 renderTable();
-                showNotice(isAdmin && !id ? 'تم إنشاء حساب الموظف. كلمة المرور الافتراضية: 1234567' : 'تم حفظ بيانات الموظف وأرصدته.');
+                showNotice(isAdmin && !id ? 'تم إنشاء الحساب. احفظ كلمة المرور المؤقتة المعروضة.' : 'تم حفظ بيانات الموظف وأرصدته.');
             } catch (error) {
                 showNotice(`تعذر حفظ الحساب: ${error.message}`, 'error');
             } finally { employeeSaveInProgress = false; button.disabled = false; }
@@ -1601,7 +1618,7 @@
             const emp = employees.find(e => e.id === empId);
             if (!emp) return;
 
-            if (!await askConfirmation(`سيُحذف حساب ${emp.name} وسجلات حضوره. هل تريد المتابعة؟`, { title: 'حذف الموظف', accept: 'حذف الموظف', danger: true })) return;
+            if (!await askConfirmation(`سيُمنع ${emp.name} من الوصول وتُحذف سجلات حضوره. ستحتاج لتعطيل هوية Authentication من Firebase Console. هل تريد المتابعة؟`, { title: 'حذف الموظف', accept: 'حذف الموظف', danger: true })) return;
 
             const updatedEmployees = employees.filter(e => e.id !== empId);
 
@@ -1753,6 +1770,7 @@
         let selectedModalStatus = "";
 
         function openEditModal(date, empId) {
+            if (DEMO_MODE) { showNotice('هذه معاينة للقراءة فقط.', 'info'); return; }
             const emp = employees.find(e => e.id === empId);
             if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
             editingCell = { date, empId };
@@ -1827,10 +1845,10 @@
                 return;
             }
 
-            const delayVal = Math.max(0, parseInt(document.getElementById('modalDelay').value, 10) || 0);
+            const delayVal = Math.min(1440, Math.max(0, parseInt(document.getElementById('modalDelay').value, 10) || 0));
             const permissionMinutes = selectedModalStatus === 'إذن'
-                ? Math.max(0, parseInt(document.getElementById('modalPermissionMinutes').value, 10) || 0) : 0;
-            const notesVal = document.getElementById('modalNotes').value.trim();
+                ? Math.min(1440, Math.max(0, parseInt(document.getElementById('modalPermissionMinutes').value, 10) || 0)) : 0;
+            const notesVal = document.getElementById('modalNotes').value.trim().slice(0, 1000);
 
             attendanceData[date].records[empId] = {
                 status: selectedModalStatus,
@@ -2033,43 +2051,6 @@
             } finally { button.disabled = false; button.textContent = 'دخول الحساب'; }
         }
 
-        function toggleRegistration(show) {
-            document.getElementById('loginForm').classList.toggle('hidden', show);
-            document.getElementById('registerForm').classList.toggle('hidden', !show);
-            document.getElementById(show ? 'registerName' : 'loginCode').focus();
-        }
-
-        let registrationInProgress = false;
-        async function registerNewEmployee(event) {
-            event.preventDefault();
-            if (registrationInProgress) return;
-            const name = document.getElementById('registerName').value.trim();
-            const code = document.getElementById('registerCode').value.trim();
-            const team = document.getElementById('registerTeam').value;
-            const errorLabel = document.getElementById('registerError');
-            const button = document.getElementById('registerButton');
-            errorLabel.classList.add('hidden');
-            const job = document.getElementById('registerJob').value;
-            if (!name || !/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job)) {
-                errorLabel.textContent = 'أدخل الاسم والكود بحروف إنجليزية وأرقام، ثم اختر الإدارة والوردية.';
-                errorLabel.classList.remove('hidden');
-                return;
-            }
-            registrationInProgress = true;
-            button.disabled = true;
-            button.textContent = 'جارٍ إنشاء الحساب...';
-            try {
-                await window.firebaseBridge.registerEmployee({
-                    name, code, team,
-                    job,
-                    dept: ''
-                });
-            } catch (error) {
-                errorLabel.textContent = error.code === 'auth/email-already-in-use' ? 'هذا الكود مسجل بالفعل. استخدم شاشة الدخول.' : `تعذر إنشاء الحساب: ${error.message}`;
-                errorLabel.classList.remove('hidden');
-            } finally { registrationInProgress = false; button.disabled = false; button.textContent = 'إنشاء الحساب'; }
-        }
-
         function logoutEmployee() { window.firebaseBridge.logout(); }
 
         function showAccountModal() {
@@ -2126,7 +2107,6 @@
             document.getElementById('authGate').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
             document.getElementById('loginPassword').value = '';
             document.querySelectorAll('.app-modal, #cloudModal').forEach(el => el.classList.add('hidden'));
         }
@@ -2156,7 +2136,7 @@
             const byId = new Map(workspaceEmployees.map(emp => [emp.id, emp]));
             registeredEmployees.forEach(profile => {
                 if (!profile.name || !profile.code) return;
-                const id = profile.employeeId || profile.uid;
+                const id = profile.id || profile.employeeId || profile.uid;
                 byId.set(id, { ...byId.get(id), ...profile, id, authUid: profile.uid });
             });
             employees = [...byId.values()];
@@ -2254,7 +2234,7 @@
                             employees = INITIAL_EMPLOYEES;
                             attendanceData = INITIAL_ATTENDANCE;
                             shiftSettings = { times: {}, overrides: {} };
-                            syncToCloud();
+                            cloudWrite(window.firebaseBridge.initializeWorkspace());
                         }
                     },
                     onError(error) {
@@ -2287,16 +2267,12 @@
                 });
         }
 
-        function syncToCloud() {
-            if (applyingCloudData || !firebaseUser || !isAdmin) return;
-            return cloudWrite(window.firebaseBridge.save({ employees, attendanceData, shiftSettings, updatedAt: new Date().toISOString() }));
-        }
-
         function syncRecordToCloud(date, empId, successMessage) {
             if (!firebaseUser) return;
             const day = attendanceData[date];
+            const emp = employees.find(item => item.id === empId);
             return cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
-                employeeId: empId, record: day.records[empId] }]), successMessage);
+                employeeId: empId, team: emp.team, job: emp.job, record: day.records[empId] }]), successMessage);
         }
 
         function downloadBackupJSON() {
@@ -2317,8 +2293,13 @@
                 try {
                     const data = JSON.parse(e.target.result);
                     if (isValidWorkspace(data)) {
-                        if (!await askConfirmation('ستستبدل النسخة الاحتياطية البيانات الحالية. هل تريد المتابعة؟', { title: 'استعادة نسخة احتياطية', accept: 'استعادة البيانات', danger: true })) return;
-                        employees = data.employees;
+                        const currentIds = new Set(employees.map(emp => emp.id));
+                        const importedIds = new Set(data.employees.map(emp => emp.id));
+                        if (currentIds.size !== importedIds.size || [...currentIds].some(id => !importedIds.has(id))) {
+                            showNotice('استعادة الحضور تتطلب تطابق حسابات الموظفين الحالية مع النسخة.', 'warning');
+                            return;
+                        }
+                        if (!await askConfirmation('ستستبدل سجلات الحضور ومواعيد الورديات. ستبقى حسابات الموظفين الحالية كما هي. هل تريد المتابعة؟', { title: 'استعادة نسخة احتياطية', accept: 'استعادة البيانات', danger: true })) return;
                         attendanceData = data.attendanceData;
                         shiftSettings = data.shiftSettings && typeof data.shiftSettings === 'object'
                             ? { times: data.shiftSettings.times || {}, overrides: data.shiftSettings.overrides || {} }
@@ -2378,12 +2359,41 @@
         // INITIALIZATION
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
+            applyTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             document.querySelectorAll('.copyright-year').forEach(item => item.textContent = new Date().getFullYear());
             switchMonth(currentMonth);
+            if (DEMO_MODE) {
+                document.body.classList.add('demo-mode');
+                document.getElementById('attendanceHint').textContent = '💡 عرض توضيحي للقراءة فقط؛ تغييراتك لا تُحفظ.';
+                ensureMonthDates(currentMonth);
+                employees = [
+                    { id: 'demo_1', code: 'A-104', name: 'ليلى محمود', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+                    { id: 'demo_2', code: 'A-118', name: 'عمر ياسر', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+                    { id: 'demo_3', code: 'A-126', name: 'سارة أحمد', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 }
+                ];
+                currentProfile = employees[0];
+                firebaseUser = { uid: 'demo' };
+                const days = Object.keys(attendanceData).filter(date => date <= localDateKey());
+                days.slice(0, 18).forEach((date, index) => {
+                    attendanceData[date].records = {
+                        demo_1: { status: index % 9 === 0 ? 'إعتيادي' : 'حضور', delay: index % 5 === 0 ? 15 : 0, notes: '' },
+                        demo_2: { status: index % 7 === 0 ? 'عارضة' : 'حضور', delay: 0, notes: '' },
+                        demo_3: { status: index % 8 === 0 ? 'إذن' : 'حضور', delay: 0, permissionMinutes: index % 8 === 0 ? 60 : 0, notes: '' }
+                    };
+                });
+                document.getElementById('loginScreen').classList.add('hidden');
+                showSignedInProfile();
+                document.getElementById('cloudStatusText').textContent = 'معاينة تجريبية';
+                renderEmployeeCards();
+                switchTeam('red');
+                document.getElementById('heroSubtitle').textContent = 'بيانات توضيحية للمعاينة، بلا اتصال بحسابات العمل.';
+                return;
+            }
             if (firebaseReady && !firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
         window.addEventListener('firebase-bridge-ready', () => {
             firebaseReady = true;
+            if (DEMO_MODE) return;
             if (!firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
     </script>

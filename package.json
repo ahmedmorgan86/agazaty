@@ -1,0 +1,29 @@
+{
+  "name": "agazaty",
+  "version": "1.0.0",
+  "description": "لوحة عربية للحضور والورديات والإجازات. الواجهة ثابتة (`index.html`, `theme.css`, `firebase-cloud.js`) وتستخدم Firebase Authentication وCloud Firestore. يدعم المظهر النهاري والليلي، والجداول على الشاشات الكبيرة وبطاقات الأيام على الهاتف.",
+  "private": true,
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-agazaty 'node tests/rules.test.mjs'",
+    "check": "node --check firebase-cloud.js && node --check scripts/bootstrap-admin.mjs && python build_public.py",
+    "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahmedmorgan86/agazaty.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/ahmedmorgan86/agazaty/issues"
+  },
+  "homepage": "https://github.com/ahmedmorgan86/agazaty#readme",
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-admin": "^14.5.0",
+    "firebase-tools": "^15.35.0"
+  }
+}

@@ -1,7 +1,10 @@
 .firebase/
 .vercel/
+node_modules/
+firestore-debug.log
+firebase-debug.log
+*service-account*.json
 __pycache__/
 *.pyc
 .chrome-*/
-firebase-debug.log
 supabase_schema.sql
