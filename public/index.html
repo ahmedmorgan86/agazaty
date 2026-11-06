@@ -184,9 +184,9 @@
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
             <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف وكلمة المرور لعرض ورديتك.</p>
-            <label for="loginCode">كود الموظف</label>
-            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686" dir="ltr">
+            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف أو بريد المدير وكلمة المرور.</p>
+            <label for="loginCode">كود الموظف أو بريد المدير</label>
+            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686 أو admin@example.com" dir="ltr">
             <label for="loginPassword">كلمة المرور</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
             <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
