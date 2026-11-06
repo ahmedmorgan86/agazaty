@@ -5,7 +5,9 @@ import { initializeFirestore, getFirestore, persistentLocalCache, persistentMult
 let auth, database, configInUse;
 let listeners = [], stopAuth;
 const groupKey = employee => `${employee.team}|${employee.job}`;
-const employeeEmail = code => `${String(code).trim().toLowerCase()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
+const adminEmail = 'ahmed.morgan2009@gmail.com';
+const adminCode = '5686';
+const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim().toLowerCase()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 const metaRef = () => doc(database, 'meta', 'workspace');
 const staffRef = id => doc(database, 'staff', id);
 const recordRef = (date, id) => doc(database, 'attendance', date, 'records', id);
@@ -110,6 +112,7 @@ async function changePassword(current, next) {
 
 async function createEmployeeAccount(employee) {
     if (!auth?.currentUser || !configInUse) throw new Error('سجّل الدخول أولاً.');
+    if (String(employee.code).trim() === adminCode) throw new Error('اربط كود المدير بحسابه الحالي بدل إنشاء هوية أخرى.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
     const provisioningAuth = getAuth(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
@@ -128,6 +131,22 @@ async function createEmployeeAccount(employee) {
         if (created) await deleteUser(created).catch(() => {});
         throw error;
     } finally { await signOut(provisioningAuth).catch(() => {}); }
+}
+
+async function linkAdminAsEmployee(employee) {
+    const user = auth?.currentUser;
+    if (!user || user.email?.toLowerCase() !== adminEmail || String(employee.code).trim() !== adminCode ||
+        !(await getIdTokenResult(user)).claims.admin) throw new Error('ربط هذا الكود متاح لحساب المدير المحدد فقط.');
+    if ((await getDocFromServer(doc(database, 'employeeAccounts', user.uid))).exists()) {
+        throw new Error('حساب المدير مرتبط بالفعل بملف موظف.');
+    }
+    const complete = { ...employee, authUid: user.uid, groupKey: groupKey(employee) };
+    const batch = writeBatch(database);
+    batch.set(staffRef(employee.id), complete);
+    batch.set(doc(database, 'employeeAccounts', user.uid), { ...complete, employeeId: employee.id });
+    batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team, job: employee.job, groupKey: complete.groupKey });
+    await batch.commit();
+    return { employee: complete, temporaryPassword: null };
 }
 
 async function updateEmployeeAccount(employee) {
@@ -193,5 +212,5 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, updateEmployeeAccount, deleteEmployeeRecords };
+window.firebaseBridge = { connect, login, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));
