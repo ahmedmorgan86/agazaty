@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#176d68">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="./manifest.webmanifest">
     <link rel="icon" type="image/svg+xml" href="./assets/mark.svg">
     <title>أجازاتي | مساحة الحضور والورديات</title>
     <!-- Tailwind CSS -->
@@ -184,16 +187,23 @@
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
             <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكودك أو بريد المدير وكلمة المرور.</p>
+            <p class="text-sm text-slate-500 mt-2">اختر نوع الحساب ثم أدخل بياناتك.</p>
+            <div class="login-role-switch" role="group" aria-label="نوع الحساب">
+                <button type="button" id="employeeLoginMode" aria-pressed="true" onclick="setLoginMode('employee')"><i class="fa-solid fa-user"></i> موظف</button>
+                <button type="button" id="adminLoginMode" aria-pressed="false" onclick="setLoginMode('admin')"><i class="fa-solid fa-user-shield"></i> مدير</button>
+            </div>
             <label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label>
             <input id="loginCode" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="username" required placeholder="أدخل كودك" dir="ltr" oninput="normalizeLoginIdentifier(this)">
-            <button type="button" id="loginModeButton" class="text-sm font-bold text-cyan-700 mt-2" onclick="toggleLoginMode()">الدخول ببريد المدير</button>
             <label for="loginPassword">كلمة المرور</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
             <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
             <button type="submit" id="loginButton">دخول الحساب</button>
             <button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="showRegistration()">موظف جديد؟ أرسل طلب تسجيل</button>
             <p class="text-xs text-slate-500 mt-2">يُفعّل الحساب بعد موافقة مدير النظام.</p>
+            <div class="mobile-install-card">
+                <div><span class="eyebrow">ANDROID APP</span><strong>أجازاتي على موبايلك</strong><p>ثبّت التطبيق من المتصفح للوصول السريع في شاشة مستقلة.</p><button type="button" id="installAppButton" onclick="installMobileApp()"><i class="fa-brands fa-android"></i> تثبيت تطبيق أندرويد</button><a class="install-link" href="https://agazaty-am.vercel.app/" target="_blank" rel="noopener noreferrer">رابط تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a><p id="installHelp" role="status" class="install-help hidden"></p></div>
+                <img src="./assets/install-qr.svg" alt="رمز QR لفتح رابط تثبيت أجازاتي على الموبايل" width="112" height="112">
+            </div>
             <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
         </form>
         <form id="registrationForm" class="login-card hidden" onsubmit="submitRegistration(event)">
@@ -899,6 +909,7 @@
             const dark = mode === 'dark';
             document.documentElement.classList.toggle('dark', dark);
             document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+            document.querySelector('meta[name="theme-color"]').content = dark ? '#0d1721' : '#176d68';
             const button = document.getElementById('themeButton');
             if (button) {
                 button.setAttribute('aria-pressed', String(dark));
@@ -1719,7 +1730,7 @@
                     const created = row.code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee, initialPassword);
-                    employees.push(created.employee);
+                    if (!employees.some(existing => existing.id === created.employee.id)) employees.push(created.employee);
                     completed++;
                 }
                 renderEmployeesDirectory();
@@ -1775,7 +1786,7 @@
                     const created = code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee);
-                    employees.push(created.employee);
+                    if (!employees.some(existing => existing.id === created.employee.id)) employees.push(created.employee);
                     if (created.temporaryPassword) showTemporaryPassword(created.employee.code, created.temporaryPassword);
                 }
                 renderEmployeesDirectory();
@@ -2228,8 +2239,10 @@
         function normalizeLoginIdentifier(input) {
             if (!loginAsAdmin) input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
         }
-        function toggleLoginMode() {
-            loginAsAdmin = !loginAsAdmin;
+        function setLoginMode(mode) {
+            const next = mode === 'admin';
+            if (loginAsAdmin === next) return;
+            loginAsAdmin = next;
             const input = document.getElementById('loginCode');
             input.value = '';
             input.type = loginAsAdmin ? 'email' : 'text';
@@ -2240,7 +2253,27 @@
             input.maxLength = loginAsAdmin ? 254 : 4;
             input.placeholder = loginAsAdmin ? 'بريد مدير النظام' : 'أدخل كودك';
             document.getElementById('loginIdentifierLabel').textContent = loginAsAdmin ? 'بريد المدير' : 'كود الموظف (٤ أرقام)';
-            document.getElementById('loginModeButton').textContent = loginAsAdmin ? 'الدخول بكود الموظف' : 'الدخول ببريد المدير';
+            document.getElementById('employeeLoginMode').setAttribute('aria-pressed', String(!loginAsAdmin));
+            document.getElementById('adminLoginMode').setAttribute('aria-pressed', String(loginAsAdmin));
+        }
+        let installPrompt;
+        window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); installPrompt = event; });
+        window.addEventListener('appinstalled', () => {
+            installPrompt = null;
+            document.getElementById('installHelp').textContent = 'تم تثبيت أجازاتي على جهازك.';
+            document.getElementById('installHelp').classList.remove('hidden');
+        });
+        async function installMobileApp() {
+            const help = document.getElementById('installHelp');
+            if (installPrompt) {
+                const prompt = installPrompt;
+                installPrompt = null;
+                await prompt.prompt();
+                await prompt.userChoice;
+            } else {
+                help.textContent = 'على أندرويد: افتح هذا الرابط في Chrome، ثم من القائمة ⋮ اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».';
+                help.classList.remove('hidden');
+            }
         }
         function showRegistration() {
             document.getElementById('loginForm').classList.add('hidden');
@@ -2694,5 +2727,6 @@
         });
     </script>
     <script type="module" src="./firebase-cloud.js" onerror="updateCloudUI('تعذر تحميل Firebase')"></script>
+    <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));</script>
 </body>
 </html>

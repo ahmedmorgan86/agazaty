@@ -58,6 +58,18 @@ button:not(:disabled):active { transform: translateY(1px); }
 .login-card select { width: 100%; min-height: 48px; padding: 10px 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-size: 16px; }
 .login-card button[type=submit], .action-primary { background: #176d68; color: white; border-radius: 12px; padding: 12px 18px; font-weight: 900; }
 .login-card button[type=submit]:hover, .action-primary:hover { background: #105650; }
+.login-role-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; margin: 25px 0 20px; border: 1px solid var(--line); background: var(--surface-2); border-radius: 15px; }
+.login-role-switch button { min-height: 47px; border-radius: 11px; color: var(--muted); font-weight: 900; }
+.login-role-switch button[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 4px 15px rgba(32,45,56,.1); }
+.login-role-switch i { margin-left: 6px; }
+.mobile-install-card { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; margin-top: 28px; padding: 17px; background: var(--accent-soft); border: 1px solid var(--line); border-radius: 18px; }
+.mobile-install-card strong { display: block; color: var(--ink); font-size: 14px; margin-top: 4px; }
+.mobile-install-card p { color: var(--muted); font-size: 11px; line-height: 1.6; margin-top: 4px; }
+.mobile-install-card button { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 13px; border-radius: 10px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 900; }
+.mobile-install-card button:hover { background: var(--accent-hover); }
+.mobile-install-card .install-link { display: block; width: fit-content; margin-top: 9px; color: var(--accent); font-size: 11px; font-weight: 900; text-decoration: underline; text-underline-offset: 3px; }
+.mobile-install-card img { border: 6px solid white; border-radius: 12px; background: white; width: 112px; height: 112px; }
+.mobile-install-card .install-help { font-size: 11px; margin-top: 9px; }
 .login-theme-toggle { position: fixed; top: 22px; left: 24px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 99px; z-index: 5; font-weight: 800; }
 .credential-box { display: grid; gap: 5px; margin-top: 20px; padding: 16px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; }
 .credential-box span { color: var(--muted); font-size: 11px; }
@@ -83,6 +95,7 @@ button:not(:disabled):active { transform: translateY(1px); }
 .dark .badge-shift-night { background: #304453; color: #d4e2ed; }
 .dark .app-hero { background: linear-gradient(135deg, #1b4346, #142f3d); }
 .dark .day-card-person:not(:disabled):hover { background: #244149; }
+.dark .mobile-install-card button { background: #176d68; color: white; }
 @media (min-width: 1100px) {
   .app-header { position: fixed !important; right: 0; top: 0; bottom: 0; width: 238px; z-index: 40; display: flex; flex-direction: column; border-left: 1px solid var(--line); border-bottom: 0; }
   .app-header.hidden { display: none; }
@@ -102,11 +115,20 @@ button:not(:disabled):active { transform: translateY(1px); }
   .app-hero { padding: 26px; }
 }
 @media (max-width: 639px) {
+  .login-screen { display: flex; align-items: stretch; justify-content: center; padding: 0; background: var(--surface); }
+  .login-screen::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--surface); z-index: 5; }
+  .login-card { width: 100%; max-width: 440px; min-height: 100dvh; padding: max(50px, calc(env(safe-area-inset-top) + 35px)) 24px max(26px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; box-shadow: none; }
+  .login-card > div:first-child { width: 68px; height: 68px; border-radius: 20px; }
+  .login-card > div:first-child img { width: 60px; height: 60px; }
+  .login-card h1 { font-size: 30px; }
+  .login-card input { min-height: 52px; border-radius: 13px; }
+  .login-card button[type=submit] { min-height: 54px; border-radius: 14px; }
+  .login-theme-toggle { top: max(13px, env(safe-area-inset-top)); left: 16px; padding: 7px 12px; font-size: 11px; }
+  .mobile-install-card { margin-top: 25px; }
+  .mobile-install-card img { width: 86px; height: 86px; border-width: 4px; }
   .header-nav { scrollbar-color: var(--accent) transparent; }
   .header-nav::-webkit-scrollbar { height: 4px; }
   .header-nav::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-  .login-card { padding: 28px 22px; }
-  .login-screen { padding: 72px 16px 24px; }
   .app-main { padding: 18px 12px; }
   .app-hero { padding: 25px 20px; }
   .employee-directory { padding: 18px; }
