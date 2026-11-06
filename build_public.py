@@ -7,8 +7,10 @@ ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
 PUBLIC.mkdir(exist_ok=True)
 
-for name in ("index.html", "firebase-cloud.js", "theme.css"):
+for name in ("index.html", "firebase-cloud.js", "theme.css", "manifest.webmanifest", "sw.js"):
     copy2(ROOT / name, PUBLIC / name)
 
 (PUBLIC / "assets").mkdir(exist_ok=True)
 copy2(ROOT / "assets" / "mark.svg", PUBLIC / "assets" / "mark.svg")
+for name in ("icon-192.png", "icon-512.png", "install-qr.svg"):
+    copy2(ROOT / "assets" / name, PUBLIC / "assets" / name)
