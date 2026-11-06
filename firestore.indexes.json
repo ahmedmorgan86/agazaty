@@ -1,13 +1,12 @@
 {
-  "indexes": [
+  "indexes": [],
+  "fieldOverrides": [
     {
       "collectionGroup": "records",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "groupKey", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
+      "fieldPath": "groupKey",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
       ]
     }
-  ],
-  "fieldOverrides": []
+  ]
 }
