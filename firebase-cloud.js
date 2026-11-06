@@ -7,7 +7,10 @@ let listeners = [], stopAuth;
 const groupKey = employee => `${employee.team}|${employee.job}`;
 const adminEmail = 'ahmed.morgan2009@gmail.com';
 const adminCode = '5686';
-const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim().toLowerCase()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
+const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
+const validCode = code => /^[0-9]{4}$/.test(String(code));
+const requestRef = uid => doc(database, 'registrationRequests', uid);
+const defaultJobs = ['دعم المستخدمين للأجهزة', 'البنية التحتية'];
 const metaRef = () => doc(database, 'meta', 'workspace');
 const staffRef = id => doc(database, 'staff', id);
 const recordRef = (date, id) => doc(database, 'attendance', date, 'records', id);
@@ -69,12 +72,22 @@ function connect(config, callbacks) {
         if (!user || user.isAnonymous) { callbacks.onSignedOut(); return; }
         try {
             const claims = (await getIdTokenResult(user)).claims;
-            const admin = claims.admin === true;
+            const owner = await getDocFromServer(doc(database, 'ownerAccess', user.uid));
+            const admin = user.email?.toLowerCase() === adminEmail &&
+                (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin'));
             const own = admin ? null : await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
-            if (!admin && !own.exists()) { await signOut(auth); return; }
-            if (admin) await migrateLegacyData();
+            if (!admin && !own.exists()) {
+                const pending = await getDocFromServer(requestRef(user.uid));
+                callbacks.onPending(pending.exists() ? pending.data().status : 'preparing');
+                listeners.push(onSnapshot(requestRef(user.uid), snap => {
+                    if (snap.data()?.status === 'approved') { stopListeners(); connect(configInUse, callbacks); }
+                    else callbacks.onPending(snap.data()?.status || 'preparing');
+                }, callbacks.onError));
+                return;
+            }
+            if (admin) { await migrateLegacyData(); await ensureDefaultJobs(); }
             const key = admin ? null : groupKey(own.data());
-            callbacks.onAuth(user, claims);
+            callbacks.onAuth(user, { ...claims, admin });
             let settings = null, records = null;
             const emit = metadata => {
                 if (!settings || !records) return;
@@ -102,8 +115,23 @@ function connect(config, callbacks) {
     }, callbacks.onError);
 }
 
-const login = (code, pass) => signInWithEmailAndPassword(auth, String(code).trim().includes('@') ? String(code).trim() : employeeEmail(code), pass);
+const login = (identifier, pass) => {
+    const value = String(identifier).trim();
+    if (value.includes('@') && value.toLowerCase() !== adminEmail) throw new Error('بريد الإدارة غير صحيح.');
+    if (!value.includes('@') && !validCode(value)) throw new Error('كود الموظف أربعة أرقام فقط.');
+    return signInWithEmailAndPassword(auth, value.includes('@') ? adminEmail : employeeEmail(value), pass);
+};
 const logout = () => signOut(auth);
+async function registerEmployee({ name, code, team, job, pass }) {
+    if (!validCode(code) || code === adminCode || !name || name.length > 80 ||
+        !['red', 'blue', 'yellow', 'morning'].includes(team) || !job || job.length > 80 || pass.length < 7) {
+        throw new Error('تحقق من الاسم والكود والوردية والوظيفة وكلمة المرور.');
+    }
+    const user = (await createUserWithEmailAndPassword(auth, employeeEmail(code), pass)).user;
+    try {
+        await setDoc(requestRef(user.uid), { name, code, team, job, status: 'pending', createdAt: new Date().toISOString() });
+    } catch (error) { await deleteUser(user).catch(() => {}); throw error; }
+}
 async function changePassword(current, next) {
     const credential = EmailAuthProvider.credential(auth.currentUser.email, current);
     await reauthenticateWithCredential(auth.currentUser, credential);
@@ -112,7 +140,7 @@ async function changePassword(current, next) {
 
 async function createEmployeeAccount(employee) {
     if (!auth?.currentUser || !configInUse) throw new Error('سجّل الدخول أولاً.');
-    if (String(employee.code).trim() === adminCode) throw new Error('اربط كود المدير بحسابه الحالي بدل إنشاء هوية أخرى.');
+    if (!validCode(employee.code)) throw new Error('الكود يجب أن يتكون من أربعة أرقام.');
     const app = getApps().find(item => item.name === 'employee-provisioning') || initializeApp(configInUse, 'employee-provisioning');
     const provisioningAuth = getAuth(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
@@ -133,13 +161,28 @@ async function createEmployeeAccount(employee) {
     } finally { await signOut(provisioningAuth).catch(() => {}); }
 }
 
+async function approveRegistration(uid, request, balances = {}) {
+    if (!auth?.currentUser || !request || request.status !== 'pending' || !validCode(request.code)) throw new Error('طلب التسجيل غير صالح.');
+    const id = `emp_${uid}`;
+    const complete = { id, authUid: uid, name: request.name, code: request.code, team: request.team, job: request.job,
+        dept: '', annual_balance: balances.annual_balance ?? 21, casual_balance: balances.casual_balance ?? 7,
+        perm_hours: balances.perm_hours ?? 4, groupKey: groupKey(request) };
+    const batch = writeBatch(database);
+    batch.set(staffRef(id), complete);
+    batch.set(doc(database, 'employeeAccounts', uid), { ...complete, employeeId: id });
+    batch.set(doc(database, 'teamMembership', id), { team: request.team, job: request.job, groupKey: complete.groupKey });
+    batch.update(requestRef(uid), { status: 'approved' });
+    await batch.commit();
+    return complete;
+}
 async function linkAdminAsEmployee(employee) {
     const user = auth?.currentUser;
     if (!user || user.email?.toLowerCase() !== adminEmail || String(employee.code).trim() !== adminCode ||
-        !(await getIdTokenResult(user)).claims.admin) throw new Error('ربط هذا الكود متاح لحساب المدير المحدد فقط.');
-    if ((await getDocFromServer(doc(database, 'employeeAccounts', user.uid))).exists()) {
-        throw new Error('حساب المدير مرتبط بالفعل بملف موظف.');
+        !((await getIdTokenResult(user)).claims.admin ||
+          (await getDocFromServer(doc(database, 'ownerAccess', user.uid))).data()?.role === 'admin')) {
+        throw new Error('ربط هذا الكود متاح لحساب المدير المحدد فقط.');
     }
+    if ((await getDocFromServer(doc(database, 'employeeAccounts', user.uid))).exists()) throw new Error('حساب المدير مرتبط بالفعل بملف موظف.');
     const complete = { ...employee, authUid: user.uid, groupKey: groupKey(employee) };
     const batch = writeBatch(database);
     batch.set(staffRef(employee.id), complete);
@@ -147,6 +190,25 @@ async function linkAdminAsEmployee(employee) {
     batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team, job: employee.job, groupKey: complete.groupKey });
     await batch.commit();
     return { employee: complete, temporaryPassword: null };
+}
+const rejectRegistration = uid => updateDoc(requestRef(uid), { status: 'rejected' });
+const watchRegistrations = callback => onSnapshot(query(collection(database, 'registrationRequests'), where('status', '==', 'pending')),
+    snap => callback(snap.docs.map(item => ({ uid: item.id, ...item.data() }))));
+const updateColleagueName = (employeeId, name) => updateDoc(staffRef(employeeId), { name });
+async function ensureDefaultJobs() {
+    for (const name of defaultJobs) {
+        const ref = doc(database, 'jobs', name);
+        if (!(await getDocFromServer(ref)).exists()) await setDoc(ref, { name, active: true });
+    }
+}
+const watchJobs = callback => onSnapshot(collection(database, 'jobs'), snap =>
+    callback(snap.docs.filter(item => item.data().active === true).map(item => item.id)));
+async function addJob(name) {
+    if (!auth?.currentUser || !name || name.length > 80 || name.includes('/')) throw new Error('اسم الوظيفة غير صالح.');
+    await setDoc(doc(database, 'jobs', name), { name, active: true });
+}
+async function removeJob(name) {
+    await setDoc(doc(database, 'jobs', name), { name, active: false });
 }
 
 async function updateEmployeeAccount(employee) {
@@ -212,5 +274,5 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, updateEmployeeAccount, deleteEmployeeRecords };
+window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));
