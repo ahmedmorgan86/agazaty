@@ -55,6 +55,7 @@ button:not(:disabled):active { transform: translateY(1px); }
 .intro-line { display: flex; gap: 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 800; margin-top: 70px; padding-top: 20px; }
 .login-card { background: var(--surface); border: 1px solid var(--line); color: var(--ink); box-shadow: var(--shadow); padding: 42px; border-radius: 26px; }
 .login-card input { background: var(--surface-2); border-color: var(--line); color: var(--ink); }
+.login-card select { width: 100%; min-height: 48px; padding: 10px 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-size: 16px; }
 .login-card button[type=submit], .action-primary { background: #176d68; color: white; border-radius: 12px; padding: 12px 18px; font-weight: 900; }
 .login-card button[type=submit]:hover, .action-primary:hover { background: #105650; }
 .login-theme-toggle { position: fixed; top: 22px; left: 24px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px; border-radius: 99px; z-index: 5; font-weight: 800; }
