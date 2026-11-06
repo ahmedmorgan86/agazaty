@@ -184,9 +184,9 @@
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
             <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف أو بريد المدير وكلمة المرور.</p>
+            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكودك أو بريد المدير وكلمة المرور.</p>
             <label for="loginCode">كود الموظف أو بريد المدير</label>
-            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686 أو admin@example.com" dir="ltr">
+            <input id="loginCode" type="text" autocomplete="username" required placeholder="أدخل كودك أو بريد المدير" dir="ltr">
             <label for="loginPassword">كلمة المرور</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
             <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
@@ -443,7 +443,7 @@
                     </div>
                 </div>
             </div>
-            <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية وتظهر للمدير مرة واحدة بعد حفظ الحساب.</p>
+            <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية للموظف الجديد. عند إدخال الكود 5686 يُربط ملف الموظف بحساب المدير الحالي بعد اختيار الوردية والإدارة، دون إنشاء حساب ثانٍ.</p>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -805,8 +805,17 @@
             </div>
 
             <div class="space-y-3">
-                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Shifts Attendance</strong>. الدخول متاح لحسابات الموظفين والإدارة.</p>
+                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Agazaty</strong>. الدخول متاح لحسابات الموظفين والإدارة.</p>
                 <p id="firebaseMessage" role="status" class="text-xs text-slate-600"></p>
+
+                <div class="pt-2 border-t border-slate-100">
+                    <label class="cursor-pointer text-xs text-blue-700 hover:text-blue-900 font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>رفع سجلات الحضور (JSON)</span>
+                        <input type="file" id="recordsFileInput" onchange="uploadRecordsJSON(event)" accept=".json,application/json" class="hidden">
+                    </label>
+                    <p class="text-xs text-slate-500 mt-2">تُضاف سجلات الموظفين الموجودين فقط. العضو يرفع سجلات فريقه وإدارته، والمدير يرفع سجلات الجميع.</p>
+                </div>
 
                 <div id="backupControls" class="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <button onclick="downloadBackupJSON()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center space-x-1 space-x-reverse">
@@ -823,7 +832,7 @@
 
             <div class="flex justify-end space-x-2 space-x-reverse pt-2 border-t border-slate-100">
                 <button onclick="closeCloudModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-                <a href="https://console.firebase.google.com/project/shifts-attendance-am-2026/overview" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">لوحة Firebase</a>
+                <a href="https://console.firebase.google.com/project/agazaty/overview" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">لوحة Firebase</a>
             </div>
         </div>
     </div>
@@ -1599,15 +1608,17 @@
                     employees = updated;
                 } else {
                     const employee = { id: `emp_${crypto.randomUUID().replaceAll('-', '')}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
-                    const created = await window.firebaseBridge.createEmployeeAccount(employee);
+                    const created = code === '5686'
+                        ? await window.firebaseBridge.linkAdminAsEmployee(employee)
+                        : await window.firebaseBridge.createEmployeeAccount(employee);
                     employees.push(created.employee);
-                    showTemporaryPassword(created.employee.code, created.temporaryPassword);
+                    if (created.temporaryPassword) showTemporaryPassword(created.employee.code, created.temporaryPassword);
                 }
                 renderEmployeesDirectory();
                 renderEmployeeCards();
                 resetEmployeeForm();
                 renderTable();
-                showNotice(isAdmin && !id ? 'تم إنشاء الحساب. احفظ كلمة المرور المؤقتة المعروضة.' : 'تم حفظ بيانات الموظف وأرصدته.');
+                showNotice(isAdmin && !id && code !== '5686' ? 'تم إنشاء الحساب. احفظ كلمة المرور المؤقتة المعروضة.' : 'تم حفظ بيانات الموظف وأرصدته.');
             } catch (error) {
                 showNotice(`تعذر حفظ الحساب: ${error.message}`, 'error');
             } finally { employeeSaveInProgress = false; button.disabled = false; }
@@ -2077,6 +2088,7 @@
             }
             try {
                 await window.firebaseBridge.changePassword(current, next);
+                if (firebaseUser?.uid) localStorage.setItem(`password-updated:${firebaseUser.uid}`, '1');
                 document.getElementById('currentPassword').value = '';
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
@@ -2129,6 +2141,13 @@
             document.getElementById('appHeader').classList.remove('hidden');
             document.getElementById('appMain').classList.remove('hidden');
             document.getElementById('authGate').classList.add('hidden');
+            if (isAdmin && firebaseUser?.email?.toLowerCase() === 'ahmed.morgan2009@gmail.com' &&
+                !localStorage.getItem(`password-updated:${firebaseUser.uid}`) &&
+                !sessionStorage.getItem(`password-prompted:${firebaseUser.uid}`)) {
+                sessionStorage.setItem(`password-prompted:${firebaseUser.uid}`, '1');
+                showAccountModal();
+                document.getElementById('accountMessage').textContent = 'يمكنك تغيير كلمة المرور الآن من حسابك.';
+            }
         }
 
         function applyCloudSnapshots() {
@@ -2283,6 +2302,57 @@
             a.href = url;
             a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
+        }
+
+        async function uploadRecordsJSON(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+            if (DEMO_MODE || !firebaseUser || !firebaseConnected) {
+                showNotice('سجّل الدخول إلى قاعدة البيانات لرفع السجلات.', 'warning');
+                return;
+            }
+            try {
+                if (file.size > 10 * 1024 * 1024) throw new Error('الملف أكبر من 10 ميجابايت. قسّمه إلى ملفات أصغر.');
+                const data = JSON.parse(await file.text());
+                if (!data || typeof data.attendanceData !== 'object' || Array.isArray(data.attendanceData)) {
+                    throw new Error('الملف لا يحتوي على attendanceData صالحة.');
+                }
+                const roster = new Map(employees.map(emp => [emp.id, emp]));
+                const allowedStatuses = new Set(['حضور', 'راحة', 'إعتيادي', 'عارضة', 'إذن', 'مأمورية']);
+                const changes = [];
+                for (const [date, day] of Object.entries(data.attendanceData)) {
+                    if (!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(date) ||
+                        Number.isNaN(Date.parse(`${date}T00:00:00Z`)) ||
+                        new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date ||
+                        !day || typeof day.records !== 'object' || Array.isArray(day.records)) {
+                        throw new Error(`تاريخ أو مجموعة سجلات غير صالحة: ${date}`);
+                    }
+                    for (const [employeeId, record] of Object.entries(day.records)) {
+                        const emp = roster.get(employeeId);
+                        if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) {
+                            throw new Error(`الملف يتضمن موظفًا غير متاح لك: ${employeeId}`);
+                        }
+                        if (!record || !allowedStatuses.has(record.status) ||
+                            !Number.isInteger(record.delay ?? 0) || (record.delay ?? 0) < 0 || (record.delay ?? 0) > 1440 ||
+                            !Number.isInteger(record.permissionMinutes ?? 0) || (record.permissionMinutes ?? 0) < 0 || (record.permissionMinutes ?? 0) > 1440 ||
+                            typeof (record.notes ?? '') !== 'string' || (record.notes ?? '').length > 1000) {
+                            throw new Error(`سجل غير صالح للموظف ${employeeId} في ${date}`);
+                        }
+                        changes.push({ date, employeeId, team: emp.team, job: emp.job,
+                            record: { status: record.status, delay: record.delay ?? 0,
+                                permissionMinutes: record.permissionMinutes ?? 0, notes: record.notes ?? '' } });
+                        if (changes.length > 5000) throw new Error('الملف يتجاوز 5000 سجل. قسّمه إلى ملفات أصغر.');
+                    }
+                }
+                if (!changes.length) throw new Error('الملف لا يحتوي على سجلات قابلة للرفع.');
+                if (!await askConfirmation(`سيُضاف أو يُستبدل ${changes.length} سجل حضور للموظفين الموجودين. هل تريد المتابعة؟`,
+                    { title: 'رفع سجلات الحضور', accept: 'رفع السجلات' })) return;
+                const saved = await cloudWrite(window.firebaseBridge.saveRecords(changes), 'تم رفع سجلات الحضور.');
+                if (saved) closeCloudModal();
+            } catch (error) {
+                showNotice(error.message || 'الملف غير صالح أو تالف.', 'error');
+            }
         }
 
         function uploadBackupJSON(event) {
