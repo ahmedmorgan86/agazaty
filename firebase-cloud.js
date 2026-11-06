@@ -100,7 +100,7 @@ function connect(config, callbacks) {
     }, callbacks.onError);
 }
 
-const login = (code, pass) => signInWithEmailAndPassword(auth, employeeEmail(code), pass);
+const login = (code, pass) => signInWithEmailAndPassword(auth, String(code).trim().includes('@') ? String(code).trim() : employeeEmail(code), pass);
 const logout = () => signOut(auth);
 async function changePassword(current, next) {
     const credential = EmailAuthProvider.credential(auth.currentUser.email, current);
