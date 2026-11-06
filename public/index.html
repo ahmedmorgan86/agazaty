@@ -184,16 +184,29 @@
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
             <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكود الموظف أو بريد المدير وكلمة المرور.</p>
-            <label for="loginCode">كود الموظف أو بريد المدير</label>
-            <input id="loginCode" type="text" autocomplete="username" required placeholder="مثال: 5686 أو admin@example.com" dir="ltr">
+            <p class="text-sm text-slate-500 mt-2">سجّل الدخول بكودك أو بريد المدير وكلمة المرور.</p>
+            <label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label>
+            <input id="loginCode" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="username" required placeholder="أدخل كودك" dir="ltr" oninput="normalizeLoginIdentifier(this)">
+            <button type="button" id="loginModeButton" class="text-sm font-bold text-cyan-700 mt-2" onclick="toggleLoginMode()">الدخول ببريد المدير</button>
             <label for="loginPassword">كلمة المرور</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
             <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
             <button type="submit" id="loginButton">دخول الحساب</button>
-            <p class="text-xs text-slate-500 mt-4">لإنشاء حساب جديد أو استعادة الوصول، تواصل مع مدير النظام.</p>
+            <button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="showRegistration()">موظف جديد؟ أرسل طلب تسجيل</button>
+            <p class="text-xs text-slate-500 mt-2">يُفعّل الحساب بعد موافقة مدير النظام.</p>
             <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
         </form>
+        <form id="registrationForm" class="login-card hidden" onsubmit="submitRegistration(event)">
+            <h2 class="text-xl font-black">طلب تسجيل موظف</h2><p class="text-xs text-slate-500 mt-2">راجع المدير الوردية والوظيفة قبل تفعيل الحساب.</p>
+            <label for="registrationName">الاسم</label><input id="registrationName" required maxlength="80" autocomplete="name">
+            <label for="registrationCode">كود الموظف (٤ أرقام)</label><input id="registrationCode" required type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" dir="ltr" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+            <label for="registrationTeam">الوردية</label><select id="registrationTeam" required><option value="">اختر الوردية</option><option value="red">الحمراء</option><option value="blue">الزرقاء</option><option value="yellow">الصفراء</option><option value="morning">الصباحية</option></select>
+            <label for="registrationJob">الوظيفة</label><select id="registrationJob" required><option value="">جاري تحميل الوظائف</option></select>
+            <label for="registrationPassword">كلمة المرور</label><input id="registrationPassword" type="password" required minlength="7" autocomplete="new-password">
+            <p id="registrationMessage" role="status" class="text-xs mt-3"></p>
+            <button type="submit">إرسال طلب التسجيل</button><button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="hideRegistration()">العودة إلى تسجيل الدخول</button>
+        </form>
+        <div id="pendingCard" class="login-card hidden"><h2 class="text-xl font-black">طلبك قيد المراجعة</h2><p id="pendingMessage" class="text-sm text-slate-500 mt-3">سيظهر حسابك بعد موافقة المدير.</p><button type="button" class="mt-4 text-cyan-700 font-bold" onclick="logoutEmployee()">خروج</button></div>
     </div>
     <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
@@ -238,6 +251,8 @@
         </section>
 
         <section id="employeeDirectorySection" class="employee-directory no-print scroll-mt-40">
+            <div id="jobManager" class="hidden mb-6 rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">إدارة الوظائف</h2><form class="flex flex-wrap gap-2 mt-3" onsubmit="addJobFromForm(event)"><input id="newJobName" required maxlength="80" placeholder="اسم الوظيفة الجديدة" class="border rounded-xl px-3 py-2 min-w-0 flex-1"><button type="submit" class="action-primary">إضافة وظيفة</button></form><div id="jobItems" class="flex flex-wrap gap-2 mt-3"></div><p class="text-xs text-slate-500 mt-3">انقل الموظفين إلى وظيفة أخرى قبل تعديل وظيفة أو حذفها.</p></div>
+            <div id="registrationQueue" class="hidden mb-6 rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">طلبات انضمام الموظفين</h2><p class="text-xs text-slate-500 mt-1">تحقق من الاسم والكود والوردية والوظيفة قبل الموافقة.</p><div id="registrationQueueItems" class="grid gap-3 mt-4"></div></div>
             <div class="employee-directory-header"><div><span class="text-xs font-bold text-cyan-700">دليل الفريق</span><h2 class="text-lg font-black text-slate-900">الموظفون والتحكم في الحسابات</h2><p id="employeeDirectorySubtitle" class="text-xs text-slate-500">الزملاء المسموح لك بعرض بياناتهم وتعديلها</p></div><button id="addEmployeeButton" type="button" onclick="openNewEmployeeForm()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-user-plus ml-1"></i>إضافة موظف</button></div>
             <div id="employeeCards" class="employee-cards"></div>
         </section>
@@ -408,7 +423,7 @@
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">الكود / الرقم الوظيفي:</label>
-                        <input type="text" id="formEmpCode" placeholder="مثال: EMP-101" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <input type="text" id="formEmpCode" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" placeholder="٤ أرقام" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">الوردية المخصصة:</label>
@@ -422,8 +437,12 @@
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">الإدارة:</label>
-                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الإدارة</option><option value="دعم المستخدمين">دعم المستخدمين</option><option value="البنية التحتية">البنية التحتية</option></select>
+                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الوظيفة</option></select>
                     </div>
+                    <label class="flex items-center gap-2 font-bold text-slate-700">
+                        <input id="formEmpSelfOnly" type="checkbox" class="w-4 h-4">
+                        عرض حساب هذا الموظف فقط
+                    </label>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">رصيد الإعتيادي (سنوي):</label>
                         <input type="number" id="formEmpAnnual" value="21" min="0" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
@@ -443,7 +462,16 @@
                     </div>
                 </div>
             </div>
-            <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية وتظهر للمدير مرة واحدة بعد حفظ الحساب.</p>
+            <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية للموظف الجديد. عند إدخال الكود 5686 يُربط ملف الموظف بحساب المدير الحالي بعد اختيار الوردية والإدارة، دون إنشاء حساب ثانٍ.</p>
+            <div id="rosterImportPanel" class="rounded-xl border border-slate-200 p-3 space-y-2">
+                <label for="rosterInitialPassword" class="block text-xs font-bold text-slate-700">كلمة بدء الحسابات المستوردة (لا تُحفظ في الملف)</label>
+                <input id="rosterInitialPassword" type="password" autocomplete="new-password" minlength="7" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2" placeholder="أدخل كلمة البدء عند الاستيراد">
+                <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-blue-700">
+                    <i class="fa-solid fa-file-import"></i> استيراد موظفين من JSON
+                    <input type="file" accept=".json,application/json" class="hidden" onchange="importRosterJSON(event)">
+                </label>
+                <p class="text-xs text-slate-500">لا يُنشأ حساب منفصل للكود 5686؛ يُربط بالمدير. تبدأ أرصدة الحسابات المستوردة من صفر حتى يراجعها المدير.</p>
+            </div>
 
             <!-- Employees List Table -->
             <div class="modal-table-scroll border border-slate-200 rounded-xl">
@@ -805,8 +833,17 @@
             </div>
 
             <div class="space-y-3">
-                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Shifts Attendance</strong>. الدخول متاح لحسابات الموظفين والإدارة.</p>
+                <p class="text-xs text-slate-600 bg-slate-50 rounded-lg p-2">المشروع متصل: <strong>Agazaty</strong>. الدخول متاح لحسابات الموظفين والإدارة.</p>
                 <p id="firebaseMessage" role="status" class="text-xs text-slate-600"></p>
+
+                <div class="pt-2 border-t border-slate-100">
+                    <label class="cursor-pointer text-xs text-blue-700 hover:text-blue-900 font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>رفع سجلات الحضور (JSON)</span>
+                        <input type="file" id="recordsFileInput" onchange="uploadRecordsJSON(event)" accept=".json,application/json" class="hidden">
+                    </label>
+                    <p class="text-xs text-slate-500 mt-2">تُضاف سجلات الموظفين الموجودين فقط. العضو يرفع سجلات فريقه وإدارته، والمدير يرفع سجلات الجميع.</p>
+                </div>
 
                 <div id="backupControls" class="pt-2 border-t border-slate-100 flex items-center justify-between">
                     <button onclick="downloadBackupJSON()" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center space-x-1 space-x-reverse">
@@ -823,7 +860,7 @@
 
             <div class="flex justify-end space-x-2 space-x-reverse pt-2 border-t border-slate-100">
                 <button onclick="closeCloudModal()" class="px-4 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-                <a href="https://console.firebase.google.com/project/shifts-attendance-am-2026/overview" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">لوحة Firebase</a>
+                <a href="https://console.firebase.google.com/project/agazaty/overview" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold">لوحة Firebase</a>
             </div>
         </div>
     </div>
@@ -834,6 +871,7 @@
             <form onsubmit="changeEmployeePassword(event)"><h4 class="text-sm font-bold">تغيير كلمة المرور</h4><label for="currentPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الحالية</label><input id="currentPassword" type="password" required autocomplete="current-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="newPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الجديدة</label><input id="newPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="confirmPassword" class="block text-xs font-bold mt-3 mb-1">تأكيد كلمة المرور الجديدة</label><input id="confirmPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><button type="submit" class="w-full mt-4 bg-cyan-700 text-white rounded-xl px-4 py-2 font-bold">حفظ كلمة المرور</button><p id="accountMessage" role="status" class="text-xs mt-2"></p></form>
         </div>
     </div>
+    <div id="colleagueModal" class="app-modal fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="colleagueTitle"><form onsubmit="saveColleagueName(event)" class="bg-white rounded-2xl max-w-sm w-full p-6"><h2 id="colleagueTitle" class="font-black text-lg">تعديل اسم الزميل</h2><p class="text-xs text-slate-500 mt-2">الوردية والوظيفة والكود والأرصدة يحددها المدير فقط.</p><input type="hidden" id="colleagueId"><label for="colleagueName" class="block mt-4 mb-2 font-bold">الاسم</label><input id="colleagueName" required maxlength="80" class="w-full border rounded-xl px-3 py-3"><div class="flex gap-2 mt-5"><button class="action-primary" type="submit">حفظ</button><button type="button" onclick="document.getElementById('colleagueModal').classList.add('hidden')" class="px-4 py-2">إلغاء</button></div></form></div>
 
 
     <div id="noticeStack" class="notice-stack no-print" role="status" aria-live="polite" aria-atomic="false"></div>
@@ -973,6 +1011,13 @@
         let firebaseReady = false;
         let firebaseConnected = false;
         let cacheStatusTimer = null;
+        let loginAsAdmin = false;
+        const employeeKey = emp => emp?.groupKey || (emp?.team && emp?.job ? `${emp.team}|${emp.job}` : '');
+        const canAccessEmployee = emp => isAdmin || Boolean(currentProfile && employeeKey(emp) === employeeKey(currentProfile));
+        let registrationListener = null;
+        let pendingRegistrations = [];
+        let jobListener = null;
+        let availableJobs = [];
         const FIREBASE_CONFIG = {
             apiKey: 'AIzaSyCAVUh5QzRgkErTu-BpaWwn2XBAueN92A0',
             authDomain: 'agazaty.firebaseapp.com',
@@ -1149,7 +1194,7 @@
                     if (!attendanceData[d].records[emp.id] || !attendanceData[d].records[emp.id].status) {
                         attendanceData[d].records[emp.id] = { status: "حضور", delay: 0, notes: "" };
                         changes.push({ date: d, day: attendanceData[d].day, shift: attendanceData[d].shift,
-                            employeeId: emp.id, team: emp.team, job: emp.job, record: attendanceData[d].records[emp.id] });
+                            employeeId: emp.id, team: emp.team, job: emp.job, groupKey: employeeKey(emp), record: attendanceData[d].records[emp.id] });
                     }
                 });
             });
@@ -1246,7 +1291,7 @@
             
             // Filter employees by search
             const filteredEmployees = employees.filter(emp => emp.team === activeTeam &&
-                (isAdmin || emp.job === currentProfile?.job) && (
+                canAccessEmployee(emp) && (
                 emp.name.toLowerCase().includes(searchTerm) || (emp.code && emp.code.toLowerCase().includes(searchTerm)))
             );
 
@@ -1385,7 +1430,7 @@
                 const shift = calculateShiftForDate(Number(date.slice(-2)), activeTeam);
                 const people = teamEmployees.length ? teamEmployees.map(emp => {
                     const rec = effectiveRecord(date, emp, day.records?.[emp.id]);
-                    const canEdit = !isFixedRest(date, emp) && (isAdmin || (currentProfile?.team === emp.team && currentProfile?.job === emp.job));
+                    const canEdit = !isFixedRest(date, emp) && canAccessEmployee(emp);
                     return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
                         <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
                         <span class="text-left">${getStatusBadge(displayedStatus(date, emp, rec))}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
@@ -1454,7 +1499,7 @@
             const tbody = document.getElementById('employeesDirectoryTableBody');
             let html = '';
 
-            const visibleEmployees = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(canAccessEmployee);
             visibleEmployees.forEach((emp, index) => {
                 const teamBadge = {
                     blue: '<span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">الزرقاء (طويل 1)</span>',
@@ -1493,11 +1538,11 @@
         }
 
         function renderEmployeeCards() {
-            const visible = employees.filter(emp => isAdmin || (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visible = employees.filter(canAccessEmployee);
             document.getElementById('addEmployeeButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('employeeDirectorySubtitle').textContent = isAdmin
                 ? 'جميع الموظفين: تعديل البيانات والأرصدة، إضافة الحسابات وحذفها'
-                : 'زملاؤك في نفس الوردية والإدارة';
+                : currentProfile?.accessScope === 'self' ? 'حسابك وسجلاتك فقط' : 'زملاؤك في نفس الوردية والإدارة';
             const teamNames = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
             document.getElementById('employeeCards').innerHTML = visible.length ? visible.map(emp => `
                 <article class="employee-card">
@@ -1506,11 +1551,86 @@
                     <p>الإدارة: ${escapeHTML(emp.job || 'غير محددة')}</p>
                     <p>الاعتيادي: ${emp.annual_balance ?? 21} يوم · العارضة: ${emp.casual_balance ?? 7} أيام · الأذونات: ${emp.perm_hours ?? 4} ساعات</p>
                     <div class="employee-card-actions">
-                        ${isAdmin ? `<button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات والأرصدة</button>` : ''}
+                        ${isAdmin ? `<button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات والأرصدة</button>` : `<button type="button" class="bg-cyan-700 text-white" onclick="editColleagueName('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل الاسم</button>`}
                         <button type="button" class="bg-slate-100 text-slate-700" onclick="openEmployeeReport('${emp.id}')"><i class="fa-solid fa-file-lines ml-1"></i>كشف الحضور</button>
                     </div>
                 </article>
             `).join('') : '<p class="text-slate-500 text-sm">لا يوجد موظفون في هذه المجموعة.</p>';
+        }
+        function editColleagueName(id) {
+            const emp = employees.find(item => item.id === id);
+            if (!emp || !canAccessEmployee(emp)) return;
+            document.getElementById('colleagueId').value = id;
+            document.getElementById('colleagueName').value = emp.name;
+            document.getElementById('colleagueModal').classList.remove('hidden');
+            document.getElementById('colleagueName').focus();
+        }
+        async function saveColleagueName(event) {
+            event.preventDefault();
+            const id = document.getElementById('colleagueId').value;
+            const name = document.getElementById('colleagueName').value.trim();
+            const emp = employees.find(item => item.id === id);
+            if (!emp || !name || name.length > 80 || !canAccessEmployee(emp)) return;
+            try {
+                await window.firebaseBridge.updateColleagueName(id, name);
+                document.getElementById('colleagueModal').classList.add('hidden');
+                showNotice('تم تحديث الاسم.');
+            } catch (error) { showNotice(`تعذر تعديل الاسم: ${error.message}`, 'error'); }
+        }
+        function renderRegistrationQueue() {
+            document.getElementById('registrationQueue').classList.toggle('hidden', !isAdmin || !pendingRegistrations.length);
+            document.getElementById('registrationQueueItems').innerHTML = pendingRegistrations.map(item => `
+                <article class="rounded-xl border border-slate-200 p-3 bg-slate-50"><strong>${escapeHTML(item.name)}</strong><p class="text-xs mt-1">الكود: ${escapeHTML(item.code)} · الوردية: ${escapeHTML(item.team)} · الوظيفة: ${escapeHTML(item.job)}</p>
+                <div class="flex gap-2 mt-3"><button type="button" class="action-primary" onclick="decideRegistration('${item.uid}', true)">موافقة</button><button type="button" class="px-3 py-2 text-red-700" onclick="decideRegistration('${item.uid}', false)">رفض</button></div></article>`).join('');
+        }
+        function renderJobs() {
+            for (const id of ['registrationJob', 'formEmpJob']) {
+                const select = document.getElementById(id), selected = select.value;
+                select.innerHTML = `<option value="">اختر الوظيفة</option>${availableJobs.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('')}`;
+                if (availableJobs.includes(selected)) select.value = selected;
+            }
+            document.getElementById('jobManager').classList.toggle('hidden', !isAdmin);
+            document.getElementById('jobItems').innerHTML = availableJobs.map((name, index) => `<div class="rounded-xl border border-slate-200 p-2 bg-slate-50"><span>${escapeHTML(name)}</span><button type="button" class="text-cyan-700 mx-2" onclick="editJob(${index})">تعديل</button><button type="button" class="text-red-700" onclick="deleteJob(${index})">حذف</button></div>`).join('');
+        }
+        async function addJobFromForm(event) {
+            event.preventDefault();
+            if (!isAdmin) return;
+            const input = document.getElementById('newJobName'), name = input.value.trim();
+            if (!name || name.length > 80 || name.includes('/') || availableJobs.includes(name)) { showNotice('اسم الوظيفة غير صالح أو موجود.', 'warning'); return; }
+            try { await window.firebaseBridge.addJob(name); input.value = ''; showNotice('تمت إضافة الوظيفة.'); }
+            catch (error) { showNotice(error.message, 'error'); }
+        }
+        async function deleteJob(index) {
+            if (!isAdmin) return;
+            const name = availableJobs[index];
+            if (!name) return;
+            if (employees.some(emp => emp.job === name) || pendingRegistrations.some(item => item.job === name)) { showNotice('انقل الموظفين وتعامل مع طلبات التسجيل المرتبطة بهذه الوظيفة أولاً.', 'warning'); return; }
+            if (!await askConfirmation(`حذف وظيفة ${name} من الاختيارات؟`, { title: 'حذف الوظيفة', accept: 'حذف' })) return;
+            try { await window.firebaseBridge.removeJob(name); showNotice('تم حذف الوظيفة.'); }
+            catch (error) { showNotice(error.message, 'error'); }
+        }
+        async function editJob(index) {
+            if (!isAdmin) return;
+            const oldName = availableJobs[index];
+            if (!oldName) return;
+            if (employees.some(emp => emp.job === oldName) || pendingRegistrations.some(item => item.job === oldName)) { showNotice('انقل الموظفين وتعامل مع طلبات التسجيل المرتبطة بهذه الوظيفة أولاً.', 'warning'); return; }
+            const name = prompt('اسم الوظيفة الجديد', oldName)?.trim();
+            if (!name || name === oldName) return;
+            if (name.length > 80 || name.includes('/') || availableJobs.includes(name)) { showNotice('اسم الوظيفة غير صالح أو موجود.', 'warning'); return; }
+            try { await window.firebaseBridge.addJob(name); await window.firebaseBridge.removeJob(oldName); showNotice('تم تعديل الوظيفة.'); }
+            catch (error) { showNotice(`تعذر تعديل الوظيفة: ${error.message}`, 'error'); }
+        }
+        async function decideRegistration(uid, approve) {
+            if (!isAdmin) return;
+            const request = pendingRegistrations.find(item => item.uid === uid);
+            if (!request || !await askConfirmation(`${approve ? 'الموافقة على' : 'رفض'} طلب ${request.name} بالكود ${request.code}؟`, { title: 'مراجعة طلب التسجيل', accept: approve ? 'موافقة' : 'رفض' })) return;
+            if (approve && !availableJobs.includes(request.job)) { showNotice('الوظيفة لم تعد معتمدة. ارفض الطلب ليعيد الموظف التسجيل ببيانات محدثة.', 'error'); return; }
+            if (approve && employees.some(emp => emp.code === request.code)) { showNotice('الكود مستخدم بالفعل.', 'error'); return; }
+            try {
+                if (approve) await window.firebaseBridge.approveRegistration(uid, request);
+                else await window.firebaseBridge.rejectRegistration(uid);
+                showNotice(approve ? 'تم تفعيل حساب الموظف.' : 'تم رفض الطلب.');
+            } catch (error) { showNotice(`تعذر تحديث الطلب: ${error.message}`, 'error'); }
         }
 
         function editEmployee(empId) {
@@ -1523,6 +1643,7 @@
             document.getElementById('formEmpCode').readOnly = true;
             document.getElementById('formEmpTeam').value = emp.team || '';
             document.getElementById('formEmpJob').value = emp.job || '';
+            document.getElementById('formEmpSelfOnly').checked = emp.accessScope === 'self';
             document.getElementById('formEmpTeam').disabled = !isAdmin;
             document.getElementById('formEmpJob').disabled = !isAdmin;
             document.getElementById('employeeFormPanel').classList.remove('hidden');
@@ -1543,6 +1664,7 @@
             document.getElementById('formEmpCode').readOnly = false;
             document.getElementById('formEmpTeam').value = '';
             document.getElementById('formEmpJob').value = '';
+            document.getElementById('formEmpSelfOnly').checked = false;
             document.getElementById('formEmpTeam').disabled = false;
             document.getElementById('formEmpJob').disabled = false;
             document.getElementById('employeeFormPanel').classList.toggle('hidden', !isAdmin);
@@ -1558,6 +1680,56 @@
         }
 
         let employeeSaveInProgress = false;
+        let rosterImportInProgress = false;
+        async function importRosterJSON(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file || rosterImportInProgress || !isAdmin || !firebaseConnected) return;
+            const passwordField = document.getElementById('rosterInitialPassword');
+            const initialPassword = passwordField.value;
+            passwordField.value = '';
+            let completed = 0;
+            try {
+                if (file.size > 1024 * 1024) throw new Error('ملف الموظفين أكبر من ١ ميجابايت.');
+                const data = JSON.parse(await file.text());
+                const rows = data?.employees;
+                if (!Array.isArray(rows) || !rows.length || rows.length > 100 || initialPassword.length < 7) {
+                    throw new Error('اختر ملف موظفين صالحًا وأدخل كلمة بدء لا تقل عن ٧ أحرف.');
+                }
+                const codes = new Set();
+                for (const row of rows) {
+                    if (!row || !/^[0-9]{4}$/.test(row.code) || codes.has(row.code) ||
+                        typeof row.name !== 'string' || !row.name.trim() || row.name.length > 80 ||
+                        !['red', 'blue', 'yellow', 'morning'].includes(row.team) ||
+                        !availableJobs.includes(row.job) || !['group', 'self', undefined].includes(row.accessScope)) {
+                        throw new Error('الملف يحتوي على كود مكرر أو بيانات موظف/وردية/وظيفة غير صالحة.');
+                    }
+                    codes.add(row.code);
+                }
+                const newRows = rows.filter(row => !employees.some(emp => emp.code === row.code));
+                if (!newRows.length) throw new Error('كل الأكواد في الملف مسجلة بالفعل.');
+                if (!await askConfirmation(`سيُنشأ ${newRows.length} حساب وملف موظف. كلمة بدء الموظفين واحدة، بينما يحتفظ المدير بكلمة مروره. هل تريد المتابعة؟`,
+                    { title: 'استيراد الموظفين', accept: 'إنشاء الحسابات' })) return;
+                rosterImportInProgress = true;
+                for (const row of newRows) {
+                    const employee = { id: `emp_${row.code}`, name: row.name.trim(), code: row.code,
+                        team: row.team, job: row.job, dept: '', accessScope: row.accessScope || 'group',
+                        title: typeof row.title === 'string' ? row.title.slice(0, 80) : '',
+                        annual_balance: 0, casual_balance: 0, perm_hours: 0 };
+                    const created = row.code === '5686'
+                        ? await window.firebaseBridge.linkAdminAsEmployee(employee)
+                        : await window.firebaseBridge.createEmployeeAccount(employee, initialPassword);
+                    employees.push(created.employee);
+                    completed++;
+                }
+                renderEmployeesDirectory();
+                renderEmployeeCards();
+                renderTable();
+                showNotice(`تم إنشاء ${completed} حساب وملف موظف.`);
+            } catch (error) {
+                showNotice(`اكتمل ${completed} حساب قبل التوقف: ${error.message}`, 'error');
+            } finally { rosterImportInProgress = false; }
+        }
         async function saveEmployeeFromForm() {
             if (employeeSaveInProgress) return;
             const id = document.getElementById('formEmpId').value.trim();
@@ -1567,6 +1739,7 @@
             const team = document.getElementById('formEmpTeam').value;
             const dept = '';
             const job = document.getElementById('formEmpJob').value;
+            const accessScope = document.getElementById('formEmpSelfOnly').checked ? 'self' : 'group';
             const annual = Number(document.getElementById('formEmpAnnual').value);
             const casual = Number(document.getElementById('formEmpCasual').value);
             const perm = Number(document.getElementById('formEmpPermHours').value);
@@ -1575,8 +1748,8 @@
                 showNotice('يرجى إدخال اسم الموظف.', 'warning');
                 return;
             }
-            if (!/^[A-Za-z0-9_-]+$/.test(code) || !team || !['دعم المستخدمين', 'البنية التحتية'].includes(job) || employees.some(e => e.id !== id && e.code.toLowerCase() === code.toLowerCase())) {
-                showNotice('أدخل كوداً فريداً بحروف إنجليزية وأرقام، واختر الإدارة والوردية.', 'warning');
+            if (!/^[0-9]{4}$/.test(code) || !team || !availableJobs.includes(job) || employees.some(e => e.id !== id && e.code === code)) {
+                showNotice('أدخل كوداً فريداً من ٤ أرقام، واختر الوظيفة والوردية.', 'warning');
                 return;
             }
             if (![annual, casual, perm].every(value => Number.isFinite(value) && value >= 0)) {
@@ -1593,21 +1766,23 @@
                     if (index < 0) return;
                     const original = employees[index];
                     const changed = { ...original, name, annual_balance: annual, casual_balance: casual, perm_hours: perm };
-                    if (isAdmin) Object.assign(changed, { code, team, dept, job });
+                    if (isAdmin) Object.assign(changed, { code, team, dept, job, accessScope });
                     const updated = employees.map(e => e.id === id ? changed : e);
                     await window.firebaseBridge.updateEmployeeAccount(changed);
                     employees = updated;
                 } else {
-                    const employee = { id: `emp_${crypto.randomUUID().replaceAll('-', '')}`, name, code, team, dept, job, annual_balance: annual, casual_balance: casual, perm_hours: perm };
-                    const created = await window.firebaseBridge.createEmployeeAccount(employee);
+                    const employee = { id: `emp_${code}`, name, code, team, dept, job, accessScope, annual_balance: annual, casual_balance: casual, perm_hours: perm };
+                    const created = code === '5686'
+                        ? await window.firebaseBridge.linkAdminAsEmployee(employee)
+                        : await window.firebaseBridge.createEmployeeAccount(employee);
                     employees.push(created.employee);
-                    showTemporaryPassword(created.employee.code, created.temporaryPassword);
+                    if (created.temporaryPassword) showTemporaryPassword(created.employee.code, created.temporaryPassword);
                 }
                 renderEmployeesDirectory();
                 renderEmployeeCards();
                 resetEmployeeForm();
                 renderTable();
-                showNotice(isAdmin && !id ? 'تم إنشاء الحساب. احفظ كلمة المرور المؤقتة المعروضة.' : 'تم حفظ بيانات الموظف وأرصدته.');
+                showNotice(isAdmin && !id && code !== '5686' ? 'تم إنشاء الحساب. احفظ كلمة المرور المؤقتة المعروضة.' : 'تم حفظ بيانات الموظف وأرصدته.');
             } catch (error) {
                 showNotice(`تعذر حفظ الحساب: ${error.message}`, 'error');
             } finally { employeeSaveInProgress = false; button.disabled = false; }
@@ -1646,7 +1821,7 @@
         // ==========================================
         function openEmployeeReport(empId) {
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (emp.team !== currentProfile?.team || emp.job !== currentProfile?.job))) return;
+            if (!emp || !canAccessEmployee(emp)) return;
 
             document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
             document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.job || 'غير محددة'}`;
@@ -1772,7 +1947,7 @@
         function openEditModal(date, empId) {
             if (DEMO_MODE) { showNotice('هذه معاينة للقراءة فقط.', 'info'); return; }
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
+            if (!emp || !canAccessEmployee(emp) || isFixedRest(date, emp)) return;
             editingCell = { date, empId };
             const dayData = attendanceData[date] || {};
             const rec = effectiveRecord(date, emp, dayData.records && dayData.records[empId]);
@@ -1826,7 +2001,7 @@
             if (!editingCell) return;
             const { date, empId } = editingCell;
             const emp = employees.find(e => e.id === empId);
-            if (!emp || (!isAdmin && (currentProfile?.team !== emp.team || currentProfile?.job !== emp.job)) || isFixedRest(date, emp)) return;
+            if (!emp || !canAccessEmployee(emp) || isFixedRest(date, emp)) return;
 
             if (!attendanceData[date]) {
                 attendanceData[date] = { shift: "الصباحيه", day: "", records: {} };
@@ -1871,7 +2046,7 @@
             let html = '';
 
             const usedLeaves = {};
-            const visibleEmployees = employees.filter(emp => isAdmin ? (!activeTeam || emp.team === activeTeam) : (emp.team === currentProfile?.team && emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(emp => isAdmin ? (!activeTeam || emp.team === activeTeam) : canAccessEmployee(emp));
             visibleEmployees.forEach(emp => {
                 usedLeaves[emp.id] = { annual: 0, casual: 0, permMinutes: 0 };
             });
@@ -2050,6 +2225,47 @@
                 errorLabel.classList.remove('hidden');
             } finally { button.disabled = false; button.textContent = 'دخول الحساب'; }
         }
+        function normalizeLoginIdentifier(input) {
+            if (!loginAsAdmin) input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+        }
+        function toggleLoginMode() {
+            loginAsAdmin = !loginAsAdmin;
+            const input = document.getElementById('loginCode');
+            input.value = '';
+            input.type = loginAsAdmin ? 'email' : 'text';
+            input.inputMode = loginAsAdmin ? 'email' : 'numeric';
+            if (loginAsAdmin) input.removeAttribute('pattern');
+            else input.setAttribute('pattern', '[0-9]{4}');
+            input.minLength = loginAsAdmin ? 0 : 4;
+            input.maxLength = loginAsAdmin ? 254 : 4;
+            input.placeholder = loginAsAdmin ? 'بريد مدير النظام' : 'أدخل كودك';
+            document.getElementById('loginIdentifierLabel').textContent = loginAsAdmin ? 'بريد المدير' : 'كود الموظف (٤ أرقام)';
+            document.getElementById('loginModeButton').textContent = loginAsAdmin ? 'الدخول بكود الموظف' : 'الدخول ببريد المدير';
+        }
+        function showRegistration() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registrationForm').classList.remove('hidden');
+        }
+        function hideRegistration() {
+            document.getElementById('registrationForm').classList.add('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+        }
+        async function submitRegistration(event) {
+            event.preventDefault();
+            const form = event.currentTarget, button = form.querySelector('[type="submit"]');
+            button.disabled = true;
+            const message = document.getElementById('registrationMessage');
+            try {
+                await window.firebaseBridge.registerEmployee({ name: document.getElementById('registrationName').value.trim(),
+                    code: document.getElementById('registrationCode').value, team: document.getElementById('registrationTeam').value,
+                    job: document.getElementById('registrationJob').value, pass: document.getElementById('registrationPassword').value });
+                document.getElementById('registrationPassword').value = '';
+                message.textContent = 'تم إرسال طلبك إلى المدير. انتظر الموافقة قبل استخدام الحساب.';
+                document.getElementById('registrationForm').classList.add('hidden');
+                document.getElementById('pendingCard').classList.remove('hidden');
+            } catch (error) { message.textContent = error.code === 'auth/email-already-in-use' ? 'هذا الكود مسجل مسبقاً.' : error.message; }
+            finally { button.disabled = false; }
+        }
 
         function logoutEmployee() { window.firebaseBridge.logout(); }
 
@@ -2077,6 +2293,7 @@
             }
             try {
                 await window.firebaseBridge.changePassword(current, next);
+                if (firebaseUser?.uid) localStorage.setItem(`password-updated:${firebaseUser.uid}`, '1');
                 document.getElementById('currentPassword').value = '';
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
@@ -2091,9 +2308,12 @@
         }
 
         function showSignedOut() {
+            if (registrationListener) { registrationListener(); registrationListener = null; }
+            pendingRegistrations = [];
             firebaseUser = null;
             currentProfile = null;
             isAdmin = false;
+            renderJobs();
             activeTeam = null;
             employees = [];
             attendanceData = {};
@@ -2107,6 +2327,8 @@
             document.getElementById('authGate').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registrationForm').classList.add('hidden');
+            document.getElementById('pendingCard').classList.add('hidden');
             document.getElementById('loginPassword').value = '';
             document.querySelectorAll('.app-modal, #cloudModal').forEach(el => el.classList.add('hidden'));
         }
@@ -2129,6 +2351,13 @@
             document.getElementById('appHeader').classList.remove('hidden');
             document.getElementById('appMain').classList.remove('hidden');
             document.getElementById('authGate').classList.add('hidden');
+            if (isAdmin && firebaseUser?.email?.toLowerCase() === 'ahmed.morgan2009@gmail.com' &&
+                !localStorage.getItem(`password-updated:${firebaseUser.uid}`) &&
+                !sessionStorage.getItem(`password-prompted:${firebaseUser.uid}`)) {
+                sessionStorage.setItem(`password-prompted:${firebaseUser.uid}`, '1');
+                showAccountModal();
+                document.getElementById('accountMessage').textContent = 'يمكنك تغيير كلمة المرور الآن من حسابك.';
+            }
         }
 
         function applyCloudSnapshots() {
@@ -2192,9 +2421,23 @@
                         }
                         firebaseUser = user;
                         isAdmin = claims.admin === true;
+                        renderJobs();
+                        if (registrationListener) { registrationListener(); registrationListener = null; }
+                        if (isAdmin) registrationListener = window.firebaseBridge.watchRegistrations(requests => {
+                            pendingRegistrations = requests;
+                            renderRegistrationQueue();
+                        });
                         updateCloudUI('جاري تحميل بيانات Firebase');
                         setFirebaseMessage('تم تسجيل الدخول. جارٍ تحميل بيانات الحضور.');
                         document.getElementById('authGate').classList.remove('hidden');
+                    },
+                    onPending(status) {
+                        document.getElementById('authGate').classList.add('hidden');
+                        document.getElementById('loginScreen').classList.remove('hidden');
+                        document.getElementById('loginForm').classList.add('hidden');
+                        document.getElementById('registrationForm').classList.add('hidden');
+                        document.getElementById('pendingCard').classList.remove('hidden');
+                        document.getElementById('pendingMessage').textContent = status === 'rejected' ? 'رفض المدير الطلب. تواصل معه للمراجعة.' : 'تم إرسال الطلب إلى حساب المدير. الحساب قيد المراجعة.';
                     },
                     onProfiles(profiles) {
                         registeredEmployees = profiles;
@@ -2244,6 +2487,8 @@
                         if (error.code === 'permission-denied') window.firebaseBridge.logout();
                     }
                 });
+                if (jobListener) jobListener();
+                jobListener = window.firebaseBridge.watchJobs(jobs => { availableJobs = jobs; renderJobs(); });
             } catch (error) {
                 firebaseConnected = false;
                 updateCloudUI('فشل إعداد Firebase');
@@ -2272,7 +2517,7 @@
             const day = attendanceData[date];
             const emp = employees.find(item => item.id === empId);
             return cloudWrite(window.firebaseBridge.saveRecords([{ date, day: day.day, shift: day.shift,
-                employeeId: empId, team: emp.team, job: emp.job, record: day.records[empId] }]), successMessage);
+                employeeId: empId, team: emp.team, job: emp.job, groupKey: employeeKey(emp), record: day.records[empId] }]), successMessage);
         }
 
         function downloadBackupJSON() {
@@ -2283,6 +2528,57 @@
             a.href = url;
             a.download = `attendance_backup_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
+        }
+
+        async function uploadRecordsJSON(event) {
+            const file = event.target.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+            if (DEMO_MODE || !firebaseUser || !firebaseConnected) {
+                showNotice('سجّل الدخول إلى قاعدة البيانات لرفع السجلات.', 'warning');
+                return;
+            }
+            try {
+                if (file.size > 10 * 1024 * 1024) throw new Error('الملف أكبر من 10 ميجابايت. قسّمه إلى ملفات أصغر.');
+                const data = JSON.parse(await file.text());
+                if (!data || typeof data.attendanceData !== 'object' || Array.isArray(data.attendanceData)) {
+                    throw new Error('الملف لا يحتوي على attendanceData صالحة.');
+                }
+                const roster = new Map(employees.map(emp => [emp.id, emp]));
+                const allowedStatuses = new Set(['حضور', 'راحة', 'إعتيادي', 'عارضة', 'إذن', 'مأمورية']);
+                const changes = [];
+                for (const [date, day] of Object.entries(data.attendanceData)) {
+                    if (!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(date) ||
+                        Number.isNaN(Date.parse(`${date}T00:00:00Z`)) ||
+                        new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date ||
+                        !day || typeof day.records !== 'object' || Array.isArray(day.records)) {
+                        throw new Error(`تاريخ أو مجموعة سجلات غير صالحة: ${date}`);
+                    }
+                    for (const [employeeId, record] of Object.entries(day.records)) {
+                        const emp = roster.get(employeeId);
+                        if (!emp || !canAccessEmployee(emp)) {
+                            throw new Error(`الملف يتضمن موظفًا غير متاح لك: ${employeeId}`);
+                        }
+                        if (!record || !allowedStatuses.has(record.status) ||
+                            !Number.isInteger(record.delay ?? 0) || (record.delay ?? 0) < 0 || (record.delay ?? 0) > 1440 ||
+                            !Number.isInteger(record.permissionMinutes ?? 0) || (record.permissionMinutes ?? 0) < 0 || (record.permissionMinutes ?? 0) > 1440 ||
+                            typeof (record.notes ?? '') !== 'string' || (record.notes ?? '').length > 1000) {
+                            throw new Error(`سجل غير صالح للموظف ${employeeId} في ${date}`);
+                        }
+                        changes.push({ date, employeeId, team: emp.team, job: emp.job, groupKey: employeeKey(emp),
+                            record: { status: record.status, delay: record.delay ?? 0,
+                                permissionMinutes: record.permissionMinutes ?? 0, notes: record.notes ?? '' } });
+                        if (changes.length > 5000) throw new Error('الملف يتجاوز 5000 سجل. قسّمه إلى ملفات أصغر.');
+                    }
+                }
+                if (!changes.length) throw new Error('الملف لا يحتوي على سجلات قابلة للرفع.');
+                if (!await askConfirmation(`سيُضاف أو يُستبدل ${changes.length} سجل حضور للموظفين الموجودين. هل تريد المتابعة؟`,
+                    { title: 'رفع سجلات الحضور', accept: 'رفع السجلات' })) return;
+                const saved = await cloudWrite(window.firebaseBridge.saveRecords(changes), 'تم رفع سجلات الحضور.');
+                if (saved) closeCloudModal();
+            } catch (error) {
+                showNotice(error.message || 'الملف غير صالح أو تالف.', 'error');
+            }
         }
 
         function uploadBackupJSON(event) {
@@ -2325,7 +2621,7 @@
             if (!activeTeam) { showNotice('اختر وردية أولاً.', 'warning'); return; }
             const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
             const exportRows = [];
-            const visibleEmployees = employees.filter(emp => emp.team === activeTeam && (isAdmin || emp.job === currentProfile?.job));
+            const visibleEmployees = employees.filter(emp => emp.team === activeTeam && canAccessEmployee(emp));
 
             const h1 = ["التاريخ", "اليوم", "الوردية"];
             visibleEmployees.forEach(emp => {
@@ -2367,9 +2663,9 @@
                 document.getElementById('attendanceHint').textContent = '💡 عرض توضيحي للقراءة فقط؛ تغييراتك لا تُحفظ.';
                 ensureMonthDates(currentMonth);
                 employees = [
-                    { id: 'demo_1', code: 'A-104', name: 'ليلى محمود', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-                    { id: 'demo_2', code: 'A-118', name: 'عمر ياسر', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
-                    { id: 'demo_3', code: 'A-126', name: 'سارة أحمد', team: 'red', job: 'دعم المستخدمين', annual_balance: 21, casual_balance: 7, perm_hours: 4 }
+                    { id: 'demo_1', code: 'A-104', name: 'ليلى محمود', team: 'red', job: 'دعم المستخدمين للأجهزة', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+                    { id: 'demo_2', code: 'A-118', name: 'عمر ياسر', team: 'red', job: 'دعم المستخدمين للأجهزة', annual_balance: 21, casual_balance: 7, perm_hours: 4 },
+                    { id: 'demo_3', code: 'A-126', name: 'سارة أحمد', team: 'red', job: 'دعم المستخدمين للأجهزة', annual_balance: 21, casual_balance: 7, perm_hours: 4 }
                 ];
                 currentProfile = employees[0];
                 firebaseUser = { uid: 'demo' };

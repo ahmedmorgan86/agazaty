@@ -2,7 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null && request.auth.token.get('admin', false) == true;
+      return request.auth != null && request.auth.token.get('email', '') == 'ahmed.morgan2009@gmail.com' && (request.auth.token.get('admin', false) == true
+        || (exists(/databases/$(database)/documents/ownerAccess/$(request.auth.uid))
+          && get(/databases/$(database)/documents/ownerAccess/$(request.auth.uid)).data.role == 'admin'));
     }
     function profile() {
       return get(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid)).data;
@@ -11,7 +13,12 @@ service cloud.firestore {
       return request.auth != null && exists(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid));
     }
     function sameGroup(key) {
-      return isEmployee() && key == profile().team + '|' + profile().job;
+      return isEmployee() && key == profile().get('groupKey', profile().team + '|' + profile().job);
+    }
+    function allowedJob(job) {
+      return job is string && job.size() > 0 && job.size() <= 80 && job.matches('^[^/]+$')
+        && exists(/databases/$(database)/documents/jobs/$(job))
+        && get(/databases/$(database)/documents/jobs/$(job)).data.active == true;
     }
     function validRecord(date, employeeId) {
       let target = get(/databases/$(database)/documents/teamMembership/$(employeeId)).data;
@@ -27,6 +34,35 @@ service cloud.firestore {
         && request.resource.data.permissionMinutes is int && request.resource.data.permissionMinutes >= 0 && request.resource.data.permissionMinutes <= 1440
         && request.resource.data.notes is string && request.resource.data.notes.size() <= 1000;
     }
+    match /ownerAccess/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+    match /registrationRequests/{uid} {
+      allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow list: if isAdmin();
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.auth.token.get('email', '') == request.resource.data.code + '@accounts.shifts-attendance-am-2026.firebaseapp.com'
+        && request.resource.data.keys().hasOnly(['name', 'code', 'team', 'job', 'status', 'createdAt'])
+        && request.resource.data.keys().hasAll(['name', 'code', 'team', 'job', 'status', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
+        && request.resource.data.code is string && request.resource.data.code.matches('^[0-9]{4}$')
+        && request.resource.data.code != '5686'
+        && request.resource.data.team in ['red', 'blue', 'yellow', 'morning']
+        && allowedJob(request.resource.data.job)
+        && request.resource.data.status == 'pending' && request.resource.data.createdAt is string;
+      allow update: if isAdmin() && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['approved', 'rejected'];
+      allow delete: if false;
+    }
+    match /jobs/{name} {
+      allow read: if true;
+      allow create, update: if isAdmin() && name.size() > 0 && name.size() <= 80
+        && request.resource.data.keys().hasOnly(['name', 'active'])
+        && request.resource.data.name == name && request.resource.data.active is bool;
+      allow delete: if isAdmin();
+    }
     match /employeeAccounts/{uid} {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin();
@@ -36,8 +72,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     match /staff/{employeeId} {
-      allow get, list: if isAdmin() || (isEmployee() && resource.data.groupKey == profile().team + '|' + profile().job);
-      allow create, update, delete: if isAdmin();
+      allow get, list: if isAdmin() || sameGroup(resource.data.groupKey);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (sameGroup(resource.data.groupKey)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80);
     }
     match /meta/workspace {
       allow read: if isAdmin() || isEmployee();
@@ -50,7 +90,7 @@ service cloud.firestore {
     match /attendance/{date}/records/{employeeId} {
       allow create, update: if isAdmin() || (sameGroup(request.resource.data.groupKey) && validRecord(date, employeeId));
       allow delete: if isAdmin() || (isEmployee() && sameGroup(resource.data.groupKey)
-        && get(/databases/$(database)/documents/teamMembership/$(employeeId)).data.groupKey == profile().team + '|' + profile().job);
+        && get(/databases/$(database)/documents/teamMembership/$(employeeId)).data.groupKey == profile().get('groupKey', profile().team + '|' + profile().job));
     }
     // Legacy data is available only to admins for one-time migration.
     match /shared/workspace {
