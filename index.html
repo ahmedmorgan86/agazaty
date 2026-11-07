@@ -377,8 +377,11 @@
         </div>
 
         <!-- Monthly KPI Statistics Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 no-print" id="kpiStatsContainer">
-            <!-- Dynamic stats rendered in JS -->
+        <div id="kpiWrapper" class="no-print space-y-2">
+            <div id="kpiEmployeeBar" class="kpi-emp-bar"></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="kpiStatsContainer">
+                <!-- Dynamic stats rendered in JS -->
+            </div>
         </div>
 
         <!-- Attendance Grid Section -->
@@ -1482,7 +1485,7 @@
             
             const totals = {};
             filteredEmployees.forEach(emp => {
-                totals[emp.id] = { present: 0, rest: 0, annual: 0, casual: 0, permission: 0, mission: 0, delay: 0 };
+                totals[emp.id] = { present: 0, rest: 0, annual: 0, casual: 0, permission: 0, permissionMinutes: 0, mission: 0, delay: 0 };
             });
 
             dates.forEach(date => {
@@ -1518,7 +1521,10 @@
                     else if (countsAsEmployeeRest(date, emp, rec)) totals[emp.id].rest++;
                     else if (st === 'إعتيادي') totals[emp.id].annual++;
                     else if (st === 'عارضة') totals[emp.id].casual++;
-                    else if (st === 'إذن') totals[emp.id].permission++;
+                    else if (st === 'إذن') {
+                        totals[emp.id].permission++;
+                        totals[emp.id].permissionMinutes = (totals[emp.id].permissionMinutes || 0) + (parseInt(rec.permissionMinutes, 10) || 0);
+                    }
                     else if (st === 'مأمورية') totals[emp.id].mission++;
 
                     const delayNum = parseInt(rec.delay) || 0;
@@ -1574,7 +1580,7 @@
             footerHTML += `</tr>`;
             footer.innerHTML = footerHTML;
 
-            renderKPICards(totals);
+            renderKPICards(totals, filteredEmployees);
             renderMobileAttendance(dates, filteredEmployees, shiftFilter);
         }
 
@@ -1596,40 +1602,132 @@
             }).join('') || '<div class="selection-empty">لا توجد أيام مطابقة للفلتر.</div>';
         }
 
-        function renderKPICards(totals) {
-            let totalPres = 0, totalRest = 0, totalAnnual = 0, totalCasual = 0, totalPerm = 0, totalDel = 0;
-            Object.values(totals).forEach(t => {
-                totalPres += t.present;
-                totalRest += t.rest;
-                totalAnnual += t.annual;
-                totalCasual += t.casual;
-                totalPerm += t.permission;
-                totalDel += t.delay;
-            });
+        let selectedKpiEmployeeId = null;
+        let lastKpiTotals = null;
+        let lastKpiEmployees = [];
 
-            const kpis = [
-                { label: "أيام الحضور", value: totalPres, icon: "fa-solid fa-user-check", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
-                { label: "راحات الموظفين", value: totalRest, icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
-                { label: "إجازات إعتيادي", value: totalAnnual, icon: "fa-solid fa-umbrella-beach", color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
-                { label: "إجازات عارضة", value: totalCasual, icon: "fa-solid fa-triangle-exclamation", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
-                { label: "أذونات العمل", value: totalPerm, icon: "fa-solid fa-clock-rotate-left", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200" },
-                { label: "إجمالي التأخير", value: `${totalDel} دقيقة`, sub: `${(totalDel/60).toFixed(1)} ساعة`, icon: "fa-solid fa-stopwatch", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
-            ];
+        function selectKpiEmployee(empId) {
+            selectedKpiEmployeeId = empId;
+            if (lastKpiTotals && lastKpiEmployees) {
+                renderKPICards(lastKpiTotals, lastKpiEmployees);
+            }
+        }
 
+        function renderKPICards(totals, filteredEmployees = []) {
+            lastKpiTotals = totals;
+            lastKpiEmployees = filteredEmployees;
             const container = document.getElementById('kpiStatsContainer');
+            const bar = document.getElementById('kpiEmployeeBar');
+            if (!container) return;
+
+            if (!filteredEmployees || filteredEmployees.length === 0) {
+                if (bar) bar.innerHTML = '';
+                container.innerHTML = '<div class="col-span-full text-center text-xs text-slate-400 p-4">لا توجد بيانات موظفين لعرض الإحصائيات</div>';
+                return;
+            }
+
+            // Determine which employee to display
+            if (!selectedKpiEmployeeId || (selectedKpiEmployeeId !== 'all' && !filteredEmployees.some(e => e.id === selectedKpiEmployeeId))) {
+                if (currentProfile && filteredEmployees.some(e => e.id === currentProfile.id || e.id === currentProfile.employeeId || e.code === currentProfile.code)) {
+                    const match = filteredEmployees.find(e => e.id === currentProfile.id || e.id === currentProfile.employeeId || e.code === currentProfile.code);
+                    selectedKpiEmployeeId = match.id;
+                } else {
+                    selectedKpiEmployeeId = filteredEmployees[0].id;
+                }
+            }
+
+            // Render Employee Selector Bar
+            if (bar) {
+                let barHTML = '<div class="flex items-center gap-1.5 shrink-0 text-xs font-bold text-slate-600 dark:text-slate-300 ml-1"><i class="fa-solid fa-user-chart text-cyan-600"></i><span>إحصائيات الموظف:</span></div>';
+                filteredEmployees.forEach(emp => {
+                    const isSelected = selectedKpiEmployeeId === emp.id;
+                    const empTotals = totals[emp.id] || { present: 0, rest: 0 };
+                    barHTML += `
+                        <button type="button" onclick="selectKpiEmployee('${emp.id}')" class="kpi-emp-pill ${isSelected ? 'active' : ''}">
+                            <span class="font-bold">${escapeHTML(emp.name)}</span>
+                            <span class="text-[10px] opacity-75 mr-1">(${empTotals.present} حضور · ${empTotals.rest} راحة)</span>
+                        </button>
+                    `;
+                });
+                if (isAdmin && filteredEmployees.length > 1) {
+                    const isAll = selectedKpiEmployeeId === 'all';
+                    barHTML += `
+                        <button type="button" onclick="selectKpiEmployee('all')" class="kpi-emp-pill ${isAll ? 'active' : ''}">
+                            <span class="font-bold">📊 إجمالي الفريق كاملًا</span>
+                        </button>
+                    `;
+                }
+                bar.innerHTML = barHTML;
+            }
+
+            // Calculate metrics for selected employee or total
+            let kpis = [];
+            if (selectedKpiEmployeeId === 'all') {
+                let totalPres = 0, totalRest = 0, totalAnnual = 0, totalCasual = 0, totalPerm = 0, totalPermMinutes = 0, totalDel = 0;
+                Object.values(totals).forEach(t => {
+                    totalPres += t.present || 0;
+                    totalRest += t.rest || 0;
+                    totalAnnual += t.annual || 0;
+                    totalCasual += t.casual || 0;
+                    totalPerm += t.permission || 0;
+                    totalPermMinutes += t.permissionMinutes || 0;
+                    totalDel += t.delay || 0;
+                });
+                kpis = [
+                    { label: "إجمالي حضور الفريق", value: `${totalPres} يوم`, icon: "fa-solid fa-user-check", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+                    { label: "إجمالي راحات الفريق", value: `${totalRest} يوم`, icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
+                    { label: "إجمالي إجازات إعتيادي", value: `${totalAnnual} يوم`, icon: "fa-solid fa-umbrella-beach", color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
+                    { label: "إجمالي إجازات عارضة", value: `${totalCasual} يوم`, icon: "fa-solid fa-triangle-exclamation", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+                    { label: "إجمالي أذونات الفريق", value: `${(totalPermMinutes / 60).toFixed(1)} ساعة`, sub: `${totalPerm} إذن`, icon: "fa-solid fa-clock-rotate-left", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200" },
+                    { label: "إجمالي التأخير", value: `${totalDel} دقيقة`, sub: `${(totalDel/60).toFixed(1)} ساعة`, icon: "fa-solid fa-stopwatch", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+                ];
+            } else {
+                const targetEmp = filteredEmployees.find(e => e.id === selectedKpiEmployeeId) || filteredEmployees[0];
+                const t = totals[targetEmp.id] || { present: 0, rest: 0, annual: 0, casual: 0, permission: 0, permissionMinutes: 0, delay: 0 };
+                
+                // Calculate annual & casual usage across the whole year for this employee
+                let yearAnnualUsed = 0, yearCasualUsed = 0;
+                const currentYr = currentMonth.slice(0, 4);
+                Object.entries(attendanceData || {}).forEach(([date, day]) => {
+                    if (!date.startsWith(currentYr + '-')) return;
+                    const rec = day?.records?.[targetEmp.id];
+                    if (rec) {
+                        const eff = effectiveRecord(date, targetEmp, rec);
+                        const st = (eff.status || '').trim();
+                        if (st === 'إعتيادي') yearAnnualUsed++;
+                        if (st === 'عارضة') yearCasualUsed++;
+                    }
+                });
+
+                const remAnnual = Math.max(0, (targetEmp.annual_balance ?? 21) - yearAnnualUsed);
+                const remCasual = Math.max(0, (targetEmp.casual_balance ?? 7) - yearCasualUsed);
+                const permHoursUsed = (t.permissionMinutes || 0) / 60;
+                const remPermHours = Math.max(0, (targetEmp.perm_hours ?? 4) - permHoursUsed);
+
+                kpis = [
+                    { label: `حضور ${targetEmp.name.split(' ')[0]}`, value: `${t.present} يوم`, sub: `${targetEmp.job || 'الموظف'}`, icon: "fa-solid fa-user-check", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" },
+                    { label: "أيام الراحة بالشهر", value: `${t.rest} يوم`, sub: "ورديات معفاة وراحات", icon: "fa-solid fa-bed", color: "text-slate-600", bg: "bg-slate-50", border: "border-slate-200" },
+                    { label: "إجازات إعتيادي", value: `${t.annual} يوم`, sub: `متبقٍ بالرصيد: ${remAnnual} يوم`, icon: "fa-solid fa-umbrella-beach", color: "text-sky-600", bg: "bg-sky-50", border: "border-sky-200" },
+                    { label: "إجازات عارضة", value: `${t.casual} يوم`, sub: `متبقٍ بالرصيد: ${remCasual} يوم`, icon: "fa-solid fa-triangle-exclamation", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" },
+                    { label: "أذونات العمل بالشهر", value: `${permHoursUsed.toFixed(1)} ساعة`, sub: `متبقٍ: ${remPermHours.toFixed(1)} س من ${targetEmp.perm_hours ?? 4} س`, icon: "fa-solid fa-clock-rotate-left", color: "text-purple-600", bg: "bg-purple-50", border: "border-purple-200" },
+                    { label: "إجمالي التأخير", value: `${t.delay} دقيقة`, sub: `${(t.delay / 60).toFixed(1)} ساعة`, icon: "fa-solid fa-stopwatch", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+                ];
+            }
+
             container.innerHTML = kpis.map(k => `
                 <div class="bg-white p-3.5 rounded-xl border ${k.border} shadow-sm flex items-center space-x-3 space-x-reverse">
                     <div class="w-10 h-10 rounded-lg ${k.bg} ${k.color} flex items-center justify-center text-lg flex-shrink-0">
                         <i class="${k.icon}"></i>
                     </div>
                     <div>
-                        <span class="text-[11px] text-slate-500 block leading-tight">${k.label}</span>
-                        <span class="text-base font-bold text-slate-900 block">${k.value}</span>
-                        ${k.sub ? `<span class="text-[10px] text-slate-400 block">${k.sub}</span>` : ''}
+                        <span class="text-[11px] text-slate-500 block leading-tight">${escapeHTML(k.label)}</span>
+                        <span class="text-base font-bold text-slate-900 block">${escapeHTML(k.value)}</span>
+                        ${k.sub ? `<span class="text-[10px] text-slate-400 block">${escapeHTML(k.sub)}</span>` : ''}
                     </div>
                 </div>
             `).join('');
         }
+
 
         // ==========================================
         // 4. ADVANCED EMPLOYEE CRUD MANAGEMENT

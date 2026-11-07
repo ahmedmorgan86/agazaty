@@ -210,3 +210,52 @@ button:not(:disabled):active { transform: translateY(1px); }
     font-size: 18px;
   }
 }
+
+
+/* KPI Employee Bar & Pills */
+.kpi-emp-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 8px;
+  scrollbar-width: thin;
+}
+.kpi-emp-bar::-webkit-scrollbar {
+  height: 4px;
+}
+.kpi-emp-bar::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+.kpi-emp-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.kpi-emp-pill:hover {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--accent);
+}
+.kpi-emp-pill.active {
+  background: #0e7490 !important;
+  color: #ffffff !important;
+  border-color: #0e7490 !important;
+  box-shadow: 0 2px 8px rgba(14, 116, 144, 0.25);
+}
+.dark .kpi-emp-pill.active {
+  background: #155e75 !important;
+  border-color: #0891b2 !important;
+}
