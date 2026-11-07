@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'agazaty-shell-v5';
+const SHELL_CACHE = 'agazaty-shell-v6';
 const SHELL = ['./', './index.html', './theme.css', './firebase-cloud.js', './assets/mark.svg', './assets/install-qr.svg', './assets/icon-192.png', './assets/icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -12,6 +12,12 @@ self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
     event.respondWith(fetch(event.request).catch(() => caches.match('./index.html')));
   } else if (SHELL.some(path => new URL(path, self.registration.scope).href === event.request.url)) {
-    event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+    event.respondWith(fetch(event.request).then(response => {
+      if (response.ok) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.put(event.request, copy)));
+      }
+      return response;
+    }).catch(() => caches.match(event.request)));
   }
 });
