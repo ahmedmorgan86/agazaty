@@ -206,6 +206,33 @@ const rejectRegistration = uid => updateDoc(requestRef(uid), { status: 'rejected
 const watchRegistrations = callback => onSnapshot(query(collection(database, 'registrationRequests'), where('status', '==', 'pending')),
     snap => callback(snap.docs.map(item => ({ uid: item.id, ...item.data() }))));
 const updateColleagueName = (employeeId, name) => updateDoc(staffRef(employeeId), { name });
+
+async function updateEmployeeBalances(employeeId, balances, employeeAuthUid = null) {
+    const annual = Number(balances.annual_balance ?? 21);
+    const casual = Number(balances.casual_balance ?? 7);
+    const perm = Number(balances.perm_hours ?? 4);
+    if (isNaN(annual) || annual < 0 || annual > 365) throw new Error('رصيد الاعتيادي يجب أن يكون بين 0 و 365');
+    if (isNaN(casual) || casual < 0 || casual > 365) throw new Error('رصيد العارضة يجب أن يكون بين 0 و 365');
+    if (isNaN(perm) || perm < 0 || perm > 100) throw new Error('رصيد الإذن يجب أن يكون بين 0 و 100');
+    
+    const payload = {
+        annual_balance: annual,
+        casual_balance: casual,
+        perm_hours: perm
+    };
+    if (balances.name && typeof balances.name === 'string' && balances.name.trim().length > 0) {
+        payload.name = balances.name.trim().slice(0, 80);
+    }
+    await updateDoc(staffRef(employeeId), payload);
+    const uid = employeeAuthUid || (auth?.currentUser?.uid);
+    if (uid) {
+        try {
+            await updateDoc(doc(database, 'employeeAccounts', uid), payload);
+        } catch (e) {
+            console.warn('Could not update employeeAccounts:', e);
+        }
+    }
+}
 async function ensureDefaultJobs() {
     for (const name of defaultJobs) {
         const ref = doc(database, 'jobs', name);
@@ -285,5 +312,5 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
+window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));

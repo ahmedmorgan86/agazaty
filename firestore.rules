@@ -34,6 +34,13 @@ service cloud.firestore {
         && request.resource.data.permissionMinutes is int && request.resource.data.permissionMinutes >= 0 && request.resource.data.permissionMinutes <= 1440
         && request.resource.data.notes is string && request.resource.data.notes.size() <= 1000;
     }
+    function validStaffEmployeeUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80))
+        && (!('annual_balance' in request.resource.data) || (request.resource.data.annual_balance is number && request.resource.data.annual_balance >= 0 && request.resource.data.annual_balance <= 365))
+        && (!('casual_balance' in request.resource.data) || (request.resource.data.casual_balance is number && request.resource.data.casual_balance >= 0 && request.resource.data.casual_balance <= 365))
+        && (!('perm_hours' in request.resource.data) || (request.resource.data.perm_hours is number && request.resource.data.perm_hours >= 0 && request.resource.data.perm_hours <= 100));
+    }
     match /ownerAccess/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
       allow list, create, update, delete: if false;
@@ -66,7 +73,8 @@ service cloud.firestore {
     match /employeeAccounts/{uid} {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid && validStaffEmployeeUpdate());
     }
     match /teamMembership/{employeeId} {
       allow read, write: if isAdmin();
@@ -74,10 +82,7 @@ service cloud.firestore {
     match /staff/{employeeId} {
       allow get, list: if isAdmin() || sameGroup(resource.data.groupKey);
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || (sameGroup(resource.data.groupKey)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
-        && request.resource.data.name is string && request.resource.data.name.size() > 0
-        && request.resource.data.name.size() <= 80);
+      allow update: if isAdmin() || (sameGroup(resource.data.groupKey) && validStaffEmployeeUpdate());
     }
     match /meta/workspace {
       allow read: if isAdmin() || isEmployee();
