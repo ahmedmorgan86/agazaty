@@ -222,7 +222,10 @@
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
             <h2 class="font-bold text-lg">جاري تحميل بيانات الحضور</h2>
             <p class="text-sm text-slate-600">يتم الاتصال بقاعدة البيانات المشتركة.</p>
-            <button onclick="location.reload()" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-bold">إعادة المحاولة</button>
+            <div class="flex gap-2 justify-center pt-2">
+                <button type="button" onclick="location.reload()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg px-4 py-2 font-bold text-xs">إعادة المحاولة</button>
+                <button type="button" onclick="logoutEmployee()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg px-4 py-2 font-bold text-xs">تسجيل الخروج</button>
+            </div>
         </div>
     </div>
     <div id="temporaryPasswordModal" class="app-modal fixed inset-0 z-[75] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="temporaryPasswordTitle">
@@ -2364,14 +2367,24 @@
             registeredEmployees.forEach(profile => {
                 if (!profile.name || !profile.code) return;
                 const id = profile.id || profile.employeeId || profile.uid;
-                byId.set(id, { ...byId.get(id), ...profile, id, authUid: profile.uid });
+                const existing = byId.get(id) || {};
+                const authUid = profile.authUid || profile.uid || existing.authUid || id;
+                byId.set(id, { ...existing, ...profile, id, authUid });
             });
             employees = [...byId.values()];
-            currentProfile = employees.find(emp => (emp.authUid || emp.id) === firebaseUser.uid) || null;
+            const emailCode = firebaseUser.email ? firebaseUser.email.split('@')[0].trim() : '';
+            currentProfile = employees.find(emp =>
+                (emp.authUid && emp.authUid === firebaseUser.uid) ||
+                (emp.id && emp.id === firebaseUser.uid) ||
+                (emp.employeeId && emp.employeeId === firebaseUser.uid) ||
+                (emp.code && emailCode && String(emp.code).trim() === emailCode)
+            ) || null;
             if (!isAdmin && !currentProfile) {
-                setFirebaseMessage('هذا الحساب غير مرتبط بموظف.', true);
-                document.getElementById('authGate').classList.remove('hidden');
-                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('authGate').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('pendingCard').classList.remove('hidden');
+                document.getElementById('pendingMessage').textContent = 'الحساب قيد المراجعة أو غير مسجل في هذه الوردية. تواصل مع المدير.';
                 return;
             }
             ensureMonthDates(currentMonth);
