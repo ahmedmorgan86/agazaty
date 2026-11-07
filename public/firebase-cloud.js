@@ -216,8 +216,8 @@ async function updateEmployeeBalances(employeeId, balances, employeeAuthUid = nu
     if (isNaN(perm) || perm < 0 || perm > 100) throw new Error('رصيد الإذن يجب أن يكون بين 0 و 100');
     
     const payload = {
-        annual_balance: annual,
-        casual_balance: casual,
+        annual_balance: Math.round(annual),
+        casual_balance: Math.round(casual),
         perm_hours: perm
     };
     if (balances.name && typeof balances.name === 'string' && balances.name.trim().length > 0) {

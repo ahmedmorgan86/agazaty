@@ -34,12 +34,24 @@ service cloud.firestore {
         && request.resource.data.permissionMinutes is int && request.resource.data.permissionMinutes >= 0 && request.resource.data.permissionMinutes <= 1440
         && request.resource.data.notes is string && request.resource.data.notes.size() <= 1000;
     }
+    function isNumeric(val) {
+      return val is int || val is float;
+    }
     function validStaffEmployeeUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
-        && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80))
-        && (!('annual_balance' in request.resource.data) || (request.resource.data.annual_balance is number && request.resource.data.annual_balance >= 0 && request.resource.data.annual_balance <= 365))
-        && (!('casual_balance' in request.resource.data) || (request.resource.data.casual_balance is number && request.resource.data.casual_balance >= 0 && request.resource.data.casual_balance <= 365))
-        && (!('perm_hours' in request.resource.data) || (request.resource.data.perm_hours is number && request.resource.data.perm_hours >= 0 && request.resource.data.perm_hours <= 100));
+      let diff = request.resource.data.diff(resource.data).affectedKeys();
+      return diff.hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && (!diff.hasAny(['name']) || (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80))
+        && (!diff.hasAny(['annual_balance']) || (isNumeric(request.resource.data.annual_balance) && request.resource.data.annual_balance >= 0 && request.resource.data.annual_balance <= 365))
+        && (!diff.hasAny(['casual_balance']) || (isNumeric(request.resource.data.casual_balance) && request.resource.data.casual_balance >= 0 && request.resource.data.casual_balance <= 365))
+        && (!diff.hasAny(['perm_hours']) || (isNumeric(request.resource.data.perm_hours) && request.resource.data.perm_hours >= 0 && request.resource.data.perm_hours <= 100));
+    }
+    function canEditStaff(resData) {
+      return isAdmin() || (request.auth != null && (
+        resData.get('authUid', '') == request.auth.uid
+        || resData.get('id', '') == request.auth.uid
+        || resData.get('employeeId', '') == request.auth.uid
+        || sameGroup(resData.get('groupKey', ''))
+      ));
     }
     match /ownerAccess/{uid} {
       allow get: if request.auth != null && request.auth.uid == uid;
@@ -74,15 +86,17 @@ service cloud.firestore {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid && validStaffEmployeeUpdate());
+      allow update: if (isAdmin() || (request.auth != null && request.auth.uid == uid)) && validStaffEmployeeUpdate();
     }
     match /teamMembership/{employeeId} {
       allow read, write: if isAdmin();
     }
     match /staff/{employeeId} {
-      allow get, list: if isAdmin() || sameGroup(resource.data.groupKey);
+      allow get, list: if isAdmin() || sameGroup(resource.data.groupKey)
+        || resource.data.get('authUid', '') == request.auth.uid
+        || resource.data.get('id', '') == request.auth.uid;
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || (sameGroup(resource.data.groupKey) && validStaffEmployeeUpdate());
+      allow update: if canEditStaff(resource.data) && validStaffEmployeeUpdate();
     }
     match /meta/workspace {
       allow read: if isAdmin() || isEmployee();
