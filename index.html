@@ -1024,6 +1024,7 @@
         let isAdmin = false;
         let applyingCloudData = false;
         let firebaseReady = false;
+        let firebaseLoadFailed = false;
         let firebaseConnected = false;
         let cacheStatusTimer = null;
         let loginAsAdmin = false;
@@ -2365,6 +2366,7 @@
             document.querySelector('.team-controls').classList.toggle('single-team', !isAdmin);
             document.getElementById('backupControls').classList.toggle('hidden', !isAdmin);
             document.getElementById('myReportButton').classList.toggle('hidden', !currentProfile);
+            if (firebaseLoadFailed) return;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appHeader').classList.remove('hidden');
             document.getElementById('appMain').classList.remove('hidden');
@@ -2704,6 +2706,8 @@
                 document.getElementById('heroSubtitle').textContent = 'بيانات توضيحية للمعاينة، بلا اتصال بحسابات العمل.';
                 return;
             }
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('authGate').classList.remove('hidden');
             if (firebaseReady && !firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
         window.addEventListener('firebase-bridge-ready', () => {
@@ -2712,7 +2716,7 @@
             if (!firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
     </script>
-    <script type="module" src="./firebase-cloud.js" onerror="updateCloudUI('تعذر تحميل Firebase')"></script>
+    <script type="module" src="./firebase-cloud.js" onerror="firebaseLoadFailed = true; updateCloudUI('تعذر تحميل Firebase'); showSignedOut()"></script>
     <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));</script>
 </body>
 </html>
