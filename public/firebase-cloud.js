@@ -19,6 +19,16 @@ const password = () => {
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&';
     return Array.from(bytes, value => alphabet[value % alphabet.length]).join('');
 };
+// Firestore rejects undefined at any depth. Keep optional fields absent instead.
+const firestoreData = value => {
+    if (Array.isArray(value)) return value.map(item => item === undefined ? null : firestoreData(item));
+    if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+        return Object.fromEntries(Object.entries(value)
+            .filter(([, item]) => item !== undefined)
+            .map(([key, item]) => [key, firestoreData(item)]));
+    }
+    return value;
+};
 
 function stopListeners() {
     listeners.forEach(stop => stop());
@@ -213,7 +223,7 @@ async function removeJob(name) {
 }
 
 async function updateEmployeeAccount(employee) {
-    const complete = { ...employee, groupKey: groupKey(employee) };
+    const complete = firestoreData({ ...employee, groupKey: groupKey(employee) });
     const records = await getDocs(collectionGroup(database, 'records'));
     const owned = records.docs.filter(item => item.id === employee.id);
     for (let offset = 0; offset < owned.length; offset += 400) {
@@ -232,7 +242,7 @@ async function saveRecords(changes) {
     for (let offset = 0; offset < changes.length; offset += 400) {
         const batch = writeBatch(database);
         changes.slice(offset, offset + 400).forEach(change => {
-            batch.set(recordRef(change.date, change.employeeId), { ...change.record, date: change.date, team: change.team, job: change.job, groupKey: change.groupKey || `${change.team}|${change.job}` });
+            batch.set(recordRef(change.date, change.employeeId), firestoreData({ ...change.record, date: change.date, team: change.team, job: change.job, groupKey: change.groupKey || `${change.team}|${change.job}` }));
         });
         await batch.commit();
     }
