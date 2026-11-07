@@ -1,4 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "redirects": [
+    {
+      "source": "/apk",
+      "destination": "https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.0.0/agazaty-android.apk",
+      "permanent": false
+    }
+  ]
 }
