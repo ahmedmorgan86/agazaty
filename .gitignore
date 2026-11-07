@@ -8,3 +8,4 @@ __pycache__/
 *.pyc
 .chrome-*/
 supabase_schema.sql
+.env

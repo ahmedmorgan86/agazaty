@@ -183,6 +183,13 @@
         }
     </style>
     <link rel="stylesheet" href="./theme.css">
+<script>
+/* injected by build_public.py — do not edit manually */
+window.__APP_CONFIG__ = {
+  adminEmail: '',
+  adminCode:  ''
+};
+</script>
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -273,10 +280,7 @@
                 <!-- Month Selector -->
                 <div class="period-controls flex items-center space-x-3 space-x-reverse">
                     <span class="text-xs font-bold text-slate-500">اختر الفترة:</span>
-                    <div class="month-tabs inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1">
-                        <button onclick="switchMonth('2026-10')" id="btn-2026-10" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">أكتوبر 2026</button>
-                        <button onclick="switchMonth('2026-11')" id="btn-2026-11" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">نوفمبر 2026</button>
-                        <button onclick="switchMonth('2026-12')" id="btn-2026-12" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">ديسمبر 2026</button>
+                    <div class="month-tabs inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1" id="monthTabsContainer">
                     </div>
                     <input type="month" id="monthPicker" onchange="switchMonth(this.value)" aria-label="اختر شهراً آخر" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs">
                 </div>
@@ -886,6 +890,20 @@
 
     <div id="noticeStack" class="notice-stack no-print" role="status" aria-live="polite" aria-atomic="false"></div>
 
+    <!-- Edit Job Modal (replaces browser prompt()) -->
+    <div id="editJobModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-950/60 p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="editJobTitle">
+        <form onsubmit="confirmEditJob(event)" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <h2 id="editJobTitle" class="font-black text-lg">تعديل اسم الوظيفة</h2>
+            <p class="text-xs text-slate-500 mt-2">الوظيفة الحالية: <strong id="editJobOldLabel"></strong></p>
+            <label for="editJobNewName" class="block mt-4 mb-2 font-bold text-sm">الاسم الجديد</label>
+            <input id="editJobNewName" required maxlength="80" class="w-full border border-slate-300 rounded-xl px-3 py-3 focus:ring-2 focus:ring-cyan-500 outline-none">
+            <div class="flex gap-2 mt-5">
+                <button class="action-primary flex-1" type="submit">حفظ</button>
+                <button type="button" onclick="document.getElementById('editJobModal').classList.add('hidden'); _editJobOldName=null;" class="px-4 py-2 rounded-xl border border-slate-300 font-bold">إلغاء</button>
+            </div>
+        </form>
+    </div>
+
     <div id="confirmationModal" class="fixed inset-0 z-[70] hidden flex items-center justify-center bg-slate-950/60 p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" aria-describedby="confirmationMessage" onclick="if(event.target === this) closeConfirmation(false)">
         <div class="w-full max-w-md rounded-2xl bg-white p-5 sm:p-6 shadow-2xl">
             <div class="mb-4 flex items-start gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700"><i class="fa-solid fa-circle-question text-xl"></i></div><div><h2 id="confirmationTitle" class="text-lg font-black text-slate-900">تأكيد الإجراء</h2><p id="confirmationMessage" class="mt-1 text-sm leading-7 text-slate-600"></p></div></div>
@@ -1219,6 +1237,22 @@
         // ==========================================
         // 3. Render Table & KPI UI
         // ==========================================
+        function generateMonthTabs() {
+            const container = document.getElementById('monthTabsContainer');
+            if (!container) return;
+            const ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+            const now = new Date();
+            const months = [-1, 0, 1].map(offset => {
+                const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = `${ARABIC_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+                return { key, label };
+            });
+            container.innerHTML = months.map(({ key, label }) =>
+                `<button onclick="switchMonth('${key}')" id="btn-${key}" class="month-tab-btn px-3 py-1 text-xs font-bold rounded-md transition">${label}</button>`
+            ).join('');
+        }
+
         function switchMonth(m) {
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(m)) return;
             currentMonth = m;
@@ -1233,8 +1267,10 @@
                 activeBtn.classList.remove('text-slate-600');
             }
 
-            const monthNames = { '2026-10': 'أكتوبر 2026', '2026-11': 'نوفمبر 2026', '2026-12': 'ديسمبر 2026' };
-            document.getElementById('tableTitle').innerText = `جدول الحضور والورديات - ${monthNames[m] || m}`;
+            const ARABIC_MONTHS_NAMES = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+            const [mYear, mMonth] = m.split('-');
+            const mLabel = ARABIC_MONTHS_NAMES[parseInt(mMonth, 10) - 1] ? `${ARABIC_MONTHS_NAMES[parseInt(mMonth, 10) - 1]} ${mYear}` : m;
+            document.getElementById('tableTitle').innerText = `جدول الحضور والورديات - ${mLabel}`;
             
             // Ensure month dates exist
             ensureMonthDates(m);
@@ -1620,12 +1656,25 @@
             try { await window.firebaseBridge.removeJob(name); showNotice('تم حذف الوظيفة.'); }
             catch (error) { showNotice(error.message, 'error'); }
         }
+        let _editJobOldName = null;
         async function editJob(index) {
             if (!isAdmin) return;
             const oldName = availableJobs[index];
             if (!oldName) return;
             if (employees.some(emp => emp.job === oldName) || pendingRegistrations.some(item => item.job === oldName)) { showNotice('انقل الموظفين وتعامل مع طلبات التسجيل المرتبطة بهذه الوظيفة أولاً.', 'warning'); return; }
-            const name = prompt('اسم الوظيفة الجديد', oldName)?.trim();
+            _editJobOldName = oldName;
+            document.getElementById('editJobOldLabel').textContent = oldName;
+            document.getElementById('editJobNewName').value = oldName;
+            document.getElementById('editJobModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('editJobNewName').focus(), 50);
+        }
+        async function confirmEditJob(event) {
+            event.preventDefault();
+            if (!isAdmin || !_editJobOldName) return;
+            const oldName = _editJobOldName;
+            const name = document.getElementById('editJobNewName').value.trim();
+            document.getElementById('editJobModal').classList.add('hidden');
+            _editJobOldName = null;
             if (!name || name === oldName) return;
             if (name.length > 80 || name.includes('/') || availableJobs.includes(name)) { showNotice('اسم الوظيفة غير صالح أو موجود.', 'warning'); return; }
             try { await window.firebaseBridge.addJob(name); await window.firebaseBridge.removeJob(oldName); showNotice('تم تعديل الوظيفة.'); }
@@ -1776,10 +1825,11 @@
                     const index = employees.findIndex(e => e.id === id);
                     if (index < 0) return;
                     const original = employees[index];
+                    const prevGroupKey = employeeKey(original);
                     const changed = { ...original, name, annual_balance: annual, casual_balance: casual, perm_hours: perm };
                     if (isAdmin) Object.assign(changed, { code, team, dept, job, accessScope });
                     const updated = employees.map(e => e.id === id ? changed : e);
-                    await window.firebaseBridge.updateEmployeeAccount(changed);
+                    await window.firebaseBridge.updateEmployeeAccount(changed, prevGroupKey);
                     employees = updated;
                 } else {
                     const employee = { id: `emp_${code}`, name, code, team, dept, job, accessScope, annual_balance: annual, casual_balance: casual, perm_hours: perm };
@@ -1817,7 +1867,7 @@
             });
 
             try {
-                await window.firebaseBridge.deleteEmployeeRecords(updatedEmployees, empId, affectedDates, emp.authUid || emp.id);
+                await window.firebaseBridge.deleteEmployeeRecords(updatedEmployees, empId, affectedDates, emp.authUid || null);
                 employees = updatedEmployees;
                 affectedDates.forEach(date => delete attendanceData[date].records[empId]);
                 renderEmployeesDirectory();
@@ -2656,6 +2706,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             applyTheme(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
             document.querySelectorAll('.copyright-year').forEach(item => item.textContent = new Date().getFullYear());
+            generateMonthTabs();
             switchMonth(currentMonth);
             if (DEMO_MODE) {
                 document.body.classList.add('demo-mode');

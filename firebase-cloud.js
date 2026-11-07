@@ -5,9 +5,10 @@ import { initializeFirestore, getFirestore, persistentLocalCache, persistentMult
 let auth, database, configInUse;
 let listeners = [], stopAuth;
 const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
-const adminEmail = 'ahmed.morgan2009@gmail.com';
-const adminCode = '5686';
-const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
+const _cfg = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
+const adminEmail = (_cfg.adminEmail || '').toLowerCase();
+const adminCode = String(_cfg.adminCode || '').trim();
+const employeeEmail = code => (adminCode && String(code).trim() === adminCode && adminEmail) ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 const validCode = code => /^[0-9]{4}$/.test(String(code));
 const requestRef = uid => doc(database, 'registrationRequests', uid);
 const defaultJobs = ['دعم المستخدمين للأجهزة', 'دعم المستخدمين', 'البنية التحتية'];
@@ -83,8 +84,8 @@ function connect(config, callbacks) {
         try {
             const claims = (await getIdTokenResult(user)).claims;
             const owner = await getDocFromServer(doc(database, 'ownerAccess', user.uid));
-            const admin = user.email?.toLowerCase() === adminEmail &&
-                (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin'));
+            const admin = (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin')) ||
+                (Boolean(adminEmail) && user.email?.toLowerCase() === adminEmail);
             const own = admin ? null : await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
             if (!admin && !own.exists()) {
                 const pending = await getDocFromServer(requestRef(user.uid));
@@ -127,13 +128,16 @@ function connect(config, callbacks) {
 
 const login = (identifier, pass) => {
     const value = String(identifier).trim();
-    if (value.includes('@') && value.toLowerCase() !== adminEmail) throw new Error('بريد الإدارة غير صحيح.');
-    if (!value.includes('@') && !validCode(value)) throw new Error('كود الموظف أربعة أرقام فقط.');
-    return signInWithEmailAndPassword(auth, value.includes('@') ? adminEmail : employeeEmail(value), pass);
+    if (value.includes('@')) {
+        if (adminEmail && value.toLowerCase() !== adminEmail) throw new Error('بريد الإدارة غير مصرح به.');
+        return signInWithEmailAndPassword(auth, value, pass);
+    }
+    if (!validCode(value)) throw new Error('كود الموظف أربعة أرقام فقط.');
+    return signInWithEmailAndPassword(auth, employeeEmail(value), pass);
 };
 const logout = () => signOut(auth);
 async function registerEmployee({ name, code, team, job, pass }) {
-    if (!validCode(code) || code === adminCode || !name || name.length > 80 ||
+    if (!validCode(code) || (adminCode && code === adminCode) || !name || name.length > 80 ||
         !['red', 'blue', 'yellow', 'morning'].includes(team) || !job || job.length > 80 || pass.length < 7) {
         throw new Error('تحقق من الاسم والكود والوردية والوظيفة وكلمة المرور.');
     }
@@ -188,9 +192,11 @@ async function approveRegistration(uid, request, balances = {}) {
 }
 async function linkAdminAsEmployee(employee) {
     const user = auth?.currentUser;
-    if (!user || user.email?.toLowerCase() !== adminEmail || String(employee.code).trim() !== adminCode ||
-        !((await getIdTokenResult(user)).claims.admin ||
-          (await getDocFromServer(doc(database, 'ownerAccess', user.uid))).data()?.role === 'admin')) {
+    const claims = user ? (await getIdTokenResult(user)).claims : {};
+    const ownerDoc = user ? await getDocFromServer(doc(database, 'ownerAccess', user.uid)) : null;
+    const isOwnerAdmin = claims.admin === true || (ownerDoc?.exists() && ownerDoc.data()?.role === 'admin');
+    if (!user || !isOwnerAdmin || (adminEmail && user.email?.toLowerCase() !== adminEmail) ||
+        (adminCode && String(employee.code).trim() !== adminCode)) {
         throw new Error('ربط هذا الكود متاح لحساب المدير المحدد فقط.');
     }
     if ((await getDocFromServer(doc(database, 'employeeAccounts', user.uid))).exists()) throw new Error('حساب المدير مرتبط بالفعل بملف موظف.');
@@ -222,14 +228,16 @@ async function removeJob(name) {
     await setDoc(doc(database, 'jobs', name), { name, active: false });
 }
 
-async function updateEmployeeAccount(employee) {
+async function updateEmployeeAccount(employee, previousGroupKey = null) {
     const complete = firestoreData({ ...employee, groupKey: groupKey(employee) });
-    const records = await getDocs(collectionGroup(database, 'records'));
-    const owned = records.docs.filter(item => item.id === employee.id);
-    for (let offset = 0; offset < owned.length; offset += 400) {
-        const changes = writeBatch(database);
-        owned.slice(offset, offset + 400).forEach(item => changes.update(item.ref, { team: employee.team, job: employee.job, groupKey: complete.groupKey }));
-        await changes.commit();
+    if (previousGroupKey && previousGroupKey !== complete.groupKey) {
+        const records = await getDocs(query(collectionGroup(database, 'records'), where('groupKey', '==', previousGroupKey)));
+        const owned = records.docs.filter(item => item.id === employee.id);
+        for (let offset = 0; offset < owned.length; offset += 400) {
+            const changes = writeBatch(database);
+            owned.slice(offset, offset + 400).forEach(item => changes.update(item.ref, { team: employee.team, job: employee.job, groupKey: complete.groupKey }));
+            await changes.commit();
+        }
     }
     const batch = writeBatch(database);
     batch.set(staffRef(employee.id), complete);

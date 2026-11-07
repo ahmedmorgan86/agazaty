@@ -5,13 +5,13 @@ const testEnv = await initializeTestEnvironment({
   projectId: 'demo-agazaty',
   firestore: { rules: readFileSync('firestore.rules', 'utf8') }
 });
-const admin = testEnv.authenticatedContext('admin', { admin: true, email: 'ahmed.morgan2009@gmail.com' }).firestore();
+const admin = testEnv.authenticatedContext('admin', { admin: true, email: 'admin@example.com' }).firestore();
 const red = testEnv.authenticatedContext('red-user').firestore();
 const blue = testEnv.authenticatedContext('blue-user').firestore();
 const solo = testEnv.authenticatedContext('solo-user').firestore();
-const owner = testEnv.authenticatedContext('owner-user', { email: 'ahmed.morgan2009@gmail.com' }).firestore();
+const owner = testEnv.authenticatedContext('owner-user', { email: 'admin@example.com' }).firestore();
 const falseOwner = testEnv.authenticatedContext('false-owner').firestore();
-const impostor = testEnv.authenticatedContext('impostor', { admin: true, email: 'other@example.com' }).firestore();
+const impostor = testEnv.authenticatedContext('impostor', { email: 'other@example.com' }).firestore();
 const applicant = testEnv.authenticatedContext('new-user', { email: '1234@accounts.shifts-attendance-am-2026.firebaseapp.com' }).firestore();
 const anonymous = testEnv.unauthenticatedContext().firestore();
 const keyRed = 'red|دعم المستخدمين للأجهزة';
