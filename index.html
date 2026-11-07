@@ -191,11 +191,7 @@
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
             <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">اختر نوع الحساب ثم أدخل بياناتك.</p>
-            <div class="login-role-switch" role="group" aria-label="نوع الحساب">
-                <button type="button" id="employeeLoginMode" aria-pressed="true" onclick="setLoginMode('employee')"><i class="fa-solid fa-user"></i> موظف</button>
-                <button type="button" id="adminLoginMode" aria-pressed="false" onclick="setLoginMode('admin')"><i class="fa-solid fa-user-shield"></i> مدير</button>
-            </div>
+            <p class="text-sm text-slate-500 mt-2">أدخل كود الموظف وكلمة المرور؛ تظهر صلاحيات حسابك تلقائيًا.</p>
             <label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label>
             <input id="loginCode" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="username" required placeholder="أدخل كودك" dir="ltr" oninput="normalizeLoginIdentifier(this)">
             <label for="loginPassword">كلمة المرور</label>
@@ -1027,7 +1023,6 @@
         let firebaseLoadFailed = false;
         let firebaseConnected = false;
         let cacheStatusTimer = null;
-        let loginAsAdmin = false;
         const employeeKey = emp => emp?.groupKey || (emp?.team && emp?.job ? `${emp.team}|${emp.job}` : '');
         const canAccessEmployee = emp => isAdmin || Boolean(currentProfile && employeeKey(emp) === employeeKey(currentProfile));
         let registrationListener = null;
@@ -2242,24 +2237,7 @@
             } finally { button.disabled = false; button.textContent = 'دخول الحساب'; }
         }
         function normalizeLoginIdentifier(input) {
-            if (!loginAsAdmin) input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
-        }
-        function setLoginMode(mode) {
-            const next = mode === 'admin';
-            if (loginAsAdmin === next) return;
-            loginAsAdmin = next;
-            const input = document.getElementById('loginCode');
-            input.value = '';
-            input.type = loginAsAdmin ? 'email' : 'text';
-            input.inputMode = loginAsAdmin ? 'email' : 'numeric';
-            if (loginAsAdmin) input.removeAttribute('pattern');
-            else input.setAttribute('pattern', '[0-9]{4}');
-            input.minLength = loginAsAdmin ? 0 : 4;
-            input.maxLength = loginAsAdmin ? 254 : 4;
-            input.placeholder = loginAsAdmin ? 'بريد مدير النظام' : 'أدخل كودك';
-            document.getElementById('loginIdentifierLabel').textContent = loginAsAdmin ? 'بريد المدير' : 'كود الموظف (٤ أرقام)';
-            document.getElementById('employeeLoginMode').setAttribute('aria-pressed', String(!loginAsAdmin));
-            document.getElementById('adminLoginMode').setAttribute('aria-pressed', String(loginAsAdmin));
+            input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
         }
         function showRegistration() {
             document.getElementById('loginForm').classList.add('hidden');
