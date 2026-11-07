@@ -6,9 +6,9 @@ let auth, database, configInUse;
 let listeners = [], stopAuth;
 const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
 const _cfg = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
-const adminEmail = (_cfg.adminEmail || '').toLowerCase();
-const adminCode = String(_cfg.adminCode || '').trim();
-const employeeEmail = code => (adminCode && String(code).trim() === adminCode && adminEmail) ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
+const adminEmail = (_cfg.adminEmail || 'ahmed.morgan2009@gmail.com').toLowerCase();
+const adminCode = String(_cfg.adminCode || '5686').trim();
+const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 const validCode = code => /^[0-9]{4}$/.test(String(code));
 const requestRef = uid => doc(database, 'registrationRequests', uid);
 const defaultJobs = ['دعم المستخدمين للأجهزة', 'دعم المستخدمين', 'البنية التحتية'];
@@ -84,8 +84,8 @@ function connect(config, callbacks) {
         try {
             const claims = (await getIdTokenResult(user)).claims;
             const owner = await getDocFromServer(doc(database, 'ownerAccess', user.uid));
-            const admin = (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin')) ||
-                (Boolean(adminEmail) && user.email?.toLowerCase() === adminEmail);
+            const admin = user.email?.toLowerCase() === adminEmail &&
+                (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin'));
             const own = admin ? null : await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
             if (!admin && !own.exists()) {
                 const pending = await getDocFromServer(requestRef(user.uid));
@@ -192,11 +192,9 @@ async function approveRegistration(uid, request, balances = {}) {
 }
 async function linkAdminAsEmployee(employee) {
     const user = auth?.currentUser;
-    const claims = user ? (await getIdTokenResult(user)).claims : {};
-    const ownerDoc = user ? await getDocFromServer(doc(database, 'ownerAccess', user.uid)) : null;
-    const isOwnerAdmin = claims.admin === true || (ownerDoc?.exists() && ownerDoc.data()?.role === 'admin');
-    if (!user || !isOwnerAdmin || (adminEmail && user.email?.toLowerCase() !== adminEmail) ||
-        (adminCode && String(employee.code).trim() !== adminCode)) {
+    if (!user || user.email?.toLowerCase() !== adminEmail || String(employee.code).trim() !== adminCode ||
+        !((await getIdTokenResult(user)).claims.admin ||
+          (await getDocFromServer(doc(database, 'ownerAccess', user.uid))).data()?.role === 'admin')) {
         throw new Error('ربط هذا الكود متاح لحساب المدير المحدد فقط.');
     }
     if ((await getDocFromServer(doc(database, 'employeeAccounts', user.uid))).exists()) throw new Error('حساب المدير مرتبط بالفعل بملف موظف.');

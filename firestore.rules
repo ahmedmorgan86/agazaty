@@ -2,10 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
-      return request.auth != null
-        && (request.auth.token.get('admin', false) == true
-          || (exists(/databases/$(database)/documents/ownerAccess/$(request.auth.uid))
-            && get(/databases/$(database)/documents/ownerAccess/$(request.auth.uid)).data.role == 'admin'));
+      return request.auth != null && request.auth.token.get('email', '') == 'ahmed.morgan2009@gmail.com' && (request.auth.token.get('admin', false) == true
+        || (exists(/databases/$(database)/documents/ownerAccess/$(request.auth.uid))
+          && get(/databases/$(database)/documents/ownerAccess/$(request.auth.uid)).data.role == 'admin'));
     }
     function profile() {
       return get(/databases/$(database)/documents/employeeAccounts/$(request.auth.uid)).data;
