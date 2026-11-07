@@ -60,7 +60,9 @@ try {
   await assertSucceeds(red.doc('staff/emp_red').update({ name: 'اسم جديد' }));
   await assertFails(red.doc('staff/emp_blue').update({ name: 'محاولة' }));
   await assertFails(red.doc('staff/emp_red').update({ team: 'blue' }));
-  await assertFails(red.doc('staff/emp_red').update({ annual_balance: 999 }));
+  await assertSucceeds(red.doc('staff/emp_red').update({ annual_balance: 25, casual_balance: 6, perm_hours: 5 }));
+  await assertSucceeds(red.doc('employeeAccounts/red-user').update({ annual_balance: 25, casual_balance: 6, perm_hours: 5 }));
+  await assertFails(red.doc('staff/emp_red').update({ role: 'admin' }));
   await assertSucceeds(red.collection('staff').where('groupKey', '==', keyRed).get());
   await assertSucceeds(solo.doc('staff/emp_solo').get());
   await assertFails(solo.doc('staff/emp_red').get());
