@@ -1,10 +1,10 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, getIdTokenResult, createUserWithEmailAndPassword, deleteUser, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, onSnapshot, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, onSnapshot, getDoc, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 let auth, database, configInUse;
 let listeners = [], stopAuth;
-const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
+const groupKey = employee => employee.groupKey || (employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`);
 const _cfg = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
 const adminEmail = (_cfg.adminEmail || 'ahmed.morgan2009@gmail.com').toLowerCase();
 const adminCode = String(_cfg.adminCode || '5686').trim();
@@ -83,13 +83,14 @@ function connect(config, callbacks) {
         if (!user || user.isAnonymous) { callbacks.onSignedOut(); return; }
         try {
             const claims = (await getIdTokenResult(user)).claims;
-            const owner = await getDocFromServer(doc(database, 'ownerAccess', user.uid));
-            const admin = user.email?.toLowerCase() === adminEmail &&
-                (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin'));
-            const own = admin ? null : await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
-            if (!admin && !own.exists()) {
-                const pending = await getDocFromServer(requestRef(user.uid));
-                callbacks.onPending(pending.exists() ? pending.data().status : 'preparing');
+            const isEmailAdmin = user.email?.toLowerCase() === adminEmail;
+            const owner = isEmailAdmin && !claims.admin ? await getDoc(doc(database, 'ownerAccess', user.uid)).catch(() => null) : null;
+            const admin = isEmailAdmin &&
+                (claims.admin === true || (owner?.exists?.() && owner.data()?.role === 'admin'));
+            const own = admin ? null : await getDoc(doc(database, 'employeeAccounts', user.uid)).catch(() => null);
+            if (!admin && (!own || !own.exists())) {
+                const pending = await getDoc(requestRef(user.uid)).catch(() => null);
+                callbacks.onPending(pending?.exists() ? pending.data().status : 'preparing');
                 listeners.push(onSnapshot(requestRef(user.uid), snap => {
                     if (snap.data()?.status === 'approved') { stopListeners(); connect(configInUse, callbacks); }
                     else callbacks.onPending(snap.data()?.status || 'preparing');
@@ -97,8 +98,9 @@ function connect(config, callbacks) {
                 return;
             }
             if (admin) { await migrateLegacyData(); await ensureDefaultJobs(); }
-            const key = admin ? null : groupKey(own.data());
-            callbacks.onAuth(user, { ...claims, admin });
+            const ownData = own?.data?.() || null;
+            const key = admin ? null : groupKey(ownData);
+            callbacks.onAuth(user, { ...claims, admin }, ownData);
             let settings = null, records = null;
             const emit = metadata => {
                 if (!settings || !records) return;
