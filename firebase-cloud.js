@@ -1,13 +1,12 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, getIdTokenResult, createUserWithEmailAndPassword, deleteUser, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, onSnapshot, getDoc, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, onSnapshot, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 let auth, database, configInUse;
 let listeners = [], stopAuth;
-const groupKey = employee => employee.groupKey || (employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`);
-const _cfg = (typeof window !== 'undefined' && window.__APP_CONFIG__) || {};
-const adminEmail = (_cfg.adminEmail || 'ahmed.morgan2009@gmail.com').toLowerCase();
-const adminCode = String(_cfg.adminCode || '5686').trim();
+const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
+const adminEmail = 'ahmed.morgan2009@gmail.com';
+const adminCode = '5686';
 const employeeEmail = code => String(code).trim() === adminCode ? adminEmail : `${String(code).trim()}@accounts.shifts-attendance-am-2026.firebaseapp.com`;
 const validCode = code => /^[0-9]{4}$/.test(String(code));
 const requestRef = uid => doc(database, 'registrationRequests', uid);
@@ -83,14 +82,13 @@ function connect(config, callbacks) {
         if (!user || user.isAnonymous) { callbacks.onSignedOut(); return; }
         try {
             const claims = (await getIdTokenResult(user)).claims;
-            const isEmailAdmin = user.email?.toLowerCase() === adminEmail;
-            const owner = isEmailAdmin && !claims.admin ? await getDoc(doc(database, 'ownerAccess', user.uid)).catch(() => null) : null;
-            const admin = isEmailAdmin &&
-                (claims.admin === true || (owner?.exists?.() && owner.data()?.role === 'admin'));
-            const own = admin ? null : await getDoc(doc(database, 'employeeAccounts', user.uid)).catch(() => null);
-            if (!admin && (!own || !own.exists())) {
-                const pending = await getDoc(requestRef(user.uid)).catch(() => null);
-                callbacks.onPending(pending?.exists() ? pending.data().status : 'preparing');
+            const owner = await getDocFromServer(doc(database, 'ownerAccess', user.uid));
+            const admin = user.email?.toLowerCase() === adminEmail &&
+                (claims.admin === true || (owner.exists() && owner.data()?.role === 'admin'));
+            const own = admin ? null : await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
+            if (!admin && !own.exists()) {
+                const pending = await getDocFromServer(requestRef(user.uid));
+                callbacks.onPending(pending.exists() ? pending.data().status : 'preparing');
                 listeners.push(onSnapshot(requestRef(user.uid), snap => {
                     if (snap.data()?.status === 'approved') { stopListeners(); connect(configInUse, callbacks); }
                     else callbacks.onPending(snap.data()?.status || 'preparing');
@@ -98,9 +96,8 @@ function connect(config, callbacks) {
                 return;
             }
             if (admin) { await migrateLegacyData(); await ensureDefaultJobs(); }
-            const ownData = own?.data?.() || null;
-            const key = admin ? null : groupKey(ownData);
-            callbacks.onAuth(user, { ...claims, admin }, ownData);
+            const key = admin ? null : groupKey(own.data());
+            callbacks.onAuth(user, { ...claims, admin });
             let settings = null, records = null;
             const emit = metadata => {
                 if (!settings || !records) return;
@@ -130,16 +127,13 @@ function connect(config, callbacks) {
 
 const login = (identifier, pass) => {
     const value = String(identifier).trim();
-    if (value.includes('@')) {
-        if (adminEmail && value.toLowerCase() !== adminEmail) throw new Error('بريد الإدارة غير مصرح به.');
-        return signInWithEmailAndPassword(auth, value, pass);
-    }
-    if (!validCode(value)) throw new Error('كود الموظف أربعة أرقام فقط.');
-    return signInWithEmailAndPassword(auth, employeeEmail(value), pass);
+    if (value.includes('@') && value.toLowerCase() !== adminEmail) throw new Error('بريد الإدارة غير صحيح.');
+    if (!value.includes('@') && !validCode(value)) throw new Error('كود الموظف أربعة أرقام فقط.');
+    return signInWithEmailAndPassword(auth, value.includes('@') ? adminEmail : employeeEmail(value), pass);
 };
 const logout = () => signOut(auth);
 async function registerEmployee({ name, code, team, job, pass }) {
-    if (!validCode(code) || (adminCode && code === adminCode) || !name || name.length > 80 ||
+    if (!validCode(code) || code === adminCode || !name || name.length > 80 ||
         !['red', 'blue', 'yellow', 'morning'].includes(team) || !job || job.length > 80 || pass.length < 7) {
         throw new Error('تحقق من الاسم والكود والوردية والوظيفة وكلمة المرور.');
     }
@@ -228,16 +222,14 @@ async function removeJob(name) {
     await setDoc(doc(database, 'jobs', name), { name, active: false });
 }
 
-async function updateEmployeeAccount(employee, previousGroupKey = null) {
+async function updateEmployeeAccount(employee) {
     const complete = firestoreData({ ...employee, groupKey: groupKey(employee) });
-    if (previousGroupKey && previousGroupKey !== complete.groupKey) {
-        const records = await getDocs(query(collectionGroup(database, 'records'), where('groupKey', '==', previousGroupKey)));
-        const owned = records.docs.filter(item => item.id === employee.id);
-        for (let offset = 0; offset < owned.length; offset += 400) {
-            const changes = writeBatch(database);
-            owned.slice(offset, offset + 400).forEach(item => changes.update(item.ref, { team: employee.team, job: employee.job, groupKey: complete.groupKey }));
-            await changes.commit();
-        }
+    const records = await getDocs(collectionGroup(database, 'records'));
+    const owned = records.docs.filter(item => item.id === employee.id);
+    for (let offset = 0; offset < owned.length; offset += 400) {
+        const changes = writeBatch(database);
+        owned.slice(offset, offset + 400).forEach(item => changes.update(item.ref, { team: employee.team, job: employee.job, groupKey: complete.groupKey }));
+        await changes.commit();
     }
     const batch = writeBatch(database);
     batch.set(staffRef(employee.id), complete);
