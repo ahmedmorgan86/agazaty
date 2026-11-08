@@ -11,6 +11,5 @@ for name in ("index.html", "firebase-cloud.js", "theme.css", "manifest.webmanife
     copy2(ROOT / name, PUBLIC / name)
 
 (PUBLIC / "assets").mkdir(exist_ok=True)
-copy2(ROOT / "assets" / "mark.svg", PUBLIC / "assets" / "mark.svg")
-for name in ("icon-192.png", "icon-512.png", "install-qr.svg"):
+for name in ("app-logo.png", "icon-192.png", "icon-512.png", "agazaty.ico", "install-qr.svg"):
     copy2(ROOT / "assets" / name, PUBLIC / "assets" / name)

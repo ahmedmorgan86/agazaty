@@ -16,6 +16,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -80,6 +81,12 @@ public final class MainActivity extends Activity {
         errorView.setOrientation(LinearLayout.VERTICAL);
         errorView.setGravity(Gravity.CENTER);
         errorView.setBackgroundColor(Color.rgb(13, 23, 33));
+        ImageView logo = new ImageView(this);
+        logo.setImageResource(R.drawable.app_icon);
+        float density = getResources().getDisplayMetrics().density;
+        LinearLayout.LayoutParams logoLayout = new LinearLayout.LayoutParams((int)(96 * density), (int)(96 * density));
+        logoLayout.bottomMargin = (int)(24 * density);
+        errorView.addView(logo, logoLayout);
         TextView message = new TextView(this);
         message.setText("تعذر الاتصال بأجازاتي. تحقق من الإنترنت ثم حاول مرة أخرى.");
         message.setTextColor(Color.WHITE);

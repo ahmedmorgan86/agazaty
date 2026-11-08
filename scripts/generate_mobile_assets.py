@@ -10,11 +10,12 @@ from reportlab.graphics import renderSVG
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
-APP_URL = "https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.0.0/agazaty-android.apk"
+APP_URL = "https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.2.0/agazaty-android.apk"
 
 source = Image.open(ASSETS / "app-logo.png").convert("RGB")
 for size in (192, 512):
     source.resize((size, size), Image.Resampling.LANCZOS).save(ASSETS / f"icon-{size}.png", optimize=True)
+source.save(ASSETS / "agazaty.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48), (256, 256)])
 
 code = qr.QrCodeWidget(APP_URL, barLevel="M")
 x1, y1, x2, y2 = code.getBounds()

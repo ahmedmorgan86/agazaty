@@ -8,9 +8,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="أجازاتي">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="manifest" href="./manifest.webmanifest">
-    <link rel="apple-touch-icon" href="./assets/icon-192.png">
-    <link rel="icon" type="image/svg+xml" href="./assets/mark.svg">
+    <meta name="application-name" content="أجازاتي">
+    <meta name="msapplication-TileImage" content="./assets/icon-192.png?v=2">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <link rel="manifest" href="./manifest.webmanifest?v=2">
+    <link rel="apple-touch-icon" href="./assets/icon-192.png?v=2">
+    <link rel="icon" type="image/x-icon" href="./assets/agazaty.ico?v=2">
     <title>أجازاتي | مساحة الحضور والورديات</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -182,14 +185,14 @@
             .print-only { display: block !important; }
         }
     </style>
-    <link rel="stylesheet" href="./theme.css?v=9">
+    <link rel="stylesheet" href="./theme.css?v=10">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
-        <div class="login-intro" aria-hidden="true"><span class="eyebrow">AGAZATY / WORKSPACE</span><div class="intro-symbol"><i class="fa-solid fa-calendar-check"></i></div><h2>يوم عمل أوضح،<br>وفريق أكثر تنظيمًا.</h2><p>الحضور، الورديات، الإجازات والتقارير في مساحة عمل واحدة.</p><div class="intro-line"><span>01 / الحضور</span><span>02 / الورديات</span><span>03 / الأرصدة</span></div></div>
+        <div class="login-intro" aria-hidden="true"><span class="eyebrow">AGAZATY / WORKSPACE</span><div class="intro-symbol"><img src="./assets/app-logo.png?v=2" alt=""></div><h2>يوم عمل أوضح،<br>وفريق أكثر تنظيمًا.</h2><p>الحضور، الورديات، الإجازات والتقارير في مساحة عمل واحدة.</p><div class="intro-line"><span>01 / الحضور</span><span>02 / الورديات</span><span>03 / الأرصدة</span></div></div>
         <button type="button" class="login-theme-toggle" onclick="toggleTheme()" aria-label="تبديل المظهر"><i class="fa-solid fa-circle-half-stroke"></i> المظهر</button>
         <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
-            <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/mark.svg" alt="شعار الحضور والورديات" class="w-14 h-14 object-contain"></div>
+            <div class="w-24 h-24 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/app-logo.png?v=2" alt="شعار أجازاتي" class="w-20 h-20 object-contain"></div>
             <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
             <p class="text-sm text-slate-500 mt-2">أدخل كود الموظف وكلمة المرور؛ تظهر صلاحيات حسابك تلقائيًا.</p>
             <label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label>
@@ -201,8 +204,8 @@
             <button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="showRegistration()">موظف جديد؟ أرسل طلب تسجيل</button>
             <p class="text-xs text-slate-500 mt-2">يُفعّل الحساب بعد موافقة مدير النظام.</p>
             <div class="mobile-install-card">
-                <div><span class="eyebrow">ANDROID &amp; IPHONE</span><strong>أجازاتي على موبايلك</strong><p>لأندرويد: اضغط زر التحميل أو امسح رمز QR لتنزيل ملف APK. على iPhone افتح الموقع في Safari ثم اختر «مشاركة» ← «إضافة إلى الشاشة الرئيسية».</p><a class="apk-download" href="https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.0.0/agazaty-android.apk"><i class="fa-brands fa-android"></i> تحميل APK لأندرويد</a><a class="install-link" href="https://github.com/ahmedmorgan86/agazaty/releases/tag/android-v1.0.0">صفحة الإصدار إذا تعذر التحميل المباشر</a><a class="install-link" href="https://agazaty-am.vercel.app/" target="_blank" rel="noopener noreferrer">فتح الموقع على iPhone <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div>
-                <a class="install-qr-link" href="https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.0.0/agazaty-android.apk" aria-label="تنزيل APK عبر رمز QR"><img src="./assets/install-qr.svg" alt="رمز QR لتنزيل ملف APK لأندرويد" width="176" height="176"></a>
+                <div><span class="eyebrow">ANDROID &amp; IPHONE</span><strong>أجازاتي على موبايلك</strong><p>لأندرويد: اضغط زر التحميل أو امسح رمز QR لتنزيل ملف APK. على iPhone افتح الموقع في Safari ثم اختر «مشاركة» ← «إضافة إلى الشاشة الرئيسية».</p><a class="apk-download" href="https://agazaty-am.vercel.app/apk"><i class="fa-brands fa-android"></i> تحميل APK لأندرويد</a><a class="install-link" href="https://github.com/ahmedmorgan86/agazaty/releases/tag/android-v1.2.0">صفحة الإصدار إذا تعذر التحميل المباشر</a><a class="install-link" href="https://agazaty-am.vercel.app/" target="_blank" rel="noopener noreferrer">فتح الموقع على iPhone <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div>
+                <a class="install-qr-link" href="https://agazaty-am.vercel.app/apk" aria-label="تنزيل APK عبر رمز QR"><img src="./assets/install-qr.svg?v=2" alt="رمز QR لتنزيل ملف APK لأندرويد" width="176" height="176"></a>
             </div>
             <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
         </form>
@@ -239,7 +242,7 @@
 
     <header id="appHeader" class="app-header hidden sticky top-0 z-40 no-print">
         <div class="header-top">
-            <div class="header-brand"><div class="header-brand-mark"><img src="./assets/mark.svg" alt="شعار التطبيق"></div><div><strong>أجازاتي</strong><span>لوحة العمل اليومية</span></div></div>
+            <div class="header-brand"><div class="header-brand-mark"><img src="./assets/app-logo.png?v=2" alt="شعار أجازاتي"></div><div><strong>أجازاتي</strong><span>لوحة العمل اليومية</span></div></div>
             <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
         <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">

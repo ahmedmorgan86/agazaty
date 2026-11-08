@@ -1,10 +1,10 @@
 name: Build Android APK
 on:
   pull_request:
-    paths: ['android/**', '.github/workflows/android-apk.yml']
+    paths: ['android/**', 'assets/icon-192.png', '.github/workflows/android-apk.yml']
   push:
     branches: [main]
-    paths: ['android/**', '.github/workflows/android-apk.yml']
+    paths: ['android/**', 'assets/icon-192.png', '.github/workflows/android-apk.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -27,8 +27,6 @@ jobs:
           gradle-version: '8.13'
       - name: Build installable APK
         run: |
-          mkdir -p android/app/src/main/res/drawable
-          cp assets/icon-192.png android/app/src/main/res/drawable/app_icon.png
           gradle -p android --no-daemon :app:assembleDebug
           cp android/app/build/outputs/apk/debug/app-debug.apk agazaty-android.apk
       - uses: actions/upload-artifact@v4
@@ -40,4 +38,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create android-v1.0.0 agazaty-android.apk --title 'أجازاتي Android 1.0.0' --notes 'نسخة APK للتثبيت المباشر. تحتاج إلى اتصال بالإنترنت.' --latest
+          gh release create android-v1.2.0 agazaty-android.apk --title 'أجازاتي Android 1.2.0' --notes 'أيقونة أجازاتى الجديدة. نسخة APK للتثبيت المباشر وتحتاج إلى اتصال بالإنترنت.' --latest

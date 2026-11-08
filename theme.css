@@ -18,8 +18,8 @@ button:not(:disabled):active { transform: translateY(1px); }
 ::selection { background: var(--accent-soft); color: var(--ink); }
 .eyebrow { color: var(--accent); letter-spacing: .13em; font-weight: 900; font-size: 11px; }
 .app-header { background: var(--surface); color: var(--ink); border-color: var(--line); box-shadow: var(--shadow); }
-.header-brand-mark { background: var(--accent-soft); border: 0; width: 60px; height: 60px; border-radius: 18px; overflow: hidden; }
-.header-brand-mark img { width: 56px; height: 56px; }
+.header-brand-mark { background: #fff; border: 1px solid var(--line); width: 76px; height: 76px; border-radius: 18px; overflow: hidden; }
+.header-brand-mark img { width: 72px; height: 72px; }
 .header-brand strong { font-size: 20px; font-weight: 900; }
 .header-brand span, .header-user-label span { color: var(--muted); }
 .header-user-icon { background: var(--accent-soft); color: var(--accent); }
@@ -50,7 +50,8 @@ button:not(:disabled):active { transform: translateY(1px); }
 .selection-empty i { color: var(--accent); }
 .login-screen { background: var(--canvas); grid-template-columns: minmax(0, 1fr) minmax(340px, 440px); gap: clamp(36px, 7vw, 110px); padding: clamp(24px, 6vw, 86px); }
 .login-intro { max-width: 660px; justify-self: end; width: 100%; }
-.intro-symbol { margin: 70px 0 30px; width: 80px; height: 80px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 36px; border-radius: 25px; }
+.intro-symbol { margin: 70px 0 30px; width: 96px; height: 96px; background: #fff; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 25px; }
+.intro-symbol img { width: 88px; height: 88px; object-fit: contain; }
 .login-intro h2 { font-size: clamp(36px, 4.4vw, 68px); line-height: 1.35; font-weight: 900; letter-spacing: -.04em; color: var(--ink); }
 .login-intro p { color: var(--muted); font-size: 17px; margin-top: 22px; }
 .intro-line { display: flex; gap: 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; font-weight: 800; margin-top: 70px; padding-top: 20px; }
@@ -139,8 +140,8 @@ button:not(:disabled):active { transform: translateY(1px); }
   .login-screen { display: flex; align-items: stretch; justify-content: center; padding: 0; background: var(--surface); }
   .login-screen::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--surface); z-index: 5; }
   .login-card { width: 100%; max-width: 440px; min-height: 100dvh; padding: max(50px, calc(env(safe-area-inset-top) + 35px)) 24px max(26px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; box-shadow: none; }
-  .login-card > div:first-child { width: 68px; height: 68px; border-radius: 20px; }
-  .login-card > div:first-child img { width: 60px; height: 60px; }
+  .login-card > div:first-child { width: 88px; height: 88px; border-radius: 20px; }
+  .login-card > div:first-child img { width: 80px; height: 80px; }
   .login-card h1 { font-size: 30px; }
   .login-card input { min-height: 52px; border-radius: 13px; }
   .login-card button[type=submit] { min-height: 54px; border-radius: 14px; }

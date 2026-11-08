@@ -1,5 +1,5 @@
-const SHELL_CACHE = 'agazaty-shell-v9';
-const SHELL = ['./', './index.html', './theme.css?v=9', './firebase-cloud.js?v=4', './assets/mark.svg', './assets/install-qr.svg', './assets/icon-192.png', './assets/icon-512.png'];
+const SHELL_CACHE = 'agazaty-shell-v10';
+const SHELL = ['./', './index.html', './theme.css?v=10', './firebase-cloud.js?v=4', './manifest.webmanifest?v=2', './assets/app-logo.png?v=2', './assets/agazaty.ico?v=2', './assets/install-qr.svg?v=2', './assets/icon-192.png?v=2', './assets/icon-512.png?v=2'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
