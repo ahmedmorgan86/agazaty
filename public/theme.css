@@ -25,6 +25,7 @@ button:not(:disabled):active { transform: translateY(1px); }
 .header-user-icon { background: var(--accent-soft); color: var(--accent); }
 .header-nav-wrap { border-color: var(--line); }
 .header-nav button { color: var(--muted); border-radius: 12px; }
+#manageJobsButton.hidden, #mobileJobsButton.hidden { display: none !important; }
 .header-nav button:hover, .header-nav button.nav-primary { color: var(--accent); background: var(--accent-soft); }
 .header-nav #cloudStatusBtn { background: var(--surface-2); color: var(--muted); }
 .app-main { max-width: 1600px; }

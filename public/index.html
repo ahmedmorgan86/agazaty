@@ -221,7 +221,7 @@
     <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
             <h2 class="font-bold text-lg">جاري تحميل بيانات الحضور</h2>
-            <p class="text-sm text-slate-600">يتم الاتصال بقاعدة البيانات المشتركة.</p>
+            <p id="authGateMessage" class="text-sm text-slate-600">يتم الاتصال بقاعدة البيانات المشتركة.</p>
             <div class="flex gap-2 justify-center pt-2">
                 <button type="button" onclick="location.reload()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg px-4 py-2 font-bold text-xs">إعادة المحاولة</button>
                 <button type="button" onclick="logoutEmployee()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg px-4 py-2 font-bold text-xs">تسجيل الخروج</button>
@@ -243,8 +243,9 @@
             <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
         <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">
-            <button type="button" class="nav-primary" onclick="document.getElementById('appMain').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-house"></i>الرئيسية</button>
-            <button type="button" id="manageEmployeesButton" onclick="document.getElementById('employeeDirectorySection').scrollIntoView({behavior:'smooth'})"><i class="fa-solid fa-users"></i>الموظفون</button>
+            <button type="button" class="nav-primary" onclick="showAppPage('home')"><i class="fa-solid fa-house"></i>الرئيسية</button>
+            <button type="button" id="manageEmployeesButton" onclick="showAppPage('employees')"><i class="fa-solid fa-users"></i>الموظفون</button>
+            <button type="button" id="manageJobsButton" class="hidden" style="display:none" onclick="showAppPage('jobs')"><i class="fa-solid fa-briefcase"></i>إدارة الوظائف</button>
             <button type="button" onclick="openRotationMatrixModal()"><i class="fa-solid fa-arrows-rotate"></i>الورديات</button>
             <button type="button" onclick="openBalancesModal()"><i class="fa-solid fa-wallet"></i>أرصدة الإجازات</button>
             <button type="button" id="myReportButton" onclick="openMyReport()"><i class="fa-solid fa-file-lines"></i>تقريري</button>
@@ -282,18 +283,6 @@
 
     <!-- Main Container -->
     <main id="appMain" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <section class="app-hero no-print">
-            <div><span class="text-xs font-bold text-cyan-200">لوحة الحضور</span><h2 id="heroTitle">اختر الوردية لعرض جدول الحضور</h2><p id="heroSubtitle" class="text-sm mt-2">كل أيام الشهر وأرصدة الحضور في عرض واضح.</p></div>
-            <div class="hero-profile"><span>الحساب الحالي</span><strong id="profileName">—</strong><span id="profileDetails">—</span><span id="profileCode">—</span></div>
-        </section>
-
-        <section id="employeeDirectorySection" class="employee-directory no-print scroll-mt-40">
-            <div id="jobManager" class="hidden mb-6 rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">إدارة الوظائف</h2><form class="flex flex-wrap gap-2 mt-3" onsubmit="addJobFromForm(event)"><input id="newJobName" required maxlength="80" placeholder="اسم الوظيفة الجديدة" class="border rounded-xl px-3 py-2 min-w-0 flex-1"><button type="submit" class="action-primary">إضافة وظيفة</button></form><div id="jobItems" class="flex flex-wrap gap-2 mt-3"></div><p class="text-xs text-slate-500 mt-3">انقل الموظفين إلى وظيفة أخرى قبل تعديل وظيفة أو حذفها.</p></div>
-            <div id="registrationQueue" class="hidden mb-6 rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">طلبات انضمام الموظفين</h2><p class="text-xs text-slate-500 mt-1">تحقق من الاسم والكود والوردية والوظيفة قبل الموافقة.</p><div id="registrationQueueItems" class="grid gap-3 mt-4"></div></div>
-            <div class="employee-directory-header"><div><span class="text-xs font-bold text-cyan-700">دليل الفريق</span><h2 class="text-lg font-black text-slate-900">الموظفون والتحكم في الحسابات</h2><p id="employeeDirectorySubtitle" class="text-xs text-slate-500">الزملاء المسموح لك بعرض بياناتهم وتعديلها</p></div><button id="addEmployeeButton" type="button" onclick="openNewEmployeeForm()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-user-plus ml-1"></i>إضافة موظف</button></div>
-            <div id="employeeCards" class="employee-cards"></div>
-        </section>
-
         <!-- Controls & Filter Toolbar -->
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -376,14 +365,6 @@
             </div>
         </div>
 
-        <!-- Monthly KPI Statistics Cards -->
-        <div id="kpiWrapper" class="no-print space-y-2">
-            <div id="kpiEmployeeBar" class="kpi-emp-bar"></div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="kpiStatsContainer">
-                <!-- Dynamic stats rendered in JS -->
-            </div>
-        </div>
-
         <!-- Attendance Grid Section -->
         <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="table-section-heading p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50">
@@ -421,6 +402,24 @@
         </div>
 
         <footer class="text-center text-xs text-slate-500 pb-2 no-print">© Ahmed Morgan <span class="copyright-year"></span></footer>
+    </main>
+    <main id="employeePage" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 space-y-6 no-print">
+        <section class="app-hero">
+            <div><span class="text-xs font-bold text-cyan-200">لوحة الحضور</span><h2 id="heroTitle">اختر الوردية لعرض جدول الحضور</h2><p id="heroSubtitle" class="text-sm mt-2">كل أيام الشهر وأرصدة الحضور في عرض واضح.</p></div>
+            <div class="hero-profile"><span>الحساب الحالي</span><strong id="profileName">—</strong><span id="profileDetails">—</span><span id="profileCode">—</span></div>
+        </section>
+        <div id="kpiWrapper" class="space-y-2">
+            <div id="kpiEmployeeBar" class="kpi-emp-bar"></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="kpiStatsContainer"></div>
+        </div>
+        <section id="employeeDirectorySection" class="employee-directory">
+            <div id="registrationQueue" class="hidden mb-6 rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">طلبات انضمام الموظفين</h2><p class="text-xs text-slate-500 mt-1">تحقق من الاسم والكود والوردية والوظيفة قبل الموافقة.</p><div id="registrationQueueItems" class="grid gap-3 mt-4"></div></div>
+            <div class="employee-directory-header"><div><span class="text-xs font-bold text-cyan-700">دليل الفريق</span><h2 class="text-lg font-black text-slate-900">الموظفون والتحكم في الحسابات</h2><p id="employeeDirectorySubtitle" class="text-xs text-slate-500">الزملاء المسموح لك بعرض بياناتهم وتعديلها</p></div><button id="addEmployeeButton" type="button" onclick="openNewEmployeeForm()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-user-plus ml-1"></i>إضافة موظف</button></div>
+            <div id="employeeCards" class="employee-cards"></div>
+        </section>
+    </main>
+    <main id="jobsPage" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 no-print">
+        <div id="jobManager" class="hidden rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">إدارة الوظائف</h2><form class="flex flex-wrap gap-2 mt-3" onsubmit="addJobFromForm(event)"><input id="newJobName" required maxlength="80" placeholder="اسم الوظيفة الجديدة" class="border rounded-xl px-3 py-2 min-w-0 flex-1"><button type="submit" class="action-primary">إضافة وظيفة</button></form><div id="jobItems" class="flex flex-wrap gap-2 mt-3"></div><p class="text-xs text-slate-500 mt-3">انقل الموظفين إلى وظيفة أخرى قبل تعديل وظيفة أو حذفها.</p></div>
     </main>
 
     <!-- ============================================================= -->
@@ -944,6 +943,10 @@
                     <i class="fa-solid fa-arrows-rotate text-teal-600 text-xl"></i>
                     <span class="text-xs font-bold">جدول الورديات</span>
                 </button>
+                <button type="button" id="mobileJobsButton" style="display:none" onclick="closeMobileMoreMenu(); showAppPage('jobs')" class="hidden flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-100">
+                    <i class="fa-solid fa-briefcase text-teal-600 text-xl"></i>
+                    <span class="text-xs font-bold">إدارة الوظائف</span>
+                </button>
                 <button type="button" onclick="closeMobileMoreMenu(); openBalancesModal()" class="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-100">
                     <i class="fa-solid fa-wallet text-indigo-600 text-xl"></i>
                     <span class="text-xs font-bold">أرصدة الفريق</span>
@@ -1162,6 +1165,7 @@
         }
         let currentMonth = localDateKey().slice(0, 7);
         let activeTeam = null;
+        let currentAppPage = 'home';
         let editingCell = null;
         let firebaseUser = null;
         let currentProfile = null;
@@ -1171,6 +1175,22 @@
         let firebaseLoadFailed = false;
         let firebaseConnected = false;
         let cacheStatusTimer = null;
+        let authGateTimer = null;
+        function scheduleAuthGate() {
+            clearTimeout(authGateTimer);
+            document.getElementById('authGateMessage').textContent = 'يتم الاتصال بقاعدة البيانات المشتركة.';
+            authGateTimer = setTimeout(() => {
+                if (!workspaceLoaded) document.getElementById('authGate').classList.remove('hidden');
+            }, 3000);
+        }
+        function showAppPage(page, scroll = true) {
+            if (page === 'jobs' && !isAdmin) page = 'home';
+            currentAppPage = page;
+            document.getElementById('appMain').classList.toggle('hidden', page !== 'home');
+            document.getElementById('employeePage').classList.toggle('hidden', page !== 'employees');
+            document.getElementById('jobsPage').classList.toggle('hidden', page !== 'jobs');
+            if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
         const employeeKey = emp => emp?.groupKey || (emp?.team && emp?.job ? `${emp.team}|${emp.job}` : '');
         const canAccessEmployee = emp => isAdmin || Boolean(currentProfile && employeeKey(emp) === employeeKey(currentProfile));
         let registrationListener = null;
@@ -2556,6 +2576,8 @@
         }
 
         function showSignedOut() {
+            clearTimeout(authGateTimer);
+            currentAppPage = 'home';
             if (registrationListener) { registrationListener(); registrationListener = null; }
             pendingRegistrations = [];
             firebaseUser = null;
@@ -2573,6 +2595,8 @@
             document.getElementById('appHeader').classList.add('hidden');
             document.getElementById('mobileBottomNav')?.classList.add('hidden');
             document.getElementById('appMain').classList.add('hidden');
+            document.getElementById('employeePage').classList.add('hidden');
+            document.getElementById('jobsPage').classList.add('hidden');
             document.getElementById('authGate').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginForm').classList.remove('hidden');
@@ -2596,11 +2620,16 @@
             document.querySelector('.team-controls').classList.toggle('single-team', !isAdmin);
             document.getElementById('backupControls').classList.toggle('hidden', !isAdmin);
             document.getElementById('myReportButton').classList.toggle('hidden', !currentProfile);
+            document.getElementById('manageJobsButton').classList.toggle('hidden', !isAdmin);
+            document.getElementById('mobileJobsButton').classList.toggle('hidden', !isAdmin);
+            document.getElementById('manageJobsButton').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('mobileJobsButton').style.display = isAdmin ? 'flex' : 'none';
             if (firebaseLoadFailed) return;
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appHeader').classList.remove('hidden');
             document.getElementById('mobileBottomNav')?.classList.remove('hidden');
-            document.getElementById('appMain').classList.remove('hidden');
+            showAppPage(currentAppPage, false);
+            clearTimeout(authGateTimer);
             document.getElementById('authGate').classList.add('hidden');
             if (isAdmin && firebaseUser?.email?.toLowerCase() === 'ahmed.morgan2009@gmail.com' &&
                 !localStorage.getItem(`password-updated:${firebaseUser.uid}`) &&
@@ -2691,7 +2720,7 @@
                         });
                         updateCloudUI('جاري تحميل بيانات Firebase');
                         setFirebaseMessage('تم تسجيل الدخول. جارٍ تحميل بيانات الحضور.');
-                        document.getElementById('authGate').classList.remove('hidden');
+                        scheduleAuthGate();
                     },
                     onPending(status) {
                         document.getElementById('authGate').classList.add('hidden');
@@ -2707,10 +2736,7 @@
                         applyCloudSnapshots();
                     },
                     onData(data, metadata) {
-                        if (metadata.hasPendingWrites) {
-                            updateCloudUI('المزامنة قيد التنفيذ');
-                            return;
-                        }
+                        if (metadata.hasPendingWrites) updateCloudUI('المزامنة قيد التنفيذ');
                         if (!isValidWorkspace(data)) {
                             setFirebaseMessage('بيانات السحابة غير صالحة.', true);
                             return;
@@ -2744,9 +2770,13 @@
                     },
                     onError(error) {
                         clearTimeout(cacheStatusTimer);
+                        clearTimeout(authGateTimer);
                         updateCloudUI('فشلت مزامنة Firebase');
                         setFirebaseMessage(error.message, true);
-                        if (firebaseUser && !workspaceLoaded) document.getElementById('authGate').classList.remove('hidden');
+                        if (firebaseUser && !workspaceLoaded) {
+                            document.getElementById('authGateMessage').textContent = `تعذر تحميل البيانات: ${error.message}`;
+                            document.getElementById('authGate').classList.remove('hidden');
+                        }
                     }
                 });
                 if (jobListener) jobListener();
@@ -2928,9 +2958,9 @@
             document.querySelectorAll('.mobile-nav-btn').forEach(btn => btn.classList.remove('active'));
             if (el) el.classList.add('active');
             if (tab === 'home') {
-                document.getElementById('appMain')?.scrollIntoView({ behavior: 'smooth' });
+                showAppPage('home');
             } else if (tab === 'employees') {
-                document.getElementById('employeeDirectorySection')?.scrollIntoView({ behavior: 'smooth' });
+                showAppPage('employees');
             } else if (tab === 'balances') {
                 openMyBalancesModal();
             } else if (tab === 'report') {
@@ -3085,7 +3115,7 @@
                 return;
             }
             document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('authGate').classList.remove('hidden');
+            scheduleAuthGate();
             if (firebaseReady && !firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
         window.addEventListener('firebase-bridge-ready', () => {

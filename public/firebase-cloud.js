@@ -106,7 +106,12 @@ function connect(config, callbacks) {
             const staffQuery = admin ? collection(database, 'staff') : query(collection(database, 'staff'), where('groupKey', '==', key));
             listeners.push(onSnapshot(staffQuery, snap => callbacks.onProfiles(snap.docs.map(item => ({ ...item.data(), id: item.id }))), callbacks.onError));
             listeners.push(onSnapshot(metaRef(), { includeMetadataChanges: true }, snap => {
-                if (!snap.exists()) { if (admin && !snap.metadata.fromCache) callbacks.onEmpty(); return; }
+                if (!snap.exists()) {
+                    settings = { times: {}, overrides: {} };
+                    if (admin && !snap.metadata.fromCache) callbacks.onEmpty();
+                    emit(snap.metadata);
+                    return;
+                }
                 settings = snap.data().shiftSettings || { times: {}, overrides: {} };
                 emit(snap.metadata);
             }, callbacks.onError));
