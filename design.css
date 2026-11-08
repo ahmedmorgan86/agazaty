@@ -268,6 +268,7 @@ body { background: var(--canvas) !important; color: var(--ink); }
 .login-screen .login-card { width: 100%; min-height: 0; max-width: none; padding: clamp(25px,3vw,42px); border: 1px solid #e0e9e9; border-radius: 25px; background: #fff; box-shadow: 0 18px 52px rgba(21,59,64,.09); color: #20373e; }
 .dark .login-screen .login-card { background: #1a2d35 !important; border-color: #3b535a; color: #edf7f5; }
 .login-card-heading { margin-bottom: 24px; }
+.login-screen .login-card > .login-card-heading { width: auto; height: auto; min-height: 0; }
 .login-card-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border-radius: 8px; background: #e5f4ef; color: #086e65; font-size: 11px; font-weight: 900; }
 .dark .login-card-badge { background: #244b45; color: #b2f1df; }
 .login-card-heading h2 { margin-top: 16px; color: #142e35; font-size: clamp(26px,2.5vw,34px); font-weight: 900; line-height: 1.4; }
@@ -337,12 +338,14 @@ body { background: var(--canvas) !important; color: var(--ink); }
   .login-brand small { font-size: 9px; }
   .login-screen .login-theme-toggle { min-height: 38px; padding: 7px 10px; }
   .login-screen .login-theme-toggle span { display: none; }
-  .login-layout { display: flex; flex-direction: column; align-items: stretch; gap: 16px; padding-block: 22px 0; }
-  .login-screen .login-intro { min-height: 0; padding: 26px; border-radius: 22px; }
+  .login-layout { display: flex; flex-direction: column; align-items: stretch; gap: 16px; padding-block: 18px 0; }
+  .login-screen .login-intro { display: none; }
   .login-screen .login-intro h1 { margin-top: 22px; font-size: clamp(31px,8vw,44px); line-height: 1.32; }
   .login-screen .login-intro p { margin-top: 8px; font-size: 11px; line-height: 1.8; }
   .login-feature-list, .login-intro-footer { display: none; }
   .login-screen .login-card { padding: 26px 23px; border-radius: 20px; }
+  .login-card-heading h2 { font-size: 27px; line-height: 1.35; }
+  .login-card-heading p { line-height: 1.8; }
   .login-screen .login-downloads { padding: 15px; }
 }
 @media (max-width: 460px) {

@@ -140,8 +140,6 @@ button:not(:disabled):active { transform: translateY(1px); }
   .login-screen { display: flex; align-items: stretch; justify-content: center; padding: 0; background: var(--surface); }
   .login-screen::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--surface); z-index: 5; }
   .login-card { width: 100%; max-width: 440px; min-height: 100dvh; padding: max(50px, calc(env(safe-area-inset-top) + 35px)) 24px max(26px, env(safe-area-inset-bottom)); border: 0; border-radius: 0; box-shadow: none; }
-  .login-card > div:first-child { width: 88px; height: 88px; border-radius: 20px; }
-  .login-card > div:first-child img { width: 80px; height: 80px; }
   .login-card h1 { font-size: 30px; }
   .login-card input { min-height: 52px; border-radius: 13px; }
   .login-card button[type=submit] { min-height: 54px; border-radius: 14px; }
