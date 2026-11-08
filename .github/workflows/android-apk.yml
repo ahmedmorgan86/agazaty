@@ -25,10 +25,23 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
-      - name: Build installable APK
+      - name: Build signed installable APK
+        env:
+          AGAZATY_SIGNING_KEY_B64: ${{ secrets.AGAZATY_SIGNING_KEY_B64 }}
+          AGAZATY_SIGNING_PASSWORD: ${{ secrets.AGAZATY_SIGNING_PASSWORD }}
         run: |
-          gradle -p android --no-daemon :app:assembleDebug
-          cp android/app/build/outputs/apk/debug/app-debug.apk agazaty-android.apk
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            gradle -p android --no-daemon :app:assembleDebug
+            cp android/app/build/outputs/apk/debug/app-debug.apk agazaty-android.apk
+          else
+            test -n "$AGAZATY_SIGNING_KEY_B64"
+            test -n "$AGAZATY_SIGNING_PASSWORD"
+            export AGAZATY_SIGNING_STORE="$RUNNER_TEMP/agazaty-release.jks"
+            printf '%s' "$AGAZATY_SIGNING_KEY_B64" | base64 --decode > "$AGAZATY_SIGNING_STORE"
+            gradle -p android --no-daemon :app:assembleRelease
+            cp android/app/build/outputs/apk/release/app-release.apk agazaty-android.apk
+          fi
+          test -s agazaty-android.apk
       - uses: actions/upload-artifact@v4
         with:
           name: agazaty-android-apk
@@ -54,6 +67,7 @@ jobs:
     needs: [android, windows]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: agazaty-*
@@ -64,4 +78,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release create v1.3.5 release/agazaty-android.apk release/agazaty-windows.zip --title 'أجازاتي 1.3.5' --notes 'تحسين تقرير الموظف الشهري وإصلاح تصدير Excel على الويب وأندرويد وويندوز. يحتاج التطبيق إلى اتصال بالإنترنت.' --latest
+          if gh release view v1.3.6 >/dev/null 2>&1; then
+            gh release upload v1.3.6 release/agazaty-android.apk release/agazaty-windows.zip --clobber
+          else
+            gh release create v1.3.6 release/agazaty-android.apk release/agazaty-windows.zip --title 'أجازاتي 1.3.6' --notes 'إصلاح تثبيت وتحديث أندرويد بتوقيع إصدار ثابت وتحسين تنزيل APK. قد يلزم حذف النسخة القديمة ذات توقيع التصحيح المختلف مرة واحدة.' --latest
+          fi
+      - name: Publish APK on website
+        run: |
+          git pull --rebase origin main
+          cp release/agazaty-android.apk public/agazaty-android.apk
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/agazaty-android.apk
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish signed Android 1.3.6 APK'
+            git push origin HEAD:main
+          fi
