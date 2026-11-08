@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -58,6 +60,35 @@ internal sealed class MainWindow : Form
             {
                 args.Handled = true;
                 OpenExternal(args.Uri);
+            };
+            browser.CoreWebView2.WebMessageReceived += async (_, args) =>
+            {
+                if (!IsAppUrl(args.Source)) return;
+                try
+                {
+                    var message = args.WebMessageAsJson;
+                    if (message.Length > 20 * 1024 * 1024) return;
+                    using var json = JsonDocument.Parse(message);
+                    var data = json.RootElement;
+                    if (data.GetProperty("type").GetString() != "saveExcel") return;
+                    var filename = data.GetProperty("filename").GetString();
+                    var base64 = data.GetProperty("data").GetString();
+                    if (filename is null || !Regex.IsMatch(filename, @"^attendance_sheet_\d{4}-\d{2}\.xlsx$") || base64 is null) return;
+                    using var dialog = new SaveFileDialog
+                    {
+                        FileName = filename,
+                        Filter = "Excel workbook (*.xlsx)|*.xlsx",
+                        DefaultExt = "xlsx",
+                        AddExtension = true
+                    };
+                    if (dialog.ShowDialog(this) != DialogResult.OK) return;
+                    File.WriteAllBytes(dialog.FileName, Convert.FromBase64String(base64));
+                    await browser.ExecuteScriptAsync("showNotice('تم حفظ ملف Excel.', 'success')");
+                }
+                catch
+                {
+                    await browser.ExecuteScriptAsync("showNotice('تعذر حفظ ملف Excel.', 'error')");
+                }
             };
             browser.Source = AppUrl;
         }

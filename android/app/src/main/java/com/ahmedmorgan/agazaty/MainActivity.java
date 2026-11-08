@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.print.PrintAttributes;
 import android.print.PrintManager;
 import android.view.Gravity;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.WindowInsetsController;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -24,13 +26,18 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.OutputStream;
 
 public final class MainActivity extends Activity {
     private static final String HOME = "https://agazaty-am.vercel.app/";
     private static final int FILE_PICKER = 701;
+    private static final int EXPORT_PICKER = 702;
     private WebView webView;
     private LinearLayout errorView;
     private ValueCallback<Uri[]> fileCallback;
+    private byte[] pendingExportBytes;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -55,7 +62,8 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.4");
+        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.5");
+        webView.addJavascriptInterface(new AndroidExport(), "AgazatyAndroidExport");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -140,11 +148,49 @@ public final class MainActivity extends Activity {
         return true;
     }
 
+    private final class AndroidExport {
+        @JavascriptInterface public void saveExcel(String base64, String filename) {
+            runOnUiThread(() -> {
+                Uri current = Uri.parse(webView.getUrl() == null ? "" : webView.getUrl());
+                if (!"https".equals(current.getScheme()) ||
+                    !"agazaty-am.vercel.app".equals(current.getHost()) ||
+                    filename == null || !filename.matches("attendance_sheet_\\d{4}-\\d{2}\\.xlsx") ||
+                    base64 == null || base64.length() > 20 * 1024 * 1024) return;
+                try {
+                    pendingExportBytes = Base64.decode(base64, Base64.DEFAULT);
+                    Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    save.addCategory(Intent.CATEGORY_OPENABLE);
+                    save.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                    save.putExtra(Intent.EXTRA_TITLE, filename);
+                    startActivityForResult(save, EXPORT_PICKER);
+                } catch (Exception error) {
+                    pendingExportBytes = null;
+                    Toast.makeText(MainActivity.this, "تعذر تجهيز ملف Excel.", Toast.LENGTH_LONG).show();
+                }
+            });
+        }
+    }
+
     @Override protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
         if (request == FILE_PICKER && fileCallback != null) {
             fileCallback.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(result, data));
             fileCallback = null;
+        }
+        if (request == EXPORT_PICKER && pendingExportBytes != null) {
+            try {
+                if (result == RESULT_OK && data != null && data.getData() != null) {
+                    try (OutputStream output = getContentResolver().openOutputStream(data.getData())) {
+                        if (output == null) throw new IllegalStateException("No output stream");
+                        output.write(pendingExportBytes);
+                    }
+                    Toast.makeText(this, "تم حفظ ملف Excel.", Toast.LENGTH_LONG).show();
+                }
+            } catch (Exception error) {
+                Toast.makeText(this, "تعذر حفظ ملف Excel.", Toast.LENGTH_LONG).show();
+            } finally {
+                pendingExportBytes = null;
+            }
         }
     }
     @Override public void onBackPressed() {
