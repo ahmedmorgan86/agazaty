@@ -11,7 +11,7 @@ from reportlab.graphics import renderSVG
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 DOWNLOADS = {
-    "install-qr.svg": "https://agazaty-am.vercel.app/apk?v=1.3.5",
+    "install-qr.svg": "https://agazaty-am.vercel.app/agazaty-android.apk?v=1.3.6",
     "windows-qr.svg": "https://agazaty-am.vercel.app/windows?v=1.3.5",
 }
 
