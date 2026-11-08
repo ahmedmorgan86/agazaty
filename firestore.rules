@@ -20,6 +20,18 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/jobs/$(job))
         && get(/databases/$(database)/documents/jobs/$(job)).data.active == true;
     }
+    function validMemberEdit() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['name', 'annual_balance', 'casual_balance', 'perm_hours'])
+        && (!changed.hasAny(['name']) || (request.resource.data.name is string
+          && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80))
+        && (!changed.hasAny(['annual_balance']) || (request.resource.data.annual_balance is number
+          && request.resource.data.annual_balance >= 0 && request.resource.data.annual_balance <= 365))
+        && (!changed.hasAny(['casual_balance']) || (request.resource.data.casual_balance is number
+          && request.resource.data.casual_balance >= 0 && request.resource.data.casual_balance <= 365))
+        && (!changed.hasAny(['perm_hours']) || (request.resource.data.perm_hours is number
+          && request.resource.data.perm_hours >= 0 && request.resource.data.perm_hours <= 100));
+    }
     function validRecord(date, employeeId) {
       let target = get(/databases/$(database)/documents/teamMembership/$(employeeId)).data;
       return request.resource.data.keys().hasAll(['date', 'team', 'job', 'groupKey', 'status', 'delay', 'permissionMinutes', 'notes'])
@@ -67,10 +79,9 @@ service cloud.firestore {
       allow get: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow list: if isAdmin();
       allow create, delete: if isAdmin();
-      allow update: if isAdmin() || (request.auth != null && (
-        request.auth.uid == uid
-        || sameGroup(resource.data.groupKey)
-      ));
+      allow update: if isAdmin()
+        || (request.auth != null && request.auth.uid == uid && validMemberEdit())
+        || (sameGroup(resource.data.groupKey) && validMemberEdit());
     }
     match /teamMembership/{employeeId} {
       allow read, write: if isAdmin();
@@ -81,10 +92,9 @@ service cloud.firestore {
         || (request.auth != null && (employeeId == request.auth.uid || resource.data.get('authUid', '') == request.auth.uid));
       allow create, delete: if isAdmin();
       allow update: if isAdmin() || (request.auth != null && (
-        employeeId == request.auth.uid
-        || resource.data.get('authUid', '') == request.auth.uid
-        || resource.data.get('id', '') == request.auth.uid
-        || sameGroup(resource.data.groupKey)
+        (employeeId == request.auth.uid || resource.data.get('authUid', '') == request.auth.uid
+          || resource.data.get('id', '') == request.auth.uid || sameGroup(resource.data.groupKey))
+        && validMemberEdit()
       ));
     }
     match /meta/workspace {

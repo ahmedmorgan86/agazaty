@@ -4,7 +4,7 @@
   "description": "لوحة عربية للحضور والورديات والإجازات. الواجهة ثابتة (`index.html`, `theme.css`, `firebase-cloud.js`) وتستخدم Firebase Authentication وCloud Firestore. يدعم المظهر النهاري والليلي، والجداول على الشاشات الكبيرة وبطاقات الأيام على الهاتف.",
   "private": true,
   "scripts": {
-    "test": "firebase emulators:exec --only firestore --project demo-agazaty 'node tests/rules.test.mjs'",
+    "test": "firebase emulators:exec --only firestore --project demo-agazaty \"node tests/rules.test.mjs\"",
     "check": "node --check firebase-cloud.js && node --check scripts/bootstrap-admin.mjs && python build_public.py",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },

@@ -223,15 +223,17 @@ async function updateEmployeeBalances(employeeId, balances, employeeAuthUid = nu
     if (balances.name && typeof balances.name === 'string' && balances.name.trim().length > 0) {
         payload.name = balances.name.trim().slice(0, 80);
     }
-    await updateDoc(staffRef(employeeId), payload);
-    const uid = employeeAuthUid || (auth?.currentUser?.uid);
-    if (uid) {
-        try {
-            await updateDoc(doc(database, 'employeeAccounts', uid), payload);
-        } catch (e) {
-            console.warn('Could not update employeeAccounts:', e);
+    let uid = employeeAuthUid;
+    if (!uid && auth?.currentUser) {
+        const ownAccount = await getDocFromServer(doc(database, 'employeeAccounts', auth.currentUser.uid));
+        if (ownAccount.exists() && (ownAccount.data().employeeId === employeeId || ownAccount.data().id === employeeId)) {
+            uid = auth.currentUser.uid;
         }
     }
+    const batch = writeBatch(database);
+    batch.update(staffRef(employeeId), payload);
+    if (uid) batch.update(doc(database, 'employeeAccounts', uid), payload);
+    await batch.commit();
 }
 async function ensureDefaultJobs() {
     for (const name of defaultJobs) {

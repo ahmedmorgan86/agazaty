@@ -4,8 +4,9 @@ import { getAuth } from 'firebase-admin/auth';
 
 const email = process.argv[2];
 const existing = process.argv.includes('--existing');
-if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.error('Usage: GOOGLE_APPLICATION_CREDENTIALS=/private/path/service-account.json npm run bootstrap:admin -- admin@example.com [--existing]');
+const authorizedAdminEmail = 'ahmed.morgan2009@gmail.com';
+if (!email || email.toLowerCase() !== authorizedAdminEmail || !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+  console.error(`Usage: GOOGLE_APPLICATION_CREDENTIALS=/private/path/service-account.json npm run bootstrap:admin -- ${authorizedAdminEmail} [--existing]`);
   process.exit(1);
 }
 

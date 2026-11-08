@@ -62,6 +62,12 @@ try {
   await assertFails(red.doc('staff/emp_red').update({ team: 'blue' }));
   await assertSucceeds(red.doc('staff/emp_red').update({ annual_balance: 25, casual_balance: 6, perm_hours: 5 }));
   await assertSucceeds(red.doc('employeeAccounts/red-user').update({ annual_balance: 25, casual_balance: 6, perm_hours: 5 }));
+  await assertFails(red.doc('staff/emp_red').update({ groupKey: keyBlue }));
+  await assertFails(red.doc('staff/emp_red').update({ job: 'البنية التحتية' }));
+  await assertFails(red.doc('staff/emp_red').update({ annual_balance: 999 }));
+  await assertFails(red.doc('employeeAccounts/red-user').update({ team: 'blue', groupKey: keyBlue }));
+  await assertFails(red.doc('employeeAccounts/red-user').update({ job: 'البنية التحتية' }));
+  await assertFails(red.doc('employeeAccounts/blue-user').update({ annual_balance: 25 }));
   await assertFails(red.doc('staff/emp_red').update({ role: 'admin' }));
   await assertSucceeds(red.collection('staff').where('groupKey', '==', keyRed).get());
   await assertSucceeds(solo.doc('staff/emp_solo').get());
