@@ -5,9 +5,9 @@
   --accent-soft: #def4ef; --warm: #b46a22; --shadow: 0 15px 42px rgba(23, 38, 56, .08);
 }
 .dark {
-  --canvas: #0c1624; --surface: #18283a; --surface-2: #23374b; --ink: #f3f7fb;
-  --muted: #c0cfdd; --line: #435a70; --accent: #83e2d2; --accent-hover: #a6f1e3;
-  --accent-soft: #1c454b; --warm: #f0c58c; --shadow: 0 18px 45px rgba(0, 0, 0, .3);
+  --canvas: #111820; --surface: #202d38; --surface-2: #2c3c48; --ink: #f7fafc;
+  --muted: #d0d9e1; --line: #566a78; --accent: #8ae8d0; --accent-hover: #b0f5e4;
+  --accent-soft: #244b4a; --warm: #f0c58c; --shadow: 0 18px 45px rgba(0, 0, 0, .27);
 }
 html { scroll-behavior: smooth; }
 body { background: var(--canvas) !important; color: var(--ink); transition: background .2s, color .2s; }
@@ -85,6 +85,9 @@ button:not(:disabled):active { transform: translateY(1px); }
 .attendance-grid th { letter-spacing: .01em; }
 .attendance-grid tbody tr:hover { background: var(--accent-soft); }
 .attendance-grid td, .attendance-grid th { border-color: var(--line); }
+.dark .attendance-grid tbody tr:hover { background-color: #2b4651 !important; }
+.dark .attendance-grid tbody tr:hover > td { background-color: #2b4651 !important; color: var(--ink); }
+.dark .attendance-grid tbody tr:hover > td:hover { background-color: #365d66 !important; color: var(--ink); }
 :root:not(.dark) .text-slate-400 { color: #53677a !important; }
 :root:not(.dark) .text-slate-500 { color: #4d6072 !important; }
 .dark .bg-white, .dark .login-card, .dark .app-modal > div, .dark #authGate > div { background-color: var(--surface) !important; color: var(--ink); border-color: var(--line) !important; }
