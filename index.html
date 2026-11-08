@@ -182,7 +182,7 @@
             .print-only { display: block !important; }
         }
     </style>
-    <link rel="stylesheet" href="./theme.css">
+    <link rel="stylesheet" href="./theme.css?v=8">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -1489,11 +1489,11 @@
                             <span>${teamIcon}</span>
                             <span>${escapeHTML(emp.name)}</span>
                         </div>
-                        <div class="flex justify-between items-center text-[10px] text-slate-400 font-normal mt-1 px-2">
+                        <div class="flex justify-between items-center text-[11px] text-slate-400 font-normal mt-1 px-2">
                             <span>البيان</span>
                             <span>التأخير</span>
                         </div>
-                        <div class="text-[10px] text-slate-500 font-normal mt-1">${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</div>
+                        <div class="text-[11px] text-slate-500 font-normal mt-1">${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</div>
                     </th>
                 `;
             });
@@ -1560,7 +1560,7 @@
                                 ${getStatusBadge(displayedStatus(date, emp, rec))}
                                 ${rec.notes ? '<i class="fa-solid fa-comment-dots text-slate-400 text-[10px]" title="'+escapeHTML(rec.notes)+'"></i>' : ''}
                             </div>
-                            <span class="text-[9px] text-slate-500">${escapeHTML(employeeShift)}</span>
+                            <span class="text-[11px] text-slate-500">${escapeHTML(employeeShift)}</span>
                         </td>
                         <td onclick="openEditModal('${date}', '${emp.id}')" class="p-2 text-center cursor-pointer hover:bg-blue-50/80 transition">
                             ${delayBadge}
@@ -1593,7 +1593,7 @@
                     </td>
                     <td class="p-3 text-center bg-slate-100">
                         <span class="text-xs font-extrabold text-red-600 block">${t.delay} د</span>
-                        <span class="text-[9px] text-slate-400 block">${(t.delay/60).toFixed(1)} س</span>
+                        <span class="text-[11px] text-slate-400 block">${(t.delay/60).toFixed(1)} س</span>
                     </td>
                 `;
             });
@@ -1740,9 +1740,9 @@
                         <i class="${k.icon}"></i>
                     </div>
                     <div>
-                        <span class="text-[11px] text-slate-500 block leading-tight">${escapeHTML(k.label)}</span>
+                        <span class="text-xs text-slate-500 block leading-tight">${escapeHTML(k.label)}</span>
                         <span class="text-base font-bold text-slate-900 block">${escapeHTML(k.value)}</span>
-                        ${k.sub ? `<span class="text-[10px] text-slate-400 block">${escapeHTML(k.sub)}</span>` : ''}
+                        ${k.sub ? `<span class="text-[11px] text-slate-400 block">${escapeHTML(k.sub)}</span>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -3124,7 +3124,7 @@
             if (!firebaseConnected) connectFirebase(FIREBASE_CONFIG);
         });
     </script>
-    <script type="module" src="./firebase-cloud.js?v=3" onerror="firebaseLoadFailed = true; updateCloudUI('تعذر تحميل Firebase'); showSignedOut()"></script>
+    <script type="module" src="./firebase-cloud.js?v=4" onerror="firebaseLoadFailed = true; updateCloudUI('تعذر تحميل Firebase'); showSignedOut()"></script>
     <script>if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));</script>
 </body>
 </html>
