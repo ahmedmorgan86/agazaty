@@ -62,7 +62,7 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.6");
+        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.7");
         webView.addJavascriptInterface(new AndroidExport(), "AgazatyAndroidExport");
 
         webView.setWebViewClient(new WebViewClient() {
