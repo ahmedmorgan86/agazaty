@@ -9,7 +9,7 @@
     },
     {
       "source": "/windows",
-      "destination": "https://github.com/ahmedmorgan86/agazaty/releases/download/v1.3.1/agazaty-windows.zip",
+      "destination": "/agazaty-windows.zip",
       "permanent": false
     }
   ]

@@ -20,4 +20,4 @@ gradle -p android :app:assembleDebug
 
 ## Windows
 
-يبني GitHub Actions تطبيق Windows مستقلًا داخل ملف `agazaty-windows.zip`. نزّله من `https://agazaty-am.vercel.app/windows`، ثم فك الضغط وشغّل `Agazaty.exe`. يستخدم التطبيق Microsoft Edge WebView2 Runtime لعرض الموقع، ويخزن بيانات جلسة التصفح في مجلد المستخدم المحلي. يحتاج إلى الإنترنت؛ البيانات المشتركة تبقى في Firebase. إن لم يكن WebView2 Runtime مثبتًا، ثبّته من Microsoft. يمكن أيضًا تثبيت الموقع كتطبيق من Microsoft Edge أو Chrome.
+يبني GitHub Actions تطبيق Windows مستقلًا داخل ملف `agazaty-windows.zip`، ويُنشر الملف أيضًا على الموقع مباشرة. نزّله من `https://agazaty-am.vercel.app/windows`، ثم فك الضغط وشغّل `Agazaty.exe`. يستخدم التطبيق Microsoft Edge WebView2 Runtime لعرض الموقع، ويخزن بيانات جلسة التصفح في مجلد المستخدم المحلي. يحتاج إلى الإنترنت؛ البيانات المشتركة تبقى في Firebase. إن لم يكن WebView2 Runtime مثبتًا، ثبّته من Microsoft. يمكن أيضًا تثبيت الموقع كتطبيق من Microsoft Edge أو Chrome.
