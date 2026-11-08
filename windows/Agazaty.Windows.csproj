@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>Assets\agazaty.ico</ApplicationIcon>
     <AssemblyName>Agazaty</AssemblyName>
-    <Version>1.3.5</Version>
+    <Version>1.3.6</Version>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
