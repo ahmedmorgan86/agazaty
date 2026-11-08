@@ -2624,7 +2624,6 @@
             }
             try {
                 await window.firebaseBridge.changePassword(current, next);
-                if (firebaseUser?.uid) localStorage.setItem(`password-updated:${firebaseUser.uid}`, '1');
                 document.getElementById('currentPassword').value = '';
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
@@ -2694,13 +2693,6 @@
             showAppPage(currentAppPage, false);
             clearTimeout(authGateTimer);
             document.getElementById('authGate').classList.add('hidden');
-            if (isAdmin && firebaseUser?.email?.toLowerCase() === 'ahmed.morgan2009@gmail.com' &&
-                !localStorage.getItem(`password-updated:${firebaseUser.uid}`) &&
-                !sessionStorage.getItem(`password-prompted:${firebaseUser.uid}`)) {
-                sessionStorage.setItem(`password-prompted:${firebaseUser.uid}`, '1');
-                showAccountModal();
-                document.getElementById('accountMessage').textContent = 'يمكنك تغيير كلمة المرور الآن من حسابك.';
-            }
         }
 
         function applyCloudSnapshots() {
