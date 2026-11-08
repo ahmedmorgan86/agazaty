@@ -186,43 +186,60 @@
         }
     </style>
     <link rel="stylesheet" href="./theme.css?v=10">
-    <link rel="stylesheet" href="./design.css?v=2">
+    <link rel="stylesheet" href="./design.css?v=3">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
-        <div class="login-intro" aria-hidden="true"><span class="eyebrow">AGAZATY / WORKSPACE</span><div class="intro-symbol"><img src="./assets/app-logo.png?v=2" alt=""></div><h2>يوم عمل أوضح،<br>وفريق أكثر تنظيمًا.</h2><p>الحضور، الورديات، الإجازات والتقارير في مساحة عمل واحدة.</p><div class="intro-line"><span>01 / الحضور</span><span>02 / الورديات</span><span>03 / الأرصدة</span></div></div>
-        <button type="button" class="login-theme-toggle" onclick="toggleTheme()" aria-label="تبديل المظهر"><i class="fa-solid fa-circle-half-stroke"></i> المظهر</button>
-        <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
-            <div class="w-24 h-24 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mb-4"><img src="./assets/app-logo.png?v=2" alt="شعار أجازاتي" class="w-20 h-20 object-contain"></div>
-            <h1 class="text-2xl font-black text-slate-900">أجازاتي</h1>
-            <p class="text-sm text-slate-500 mt-2">أدخل كود الموظف وكلمة المرور؛ تظهر صلاحيات حسابك تلقائيًا.</p>
-            <label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label>
-            <input id="loginCode" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="username" required placeholder="أدخل كودك" dir="ltr" oninput="normalizeLoginIdentifier(this)">
-            <label for="loginPassword">كلمة المرور</label>
-            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="كلمة المرور" dir="ltr">
-            <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
-            <button type="submit" id="loginButton">دخول الحساب</button>
-            <button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="showRegistration()">موظف جديد؟ أرسل طلب تسجيل</button>
-            <p class="text-xs text-slate-500 mt-2">يُفعّل الحساب بعد موافقة مدير النظام.</p>
-            <section class="download-panel" aria-label="تحميل التطبيقات">
-                <span class="eyebrow">تطبيقات أجازاتي</span><strong class="download-panel-title">حمّل التطبيق لجهازك</strong>
-                <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>ملف APK للتثبيت على الهاتف.</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل أندرويد</a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=3" alt="QR لتحميل تطبيق أندرويد" width="86" height="86"></a></div>
-                <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>حمّل الملف المضغوط، فكّه ثم شغّل Agazaty.exe.</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل ويندوز</a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=1" alt="QR لتحميل تطبيق ويندوز" width="86" height="86"></a></div>
-                <p class="download-footnote">على iPhone: افتح الموقع في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».</p>
-            </section>
-            <p class="text-xs text-slate-400 text-center mt-4">© Ahmed Morgan <span class="copyright-year"></span></p>
-        </form>
-        <form id="registrationForm" class="login-card hidden" onsubmit="submitRegistration(event)">
-            <h2 class="text-xl font-black">طلب تسجيل موظف</h2><p class="text-xs text-slate-500 mt-2">راجع المدير الوردية والوظيفة قبل تفعيل الحساب.</p>
-            <label for="registrationName">الاسم</label><input id="registrationName" required maxlength="80" autocomplete="name">
-            <label for="registrationCode">كود الموظف (٤ أرقام)</label><input id="registrationCode" required type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" dir="ltr" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
-            <label for="registrationTeam">الوردية</label><select id="registrationTeam" required><option value="">اختر الوردية</option><option value="red">الحمراء</option><option value="blue">الزرقاء</option><option value="yellow">الصفراء</option><option value="morning">الصباحية</option></select>
-            <label for="registrationJob">الوظيفة</label><select id="registrationJob" required><option value="">جاري تحميل الوظائف</option></select>
-            <label for="registrationPassword">كلمة المرور</label><input id="registrationPassword" type="password" required minlength="7" autocomplete="new-password">
-            <p id="registrationMessage" role="status" class="text-xs mt-3"></p>
-            <button type="submit">إرسال طلب التسجيل</button><button type="button" class="text-sm font-bold text-cyan-700 mt-4" onclick="hideRegistration()">العودة إلى تسجيل الدخول</button>
-        </form>
-        <div id="pendingCard" class="login-card hidden"><h2 class="text-xl font-black">طلبك قيد المراجعة</h2><p id="pendingMessage" class="text-sm text-slate-500 mt-3">سيظهر حسابك بعد موافقة المدير.</p><button type="button" class="mt-4 text-cyan-700 font-bold" onclick="logoutEmployee()">خروج</button></div>
+        <div class="login-shell">
+            <header class="login-topbar">
+                <div class="login-brand"><span class="login-brand-mark"><img src="./assets/app-logo.png?v=2" alt="شعار أجازاتي"></span><span><strong>أجازاتي</strong><small>مساحة الحضور والورديات</small></span></div>
+                <button type="button" class="login-theme-toggle" onclick="toggleTheme()" aria-label="تبديل المظهر"><i class="fa-solid fa-circle-half-stroke"></i><span>المظهر</span></button>
+            </header>
+            <div class="login-layout">
+                <section class="login-intro" aria-labelledby="loginIntroTitle">
+                    <span class="login-kicker"><span></span> مساحة عمل منظمة لكل وردية</span>
+                    <h1 id="loginIntroTitle">كل أيامك،<br><em>في مكان واحد.</em></h1>
+                    <p>تابع جدول الورديات والحضور والإجازات من شاشة واضحة، سواء كنت في المكتب أو على هاتفك.</p>
+                    <div class="login-feature-list" aria-label="مزايا التطبيق">
+                        <div><span class="login-feature-icon"><i class="fa-regular fa-calendar-days"></i></span><span><strong>الشهر كاملًا</strong><small>شاهد جدولك من أول يوم لآخر يوم.</small></span></div>
+                        <div><span class="login-feature-icon"><i class="fa-solid fa-people-group"></i></span><span><strong>فريقك في ورديتك</strong><small>بيانات فريقك وإدارتك في متناولك.</small></span></div>
+                        <div><span class="login-feature-icon"><i class="fa-regular fa-clock"></i></span><span><strong>أرصدة واضحة</strong><small>إجازاتك وأذوناتك وراحاتك بسهولة.</small></span></div>
+                    </div>
+                    <div class="login-intro-footer"><span class="login-live-dot"></span> صُمم ليتناسب مع الكمبيوتر والموبايل</div>
+                </section>
+                <div class="login-access">
+                    <form id="loginForm" class="login-card" onsubmit="loginEmployee(event)">
+                        <div class="login-card-heading"><span class="login-card-badge"><i class="fa-solid fa-lock"></i> حساب الموظف</span><h2>أهلًا بعودتك</h2><p>أدخل بيانات حسابك للوصول إلى جدول ورديتك.</p></div>
+                        <div class="login-fields"><label for="loginCode" id="loginIdentifierLabel">كود الموظف (٤ أرقام)</label><div class="login-input-wrap"><i class="fa-regular fa-id-card"></i><input id="loginCode" type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="username" required placeholder="أدخل كودك" dir="ltr" oninput="normalizeLoginIdentifier(this)"></div>
+                        <label for="loginPassword">كلمة المرور</label><div class="login-input-wrap login-password-wrap"><i class="fa-solid fa-lock"></i><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="أدخل كلمة المرور" dir="ltr"><button type="button" class="login-password-toggle" onclick="toggleLoginPassword()" aria-label="إظهار كلمة المرور" aria-pressed="false"><i class="fa-regular fa-eye"></i></button></div></div>
+                        <p id="loginError" role="alert" class="hidden text-red-700 text-xs mt-3"></p>
+                        <button type="submit" id="loginButton">دخول إلى حسابي <i class="fa-solid fa-arrow-left"></i></button>
+                        <div class="login-signup"><span>ليس لديك حساب؟</span><button type="button" onclick="showRegistration()">إنشاء حساب موظف <i class="fa-solid fa-arrow-left"></i></button></div>
+                        <p class="login-approval-note"><i class="fa-solid fa-circle-info"></i> يُفعّل الحساب الجديد بعد موافقة مدير النظام.</p>
+                    </form>
+                    <form id="registrationForm" class="login-card hidden" onsubmit="submitRegistration(event)">
+                        <div class="login-card-heading"><span class="login-card-badge"><i class="fa-solid fa-user-plus"></i> حساب جديد</span><h2>انضم إلى فريقك</h2><p>أكمل بياناتك، وسيُراجع المدير طلبك قبل التفعيل.</p></div>
+                        <label for="registrationName">الاسم</label><input id="registrationName" required maxlength="80" autocomplete="name">
+                        <label for="registrationCode">كود الموظف (٤ أرقام)</label><input id="registrationCode" required type="text" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" dir="ltr" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)">
+                        <label for="registrationTeam">الوردية</label><select id="registrationTeam" required><option value="">اختر الوردية</option><option value="red">الحمراء</option><option value="blue">الزرقاء</option><option value="yellow">الصفراء</option><option value="morning">الصباحية</option></select>
+                        <label for="registrationJob">الإدارة</label><select id="registrationJob" required><option value="">جاري تحميل الإدارات</option></select>
+                        <label for="registrationPassword">كلمة المرور</label><input id="registrationPassword" type="password" required minlength="7" autocomplete="new-password">
+                        <p id="registrationMessage" role="status" class="text-xs mt-3"></p>
+                        <button type="submit">إرسال طلب التسجيل <i class="fa-solid fa-arrow-left"></i></button><button type="button" class="login-back-button" onclick="hideRegistration()"><i class="fa-solid fa-arrow-right"></i> العودة إلى تسجيل الدخول</button>
+                    </form>
+                    <div id="pendingCard" class="login-card hidden"><h2 class="text-xl font-black">طلبك قيد المراجعة</h2><p id="pendingMessage" class="text-sm text-slate-500 mt-3">سيظهر حسابك بعد موافقة المدير.</p><button type="button" class="login-back-button" onclick="logoutEmployee()">تسجيل الخروج</button></div>
+                    <section class="download-panel login-downloads" aria-label="تحميل التطبيقات">
+                        <div class="login-download-heading"><span class="login-download-icon"><i class="fa-solid fa-download"></i></span><span><strong>خذ أجازاتي معك</strong><small>نسخة مناسبة لكل جهاز</small></span></div>
+                        <div class="login-download-grid">
+                            <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>التطبيق على هاتفك</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=3" alt="QR لتحميل تطبيق أندرويد" width="86" height="86"></a></div>
+                            <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>للكمبيوتر والمكتب</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=1" alt="QR لتحميل تطبيق ويندوز" width="86" height="86"></a></div>
+                        </div>
+                        <p class="download-footnote">iPhone: افتح الموقع في Safari ثم اختر «إضافة إلى الشاشة الرئيسية».</p>
+                    </section>
+                    <p class="login-copyright">© Ahmed Morgan <span class="copyright-year"></span></p>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
@@ -489,7 +506,7 @@
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">الإدارة:</label>
-                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الوظيفة</option></select>
+                        <select id="formEmpJob" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"><option value="">اختر الإدارة</option></select>
                     </div>
                     <label class="flex items-center gap-2 font-bold text-slate-700">
                         <input id="formEmpSelfOnly" type="checkbox" class="w-4 h-4">
@@ -1899,7 +1916,7 @@
         function renderJobs() {
             for (const id of ['registrationJob', 'formEmpJob']) {
                 const select = document.getElementById(id), selected = select.value;
-                select.innerHTML = `<option value="">اختر الوظيفة</option>${availableJobs.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('')}`;
+                select.innerHTML = `<option value="">اختر الإدارة</option>${availableJobs.map(name => `<option value="${escapeHTML(name)}">${escapeHTML(name)}</option>`).join('')}`;
                 if (availableJobs.includes(selected)) select.value = selected;
             }
             document.getElementById('jobManager').classList.toggle('hidden', !isAdmin);
@@ -2534,6 +2551,7 @@
             const password = document.getElementById('loginPassword').value;
             const errorLabel = document.getElementById('loginError');
             const button = document.getElementById('loginButton');
+            const buttonLabel = button.innerHTML;
             errorLabel.classList.add('hidden');
             button.disabled = true;
             button.textContent = 'جارٍ الدخول...';
@@ -2541,7 +2559,16 @@
             catch (error) {
                 errorLabel.textContent = 'الكود أو كلمة المرور غير صحيحين، أو الحساب غير مفعّل.';
                 errorLabel.classList.remove('hidden');
-            } finally { button.disabled = false; button.textContent = 'دخول الحساب'; }
+            } finally { button.disabled = false; button.innerHTML = buttonLabel; }
+        }
+        function toggleLoginPassword() {
+            const input = document.getElementById('loginPassword');
+            const button = document.querySelector('.login-password-toggle');
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            button.setAttribute('aria-pressed', String(visible));
+            button.setAttribute('aria-label', visible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
+            button.innerHTML = visible ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
         }
         function normalizeLoginIdentifier(input) {
             input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
