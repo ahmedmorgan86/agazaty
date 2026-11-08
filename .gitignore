@@ -14,3 +14,4 @@ windows/**/bin/
 windows/**/obj/
 windows/dist/
 qa-*.png
+.signing/
