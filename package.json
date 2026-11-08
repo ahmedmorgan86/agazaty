@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "firebase emulators:exec --only firestore --project demo-agazaty \"node tests/rules.test.mjs\"",
-    "check": "node --check firebase-cloud.js && node --check scripts/bootstrap-admin.mjs && python build_public.py",
+    "check": "node --check firebase-cloud.js && node --check scripts/bootstrap-admin.mjs && node tests/rest-count.test.mjs && python build_public.py",
     "bootstrap:admin": "node scripts/bootstrap-admin.mjs"
   },
   "repository": {

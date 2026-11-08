@@ -8,3 +8,9 @@ __pycache__/
 *.pyc
 .chrome-*/
 supabase_schema.sql
+android/.gradle/
+android/**/build/
+windows/**/bin/
+windows/**/obj/
+windows/dist/
+qa-*.png

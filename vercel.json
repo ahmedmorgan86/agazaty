@@ -4,7 +4,12 @@
   "redirects": [
     {
       "source": "/apk",
-      "destination": "https://github.com/ahmedmorgan86/agazaty/releases/download/android-v1.2.0/agazaty-android.apk",
+      "destination": "https://github.com/ahmedmorgan86/agazaty/releases/download/v1.3.0/agazaty-android.apk",
+      "permanent": false
+    },
+    {
+      "source": "/windows",
+      "destination": "https://github.com/ahmedmorgan86/agazaty/releases/download/v1.3.0/agazaty-windows.zip",
       "permanent": false
     }
   ]
