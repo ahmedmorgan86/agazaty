@@ -11,8 +11,8 @@ from reportlab.graphics import renderSVG
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 DOWNLOADS = {
-    "install-qr.svg": "https://agazaty-am.vercel.app/apk?v=1.3.2",
-    "windows-qr.svg": "https://agazaty-am.vercel.app/windows?v=1.3.2",
+    "install-qr.svg": "https://agazaty-am.vercel.app/apk?v=1.3.3",
+    "windows-qr.svg": "https://agazaty-am.vercel.app/windows?v=1.3.3",
 }
 
 source = Image.open(ASSETS / "app-logo.png").convert("RGB")
