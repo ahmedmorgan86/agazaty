@@ -44,6 +44,12 @@ internal sealed class MainWindow : Form
             await browser.EnsureCoreWebView2Async(environment);
             browser.CoreWebView2.NavigationStarting += (_, args) =>
             {
+                if (IsDownloadUrl(args.Uri))
+                {
+                    args.Cancel = true;
+                    OpenExternal(args.Uri);
+                    return;
+                }
                 if (IsAppUrl(args.Uri)) return;
                 args.Cancel = true;
                 OpenExternal(args.Uri);
@@ -67,6 +73,11 @@ internal sealed class MainWindow : Form
         Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
         uri.Scheme == Uri.UriSchemeHttps &&
         uri.Host.Equals(AppUrl.Host, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsDownloadUrl(string value) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+        uri.Host.Equals(AppUrl.Host, StringComparison.OrdinalIgnoreCase) &&
+        (uri.AbsolutePath is "/apk" or "/windows" or "/agazaty-android.apk");
 
     private static void OpenExternal(string value)
     {

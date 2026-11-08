@@ -47,6 +47,12 @@ public final class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri url = request.getUrl();
+                if ("agazaty-am.vercel.app".equals(url.getHost()) &&
+                    ("/apk".equals(url.getPath()) || "/windows".equals(url.getPath()) ||
+                     "/agazaty-android.apk".equals(url.getPath()))) {
+                    try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
+                    return true;
+                }
                 if ("https".equals(url.getScheme()) && "agazaty-am.vercel.app".equals(url.getHost())) return false;
                 if ("https".equals(url.getScheme()) || "mailto".equals(url.getScheme()) || "tel".equals(url.getScheme())) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
