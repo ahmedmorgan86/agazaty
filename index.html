@@ -186,6 +186,7 @@
         }
     </style>
     <link rel="stylesheet" href="./theme.css?v=10">
+    <link rel="stylesheet" href="./design.css?v=1">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -246,7 +247,7 @@
             <div class="header-user"><div class="header-user-label"><strong id="headerUserName">—</strong><span id="headerUserRole">—</span></div><div class="header-user-icon"><i class="fa-solid fa-user"></i></div></div>
         </div>
         <div class="header-nav-wrap"><nav class="header-nav" aria-label="القائمة الرئيسية">
-            <button type="button" class="nav-primary" onclick="showAppPage('home')"><i class="fa-solid fa-house"></i>الرئيسية</button>
+            <button type="button" id="navHomeButton" class="nav-primary" onclick="showAppPage('home')"><i class="fa-solid fa-house"></i>الرئيسية</button>
             <button type="button" id="manageEmployeesButton" onclick="showAppPage('employees')"><i class="fa-solid fa-users"></i>الموظفون</button>
             <button type="button" id="manageJobsButton" class="hidden" style="display:none" onclick="showAppPage('jobs')"><i class="fa-solid fa-briefcase"></i>إدارة الوظائف</button>
             <button type="button" onclick="openRotationMatrixModal()"><i class="fa-solid fa-arrows-rotate"></i>الورديات</button>
@@ -286,8 +287,12 @@
 
     <!-- Main Container -->
     <main id="appMain" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <section class="dashboard-intro no-print">
+            <div><span class="dashboard-eyebrow"><i class="fa-solid fa-layer-group"></i> مساحة العمل اليومية</span><h1>جدول الحضور والورديات</h1><p>الشهر كاملًا أمامك؛ اختر الوردية، راجع الأرصدة، وحدّث الحضور من مكان واحد.</p></div>
+            <div class="dashboard-intro-mark" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i><span>كل الأيام</span></div>
+        </section>
         <!-- Controls & Filter Toolbar -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
+        <div class="dashboard-controls bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <!-- Month Selector -->
                 <div class="period-controls flex items-center space-x-3 space-x-reverse">
@@ -370,11 +375,11 @@
 
         <div id="kpiWrapper" class="space-y-2 no-print">
             <div id="kpiEmployeeBar" class="kpi-emp-bar"></div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3" id="kpiStatsContainer"></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="kpiStatsContainer"></div>
         </div>
 
         <!-- Attendance Grid Section -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="dashboard-table bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="table-section-heading p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2 bg-slate-50">
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <i class="fa-solid fa-table-cells text-slate-400"></i>
@@ -423,6 +428,7 @@
         </section>
     </main>
     <main id="jobsPage" class="app-main hidden px-4 sm:px-6 lg:px-8 py-6 no-print">
+        <section class="inner-page-intro"><span class="dashboard-eyebrow">إدارة الفريق</span><h1>الإدارات والوظائف</h1><p>تنظيم الإدارات المتاحة للموظفين من صفحة مستقلة.</p></section>
         <div id="jobManager" class="hidden rounded-2xl border border-slate-200 p-4"><h2 class="font-black text-lg">إدارة الوظائف</h2><form class="flex flex-wrap gap-2 mt-3" onsubmit="addJobFromForm(event)"><input id="newJobName" required maxlength="80" placeholder="اسم الوظيفة الجديدة" class="border rounded-xl px-3 py-2 min-w-0 flex-1"><button type="submit" class="action-primary">إضافة وظيفة</button></form><div id="jobItems" class="flex flex-wrap gap-2 mt-3"></div><p class="text-xs text-slate-500 mt-3">انقل الموظفين إلى وظيفة أخرى قبل تعديل وظيفة أو حذفها.</p></div>
     </main>
 
@@ -1193,6 +1199,14 @@
             document.getElementById('appMain').classList.toggle('hidden', page !== 'home');
             document.getElementById('employeePage').classList.toggle('hidden', page !== 'employees');
             document.getElementById('jobsPage').classList.toggle('hidden', page !== 'jobs');
+            for (const [id, target] of [['navHomeButton', 'home'], ['manageEmployeesButton', 'employees'], ['manageJobsButton', 'jobs']]) {
+                const button = document.getElementById(id);
+                if (button) {
+                    button.classList.toggle('nav-primary', page === target);
+                    if (page === target) button.setAttribute('aria-current', 'page');
+                    else button.removeAttribute('aria-current');
+                }
+            }
             if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         const employeeKey = emp => emp?.groupKey || (emp?.team && emp?.job ? `${emp.team}|${emp.job}` : '');
