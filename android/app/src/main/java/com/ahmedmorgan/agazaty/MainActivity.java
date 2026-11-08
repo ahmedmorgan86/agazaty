@@ -2,11 +2,14 @@ package com.ahmedmorgan.agazaty;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.print.PrintAttributes;
+import android.print.PrintManager;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsetsController;
@@ -52,21 +55,14 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
+        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.4");
 
         webView.setWebViewClient(new WebViewClient() {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                Uri url = request.getUrl();
-                if ("agazaty-am.vercel.app".equals(url.getHost()) &&
-                    ("/apk".equals(url.getPath()) || "/windows".equals(url.getPath()) ||
-                     "/agazaty-android.apk".equals(url.getPath()))) {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
-                    return true;
-                }
-                if ("https".equals(url.getScheme()) && "agazaty-am.vercel.app".equals(url.getHost())) return false;
-                if ("https".equals(url.getScheme()) || "mailto".equals(url.getScheme()) || "tel".equals(url.getScheme())) {
-                    try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
-                }
-                return true;
+                return request.isForMainFrame() && handleNavigation(request.getUrl());
+            }
+            @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleNavigation(Uri.parse(url));
             }
             @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 errorView.setVisibility(View.GONE);
@@ -119,6 +115,29 @@ public final class MainActivity extends Activity {
         setContentView(root);
         if (state == null) webView.loadUrl(HOME);
         else webView.restoreState(state);
+    }
+
+    private boolean handleNavigation(Uri url) {
+        if ("agazaty".equals(url.getScheme()) && "print-report".equals(url.getHost())) {
+            Uri current = Uri.parse(webView.getUrl() == null ? "" : webView.getUrl());
+            if ("agazaty-am.vercel.app".equals(current.getHost())) {
+                PrintManager manager = (PrintManager) getSystemService(Context.PRINT_SERVICE);
+                if (manager != null) manager.print("تقرير أجازاتي", webView.createPrintDocumentAdapter("تقرير الموظف"),
+                    new PrintAttributes.Builder().setMediaSize(PrintAttributes.MediaSize.ISO_A4).build());
+            }
+            return true;
+        }
+        if ("agazaty-am.vercel.app".equals(url.getHost()) &&
+            ("/apk".equals(url.getPath()) || "/windows".equals(url.getPath()) ||
+             "/agazaty-android.apk".equals(url.getPath()))) {
+            try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
+            return true;
+        }
+        if ("https".equals(url.getScheme()) && "agazaty-am.vercel.app".equals(url.getHost())) return false;
+        if ("https".equals(url.getScheme()) || "mailto".equals(url.getScheme()) || "tel".equals(url.getScheme())) {
+            try { startActivity(new Intent(Intent.ACTION_VIEW, url)); } catch (ActivityNotFoundException ignored) { }
+        }
+        return true;
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {

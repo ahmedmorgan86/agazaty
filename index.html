@@ -186,7 +186,7 @@
         }
     </style>
     <link rel="stylesheet" href="./theme.css?v=11">
-    <link rel="stylesheet" href="./design.css?v=4">
+    <link rel="stylesheet" href="./design.css?v=5">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -231,8 +231,8 @@
                     <section class="download-panel login-downloads" aria-label="تحميل التطبيقات">
                         <div class="login-download-heading"><span class="login-download-icon"><i class="fa-solid fa-download"></i></span><span><strong>خذ أجازاتي معك</strong><small>نسخة مناسبة لكل جهاز</small></span></div>
                         <div class="login-download-grid">
-                            <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>التطبيق على هاتفك · 1.3.3</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=6" alt="QR لتحميل تطبيق أندرويد" width="86" height="86"></a></div>
-                            <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>للكمبيوتر والمكتب · 1.3.3</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=4" alt="QR لتحميل تطبيق ويندوز" width="86" height="86"></a></div>
+                            <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>التطبيق على هاتفك · 1.3.4</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=7" alt="QR لتحميل تطبيق أندرويد" width="86" height="86"></a></div>
+                            <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>للكمبيوتر والمكتب · 1.3.4</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=5" alt="QR لتحميل تطبيق ويندوز" width="86" height="86"></a></div>
                         </div>
                         <p class="download-footnote">لتثبيت نسخة الويب دون تنزيل ملف: اختر «تثبيت التطبيق» من قائمة Chrome أو Edge. على iPhone اختر «إضافة إلى الشاشة الرئيسية» من Safari.</p>
                     </section>
@@ -575,36 +575,13 @@
     <!-- ============================================================= -->
     <!-- 2. EMPLOYEE MONTHLY REPORT MODAL (تقرير وكشف حساب للموظف للطباعة) -->
     <!-- ============================================================= -->
-    <div id="employeeReportModal" class="app-modal fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b border-slate-200 pb-3">
-                <div class="flex items-center space-x-2 space-x-reverse">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i class="fa-solid fa-file-invoice"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900" id="repEmpName">كشف حضور موظف</h3>
-                        <p class="text-xs text-slate-500" id="repMonthInfo">تقرير الشهر</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2 space-x-reverse no-print">
-                    <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-300">
-                        <i class="fa-solid fa-print ml-1"></i> طباعة التقرير
-                    </button>
-                    <button onclick="closeEmployeeReportModal()" class="text-slate-400 hover:text-slate-600 text-lg">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+    <div id="employeeReportModal" class="app-modal report-modal fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="repEmpName">
+        <div class="report-dialog">
+            <div class="report-toolbar">
+                <div class="report-heading"><span class="report-heading-icon"><i class="fa-solid fa-file-lines"></i></span><div><span class="eyebrow">تقرير الموظف الشهري</span><h2 id="repEmpName">كشف الحضور</h2><p id="repMonthInfo">تقرير الشهر</p></div></div>
+                <div class="report-actions no-print"><button type="button" class="report-print-button" onclick="printEmployeeReport()" aria-label="طباعة التقرير أو حفظه PDF" title="طباعة التقرير أو حفظه PDF"><i class="fa-solid fa-print"></i><span>طباعة / حفظ PDF</span></button><button type="button" class="report-close-button" onclick="closeEmployeeReportModal()" aria-label="إغلاق التقرير"><i class="fa-solid fa-xmark"></i></button></div>
             </div>
-
-            <!-- Report Card Content -->
-            <div class="space-y-4" id="employeeReportContent">
-                <!-- Injected via JS -->
-            </div>
-
-            <div class="flex justify-end no-print pt-2 border-t border-slate-100">
-                <button onclick="closeEmployeeReportModal()" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-bold">إغلاق</button>
-            </div>
+            <div id="employeeReportContent" class="report-body"></div>
         </div>
     </div>
 
@@ -1017,10 +994,10 @@
 
     <div id="downloadAppsModal" class="app-modal fixed inset-0 z-[55] hidden flex items-center justify-center bg-slate-950/60 p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="downloadAppsTitle" onclick="if(event.target === this) closeDownloadAppsModal()">
         <div class="download-modal-content bg-white w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-start gap-3 mb-5"><div><span class="eyebrow">نسخة 1.3.3</span><h2 id="downloadAppsTitle" class="text-xl font-black">حمّل أجازاتي على جهازك</h2><p class="text-xs text-slate-500 mt-1">اختر جهازك أو امسح رمز QR الخاص به.</p></div><button type="button" onclick="closeDownloadAppsModal()" aria-label="إغلاق" class="text-slate-500 text-lg"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="flex justify-between items-start gap-3 mb-5"><div><span class="eyebrow">نسخة 1.3.4</span><h2 id="downloadAppsTitle" class="text-xl font-black">حمّل أجازاتي على جهازك</h2><p class="text-xs text-slate-500 mt-1">اختر جهازك أو امسح رمز QR الخاص به.</p></div><button type="button" onclick="closeDownloadAppsModal()" aria-label="إغلاق" class="text-slate-500 text-lg"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="download-modal-grid">
-                <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>ملف APK للتثبيت على الهاتف.</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل أندرويد</a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=6" alt="QR لتحميل تطبيق أندرويد" width="110" height="110"></a></div>
-                <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>حمّل الملف المضغوط، فكّه ثم شغّل Agazaty.exe.</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل ويندوز</a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=4" alt="QR لتحميل تطبيق ويندوز" width="110" height="110"></a></div>
+                <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>ملف APK للتثبيت على الهاتف.</p><a class="download-link" href="https://agazaty-am.vercel.app/apk">تحميل أندرويد</a></div><a href="https://agazaty-am.vercel.app/apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=7" alt="QR لتحميل تطبيق أندرويد" width="110" height="110"></a></div>
+                <div class="download-card"><div><strong><i class="fa-brands fa-windows"></i> ويندوز</strong><p>حمّل الملف المضغوط، فكّه ثم شغّل Agazaty.exe.</p><a class="download-link windows-link" href="https://agazaty-am.vercel.app/windows">تحميل ويندوز</a></div><a href="https://agazaty-am.vercel.app/windows" aria-label="رمز تحميل ويندوز"><img src="./assets/windows-qr.svg?v=5" alt="QR لتحميل تطبيق ويندوز" width="110" height="110"></a></div>
             </div>
             <p class="download-footnote mt-4">لتثبيت نسخة الويب دون تنزيل ملف، اختر «تثبيت التطبيق» من قائمة Chrome أو Edge. على iPhone اختر «إضافة إلى الشاشة الرئيسية» من Safari.</p>
         </div>
@@ -2153,43 +2130,48 @@
             const emp = employees.find(e => e.id === empId);
             if (!emp || !canAccessEmployee(emp)) return;
 
-            document.getElementById('repEmpName').innerText = `كشف حساب الحضور: ${emp.name}`;
-            document.getElementById('repMonthInfo').innerText = `الشهر: ${currentMonth} | الكود: ${emp.code || '-'} | الإدارة: ${emp.job || 'غير محددة'}`;
+            const [reportYear, reportMonth] = currentMonth.split('-').map(Number);
+            const monthName = new Intl.DateTimeFormat('ar-EG', { month: 'long', year: 'numeric' }).format(new Date(reportYear, reportMonth - 1, 1));
+            document.getElementById('repEmpName').textContent = emp.name;
+            document.getElementById('repMonthInfo').textContent = `${monthName} · الكود ${emp.code || '-'} · ${emp.job || 'إدارة غير محددة'}`;
 
             // Calculate stats for current month
-            let pres = 0, rest = 0, annual = 0, casual = 0, perm = 0, delay = 0;
-            const dates = Object.keys(attendanceData).sort().filter(d => d.startsWith(currentMonth));
+            let pres = 0, rest = 0, fixedRest = 0, annual = 0, casual = 0, perm = 0, permissionMinutes = 0, delay = 0;
+            const daysInMonth = new Date(reportYear, reportMonth, 0).getDate();
+            const dates = Array.from({ length: daysInMonth }, (_, index) => `${currentMonth}-${String(index + 1).padStart(2, '0')}`);
             const detailRows = [];
             let annualUsedThisYear = 0, casualUsedThisYear = 0;
             Object.entries(attendanceData).forEach(([date, day]) => {
-                if (!date.startsWith(currentMonth.slice(0, 4) + '-') || date > localDateKey()) return;
+                if (!date.startsWith(currentMonth.slice(0, 4) + '-')) return;
                 const status = effectiveRecord(date, emp, day.records?.[empId]).status;
                 if (status === 'إعتيادي') annualUsedThisYear++;
                 if (status === 'عارضة') casualUsedThisYear++;
             });
 
             dates.forEach(d => {
-                const day = attendanceData[d];
+                const day = attendanceData[d] || { records: {} };
                 const rec = effectiveRecord(d, emp, day.records && day.records[empId]);
                 const st = (rec.status || "").trim();
                 const del = parseInt(rec.delay) || 0;
 
                 if (st === 'حضور') pres++;
                 else if (countsAsEmployeeRest(d, emp, rec)) rest++;
+                else if (fixedRestReason(d, emp)) fixedRest++;
                 else if (st === 'إعتيادي') annual++;
                 else if (st === 'عارضة') casual++;
-                else if (st === 'إذن') perm++;
+                else if (st === 'إذن') { perm++; permissionMinutes += parseInt(rec.permissionMinutes, 10) || 0; }
                 delay += del;
 
-                if (st || del > 0 || rec.notes) {
-                    detailRows.push({ date: d, day: day.day, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'), status: displayedStatus(d, emp, rec) || '-', delay: del, notes: rec.notes || '' });
-                }
+                const dayName = day.day || ARABIC_DAYS[new Date(reportYear, reportMonth - 1, Number(d.slice(-2))).getDay()];
+                detailRows.push({ date: d, day: dayName, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'),
+                    status: fixedRestReason(d, emp) || displayedStatus(d, emp, rec) || '', delay: del,
+                    notes: fixedRestReason(d, emp) ? 'راحة إجبارية لا تُحسب ضمن راحات الموظف' : (rec.notes || '') });
             });
 
             const content = document.getElementById('employeeReportContent');
             content.innerHTML = `
                 <!-- Summary Metrics -->
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+                <div class="report-summary">
                     <div class="bg-emerald-50 border border-emerald-200 p-2 rounded-lg">
                         <span class="text-[10px] text-emerald-700 block">الحضور</span>
                         <span class="text-sm font-black text-emerald-900">${pres} يوم</span>
@@ -2197,6 +2179,10 @@
                     <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
                         <span class="text-[10px] text-slate-600 block">راحات الموظف</span>
                         <span class="text-sm font-black text-slate-900">${rest} يوم</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-200 p-2 rounded-lg">
+                        <span class="text-[10px] text-slate-600 block">راحة إجبارية</span>
+                        <span class="text-sm font-black text-slate-900">${fixedRest} يوم</span>
                     </div>
                     <div class="bg-sky-50 border border-sky-200 p-2 rounded-lg">
                         <span class="text-[10px] text-sky-700 block">إعتيادي</span>
@@ -2208,7 +2194,7 @@
                     </div>
                     <div class="bg-purple-50 border border-purple-200 p-2 rounded-lg">
                         <span class="text-[10px] text-purple-700 block">أذونات</span>
-                        <span class="text-sm font-black text-purple-900">${perm}</span>
+                        <span class="text-sm font-black text-purple-900">${perm} · ${(permissionMinutes / 60).toFixed(1)} س</span>
                     </div>
                     <div class="bg-red-50 border border-red-200 p-2 rounded-lg">
                         <span class="text-[10px] text-red-700 block">تأخير</span>
@@ -2217,15 +2203,16 @@
                 </div>
 
                 <!-- Leaves Balance Status -->
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-around">
-                    <div>رصيد الإعتيادي المتبقي هذا العام: <span class="font-bold text-emerald-700">${(emp.annual_balance ?? 21) - annualUsedThisYear} يوم</span></div>
-                    <div>رصيد العارضة المتبقي هذا العام: <span class="font-bold text-amber-700">${(emp.casual_balance ?? 7) - casualUsedThisYear} أيام</span></div>
-                    <div>ساعات التأخير: <span class="font-bold text-red-700">${(delay/60).toFixed(1)} ساعة</span></div>
+                <div class="report-balances">
+                    <div><span>متبقي الإعتيادي هذا العام</span><strong>${Math.max(0, (emp.annual_balance ?? 21) - annualUsedThisYear)} يوم</strong></div>
+                    <div><span>متبقي العارضة هذا العام</span><strong>${Math.max(0, (emp.casual_balance ?? 7) - casualUsedThisYear)} يوم</strong></div>
+                    <div><span>متبقي الأذونات هذا الشهر</span><strong>${Math.max(0, (emp.perm_hours ?? 4) - permissionMinutes / 60).toFixed(1)} ساعة</strong></div>
                 </div>
 
                 <!-- Breakdown Table -->
-                <div class="border border-slate-200 rounded-lg overflow-hidden">
-                    <table class="w-full text-right text-xs">
+                <div class="report-section-title"><strong>تفاصيل الشهر يومًا بيوم</strong><span>${daysInMonth} يومًا · الأيام الفارغة غير مسجلة</span></div>
+                <div class="report-table-wrap">
+                    <table class="report-table">
                         <thead class="bg-slate-100 border-b border-slate-200 font-bold">
                             <tr>
                                 <th class="p-2">التاريخ</th>
@@ -2244,15 +2231,25 @@
                                     <td class="p-2">${escapeHTML(r.shift)}</td>
                                     <td class="p-2 text-center">${getStatusBadge(r.status)}</td>
                                     <td class="p-2 text-center font-bold ${r.delay > 0 ? 'text-red-600' : 'text-slate-400'}">${r.delay} د</td>
-                                    <td class="p-2 text-slate-500">${escapeHTML(r.notes || '-')}</td>
+                                    <td class="p-2 text-slate-500">${escapeHTML(r.notes || '—')}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
                 </div>
 
+                <div class="report-mobile-list">
+                    ${detailRows.map(r => `
+                        <article class="report-day-card">
+                            <div class="report-day-head"><strong>${escapeHTML(r.day)} <span dir="ltr">${r.date}</span></strong>${getStatusBadge(r.status)}</div>
+                            <div class="report-day-meta"><span>الوردية: ${escapeHTML(r.shift || '—')}</span><span>التأخير: ${r.delay} دقيقة</span></div>
+                            ${r.notes ? `<p>${escapeHTML(r.notes)}</p>` : ''}
+                        </article>
+                    `).join('')}
+                </div>
+
                 <!-- Signatures (Visible on Print) -->
-                <div class="pt-6 grid grid-cols-2 text-center text-xs font-bold text-slate-700">
+                <div class="report-signatures">
                     <div>توقيع المشرف / مدير الوردية: ..........................</div>
                     <div>توقيع الموظف بالعلم: ..........................</div>
                 </div>
@@ -2263,6 +2260,12 @@
 
         function closeEmployeeReportModal() {
             document.getElementById('employeeReportModal').classList.add('hidden');
+        }
+
+        function printEmployeeReport() {
+            if (document.getElementById('employeeReportModal').classList.contains('hidden')) return;
+            if (navigator.userAgent.includes('AgazatyAndroid/')) window.location.href = 'agazaty://print-report';
+            else window.print();
         }
 
         function openMyReport() {
