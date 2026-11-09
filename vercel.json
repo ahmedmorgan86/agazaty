@@ -3,10 +3,10 @@
   "outputDirectory": "public",
   "headers": [
     {
-      "source": "/agazaty-android-v1.3.7.apk",
+      "source": "/agazaty-android-v1.3.8.apk",
       "headers": [
         { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
-        { "key": "Content-Disposition", "value": "attachment; filename=\"agazaty-android-v1.3.7.apk\"" },
+        { "key": "Content-Disposition", "value": "attachment; filename=\"agazaty-android-v1.3.8.apk\"" },
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
@@ -14,7 +14,7 @@
   "redirects": [
     {
       "source": "/apk",
-      "destination": "/agazaty-android-v1.3.7.apk",
+      "destination": "/agazaty-android-v1.3.8.apk",
       "permanent": false
     },
     {

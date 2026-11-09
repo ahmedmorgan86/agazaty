@@ -41,15 +41,10 @@ public final class MainActivity extends Activity {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        getWindow().setStatusBarColor(Color.rgb(243, 247, 247));
-        if (Build.VERSION.SDK_INT >= 30) {
-            getWindow().getInsetsController().setSystemBarsAppearance(
-                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
-        } else if (Build.VERSION.SDK_INT >= 23) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-        }
-        getWindow().setNavigationBarColor(Color.rgb(13, 23, 33));
+        try {
+            getWindow().setStatusBarColor(Color.rgb(243, 247, 247));
+            getWindow().setNavigationBarColor(Color.rgb(13, 23, 33));
+        } catch (Throwable ignored) { }
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setFitsSystemWindows(true);
@@ -62,7 +57,8 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
-        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.7");
+        settings.setDatabaseEnabled(true);
+        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.8");
         webView.addJavascriptInterface(new AndroidExport(), "AgazatyAndroidExport");
 
         webView.setWebViewClient(new WebViewClient() {
@@ -121,8 +117,31 @@ public final class MainActivity extends Activity {
         root.addView(webView, new LinearLayout.LayoutParams(-1, 0, 1));
         root.addView(errorView, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
+        applyStatusBarTheme();
+        root.post(this::applyStatusBarTheme);
         if (state == null) webView.loadUrl(HOME);
         else webView.restoreState(state);
+    }
+
+    private void applyStatusBarTheme() {
+        try {
+            View decor = getWindow().getDecorView();
+            if (decor != null) {
+                if (Build.VERSION.SDK_INT >= 30) {
+                    WindowInsetsController controller = decor.getWindowInsetsController();
+                    if (controller == null) {
+                        controller = getWindow().getInsetsController();
+                    }
+                    if (controller != null) {
+                        controller.setSystemBarsAppearance(
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                    }
+                } else if (Build.VERSION.SDK_INT >= 23) {
+                    decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+                }
+            }
+        } catch (Throwable ignored) { }
     }
 
     private boolean handleNavigation(Uri url) {

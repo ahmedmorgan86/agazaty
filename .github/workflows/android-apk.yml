@@ -35,25 +35,25 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = pull_request ]; then
             gradle -p android --no-daemon :app:assembleDebug
-            cp android/app/build/outputs/apk/debug/app-debug.apk agazaty-android-v1.3.7.apk
+            cp android/app/build/outputs/apk/debug/app-debug.apk agazaty-android-v1.3.8.apk
           else
             test -n "$AGAZATY_SIGNING_KEY_B64"
             test -n "$AGAZATY_SIGNING_PASSWORD"
             export AGAZATY_SIGNING_STORE="$RUNNER_TEMP/agazaty-release.jks"
             printf '%s' "$AGAZATY_SIGNING_KEY_B64" | base64 --decode > "$AGAZATY_SIGNING_STORE"
             gradle -p android --no-daemon :app:assembleRelease
-            cp android/app/build/outputs/apk/release/app-release.apk agazaty-android-v1.3.7.apk
+            cp android/app/build/outputs/apk/release/app-release.apk agazaty-android-v1.3.8.apk
           fi
-          test -s agazaty-android-v1.3.7.apk
+          test -s agazaty-android-v1.3.8.apk
       - name: Verify APK identity and signature
         run: |
-          APK=agazaty-android-v1.3.7.apk
+          APK=agazaty-android-v1.3.8.apk
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
-          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.ahmedmorgan.agazaty.mobile' versionCode='11' versionName='1.3.7'"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | grep -F "package: name='com.ahmedmorgan.agazaty.mobile' versionCode='12' versionName='1.3.8'"
       - uses: actions/upload-artifact@v4
         with:
           name: agazaty-android-apk
-          path: agazaty-android-v1.3.7.apk
+          path: agazaty-android-v1.3.8.apk
   install-test:
     needs: android
     runs-on: ubuntu-latest
@@ -72,8 +72,11 @@ jobs:
           api-level: 35
           arch: x86_64
           script: |
-            adb install agazaty-android-v1.3.7.apk
+            adb install agazaty-android-v1.3.8.apk
             adb shell pm path com.ahmedmorgan.agazaty.mobile
+            adb shell am start -n com.ahmedmorgan.agazaty.mobile/com.ahmedmorgan.agazaty.MainActivity
+            sleep 3
+            adb shell pidof com.ahmedmorgan.agazaty.mobile
   windows:
     runs-on: windows-latest
     steps:
@@ -106,19 +109,19 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if gh release view v1.3.7 >/dev/null 2>&1; then
-            gh release upload v1.3.7 release/agazaty-android-v1.3.7.apk release/agazaty-windows.zip --clobber
+          if gh release view v1.3.8 >/dev/null 2>&1; then
+            gh release upload v1.3.8 release/agazaty-android-v1.3.8.apk release/agazaty-windows.zip --clobber
           else
-            gh release create v1.3.7 release/agazaty-android-v1.3.7.apk release/agazaty-windows.zip --title 'أجازاتي 1.3.7' --notes 'حزمة أندرويد جديدة تُثبّت بجانب النسخ القديمة، مع التحقق من توقيع APK وتجربة تثبيته على محاكي قبل النشر.' --latest
+            gh release create v1.3.8 release/agazaty-android-v1.3.8.apk release/agazaty-windows.zip --title 'أجازاتي 1.3.8' --notes 'حزمة أندرويد جديدة تُثبّت بجانب النسخ القديمة، مع التحقق من توقيع APK وتجربة تثبيته على محاكي قبل النشر.' --latest
           fi
       - name: Publish APK on website
         run: |
           git pull --rebase origin main
-          cp release/agazaty-android-v1.3.7.apk public/agazaty-android-v1.3.7.apk
+          cp release/agazaty-android-v1.3.8.apk public/agazaty-android-v1.3.8.apk
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add public/agazaty-android-v1.3.7.apk
+          git add public/agazaty-android-v1.3.8.apk
           if ! git diff --cached --quiet; then
-            git commit -m 'Publish signed Android 1.3.7 APK'
+            git commit -m 'Publish signed Android 1.3.8 APK'
             git push origin HEAD:main
           fi
