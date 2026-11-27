@@ -1850,6 +1850,9 @@
                                 <button onclick="openEmployeeReport('${emp.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold text-xs" title="كشف حضور الموظف">
                                     <i class="fa-solid fa-file-invoice"></i> كشف
                                 </button>
+                                ${isAdmin && emp.authUid ? `<button onclick="resetEmployeePassword('${emp.id}')" class="px-2 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold text-xs" title="إعادة تعيين كلمة المرور">
+                                    <i class="fa-solid fa-key"></i> كلمة المرور
+                                </button>` : ''}
                                 ${isAdmin ? `<button onclick="deleteEmployee('${emp.id}')" class="px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs" title="حذف الموظف">
                                     <i class="fa-solid fa-trash-can"></i> حذف
                                 </button>` : ''}
@@ -2111,6 +2114,19 @@
             } catch (error) {
                 showNotice(`تعذر حفظ الحساب: ${error.message}`, 'error');
             } finally { employeeSaveInProgress = false; button.disabled = false; }
+        }
+
+        async function resetEmployeePassword(empId) {
+            if (!isAdmin) return;
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+            const next = window.prompt(`كلمة مرور جديدة للموظف ${emp.name} (٧ أحرف على الأقل):`);
+            if (next === null) return;
+            if (next.length < 7 || next.length > 64) { showNotice('كلمة المرور يجب أن تكون من ٧ إلى ٦٤ حرفًا.', 'warning'); return; }
+            try {
+                await window.firebaseBridge.resetEmployeePassword(empId, next);
+                showNotice('تم تغيير كلمة مرور الموظف. سيُطلب منه الدخول من جديد.');
+            } catch (error) { showNotice(error.message, 'error'); }
         }
 
         async function deleteEmployee(empId) {
