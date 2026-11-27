@@ -264,6 +264,19 @@
             <button type="button" onclick="logoutEmployee(); closeForcedPassword()" class="bg-slate-100 text-slate-700 rounded-lg px-4 py-2 font-bold text-xs w-full mt-2">تسجيل الخروج</button>
         </form>
     </div>
+    <div id="transferModal" class="app-modal fixed inset-0 z-[80] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="transferTitle">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <span class="eyebrow">نقل موظف</span><h2 id="transferTitle" class="text-xl font-black mt-2">نقل إلى وردية جديدة</h2>
+            <p id="transferWho" class="text-sm mt-2 text-slate-600"></p>
+            <input type="hidden" id="transferEmpId">
+            <label for="transferTeam" class="block text-xs font-bold mt-4 mb-1">الوردية الجديدة</label>
+            <select id="transferTeam" class="w-full border border-slate-300 rounded-xl px-3 py-3" onchange="updateTransferPreview()"><option value="red">الحمراء</option><option value="blue">الزرقاء</option><option value="yellow">الصفراء</option><option value="morning">الصباحية</option></select>
+            <label for="transferDate" class="block text-xs font-bold mt-3 mb-1">أول يوم في الوردية الجديدة</label>
+            <input id="transferDate" type="date" class="w-full border border-slate-300 rounded-xl px-3 py-3" onchange="updateTransferPreview()">
+            <p id="transferPreview" class="text-xs mt-3 text-slate-600 leading-6"></p>
+            <div class="flex gap-2 mt-4"><button type="button" id="transferConfirm" onclick="confirmTransfer()" class="action-primary flex-1">تأكيد النقل</button><button type="button" onclick="closeTransfer()" class="flex-1 rounded-xl bg-slate-100 text-slate-700 font-bold px-4 py-2">إلغاء</button></div>
+        </div>
+    </div>
     <div id="temporaryPasswordModal" class="app-modal fixed inset-0 z-[75] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="temporaryPasswordTitle">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
             <span class="eyebrow">حساب جديد</span><h2 id="temporaryPasswordTitle" class="text-xl font-black mt-2">احفظ بيانات الدخول</h2>
@@ -1310,10 +1323,17 @@
             return '';
         }
 
+        // Shift the employee belonged to on a given date. teamHistory entries hold the OLD team and the last day spent in it.
+        function teamOn(employee, date) {
+            const history = Array.isArray(employee?.teamHistory) ? [...employee.teamHistory].sort((a, b) => String(a.until).localeCompare(String(b.until))) : [];
+            for (const entry of history) if (date && date <= entry.until) return entry.team;
+            return employee?.team;
+        }
         function fixedRestReason(date, employee) {
-            if (employee.team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5) return 'إجازة الجمعة الثابتة';
+            const team = teamOn(employee, date);
+            if (team === 'morning' && new Date(`${date}T12:00:00`).getDay() === 5) return 'إجازة الجمعة الثابتة';
             const restDays = { red: 1, blue: 21, yellow: 11 };
-            if (Number(date.slice(-2)) === restDays[employee.team]) return 'راحة الوردية';
+            if (Number(date.slice(-2)) === restDays[team]) return 'راحة الوردية';
             return '';
         }
 
@@ -1582,7 +1602,7 @@
 
                 filteredEmployees.forEach(emp => {
                     const rec = effectiveRecord(date, emp, dayData.records && dayData.records[emp.id]);
-                    const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red');
+                    const employeeShift = calculateShiftForDate(Number(date.slice(-2)), teamOn(emp, date) || 'red');
                     
                     const st = (rec.status || "").trim();
                     if (st === 'حضور') totals[emp.id].present++;
@@ -1850,6 +1870,7 @@
                                 <button onclick="openEmployeeReport('${emp.id}')" class="px-2 py-1 rounded bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold text-xs" title="كشف حضور الموظف">
                                     <i class="fa-solid fa-file-invoice"></i> كشف
                                 </button>
+                                ${isAdmin ? `<button onclick="openTransfer('${emp.id}')" class="px-2 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-xs" title="نقل لوردية جديدة"><i class="fa-solid fa-right-left"></i> نقل وردية</button>` : ''}
                                 ${isAdmin && emp.authUid ? `<button onclick="resetEmployeePassword('${emp.id}')" class="px-2 py-1 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold text-xs" title="إعادة تعيين كلمة المرور">
                                     <i class="fa-solid fa-key"></i> كلمة المرور
                                 </button>` : ''}
@@ -2116,6 +2137,48 @@
             } finally { employeeSaveInProgress = false; button.disabled = false; }
         }
 
+        const TEAM_NAMES_AR = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
+        function dayBefore(date) { const d = new Date(`${date}T12:00:00`); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); }
+        function openTransfer(empId) {
+            if (!isAdmin) return;
+            const emp = employees.find(e => e.id === empId);
+            if (!emp) return;
+            document.getElementById('transferEmpId').value = empId;
+            document.getElementById('transferWho').textContent = `${emp.name} · الوردية الحالية: ${TEAM_NAMES_AR[emp.team] || '—'}`;
+            const select = document.getElementById('transferTeam');
+            [...select.options].forEach(o => { o.disabled = o.value === emp.team; });
+            select.value = [...select.options].find(o => !o.disabled).value;
+            document.getElementById('transferDate').value = new Date().toISOString().slice(0, 10);
+            updateTransferPreview();
+            document.getElementById('transferModal').classList.remove('hidden');
+        }
+        function closeTransfer() { document.getElementById('transferModal').classList.add('hidden'); }
+        function updateTransferPreview() {
+            const emp = employees.find(e => e.id === document.getElementById('transferEmpId').value);
+            if (!emp) return;
+            const team = document.getElementById('transferTeam').value, date = document.getElementById('transferDate').value;
+            const rest = { red: 'يوم 1', blue: 'يوم 21', yellow: 'يوم 11', morning: 'الجمعة' };
+            document.getElementById('transferPreview').textContent = `قبل ${date || '—'} تبقى كل سجلاته وراحاته على وردية ${TEAM_NAMES_AR[emp.team]}. من ${date || '—'} يصبح على وردية ${TEAM_NAMES_AR[team]} وراحته الإجبارية ${rest[team]} من كل شهر. الأرصدة والأذونات والسجلات كلها تنتقل معه كما هي.`;
+        }
+        async function confirmTransfer() {
+            if (!isAdmin) return;
+            const id = document.getElementById('transferEmpId').value;
+            const emp = employees.find(e => e.id === id);
+            const team = document.getElementById('transferTeam').value, date = document.getElementById('transferDate').value;
+            if (!emp || !TEAM_NAMES_AR[team] || team === emp.team || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { showNotice('اختر وردية مختلفة وتاريخاً صحيحاً.', 'warning'); return; }
+            const button = document.getElementById('transferConfirm');
+            button.disabled = true;
+            try {
+                const history = [...(Array.isArray(emp.teamHistory) ? emp.teamHistory : []), { team: emp.team, until: dayBefore(date) }];
+                const changed = { ...emp, team, teamHistory: history };
+                await window.firebaseBridge.updateEmployeeAccount(changed);
+                employees = employees.map(e => e.id === id ? changed : e);
+                closeTransfer();
+                renderTable();
+                showNotice(`تم نقل ${emp.name} إلى الوردية ${TEAM_NAMES_AR[team]} من ${date}.`);
+            } catch (error) { showNotice(`تعذر النقل: ${error.message}`, 'error'); }
+            finally { button.disabled = false; }
+        }
         async function resetEmployeePassword(empId) {
             if (!isAdmin) return;
             const emp = employees.find(e => e.id === empId);
@@ -2197,7 +2260,7 @@
                 delay += del;
 
                 const dayName = day.day || ARABIC_DAYS[new Date(reportYear, reportMonth - 1, Number(d.slice(-2))).getDay()];
-                detailRows.push({ date: d, day: dayName, shift: calculateShiftForDate(Number(d.slice(-2)), emp.team || 'red'),
+                detailRows.push({ date: d, day: dayName, shift: calculateShiftForDate(Number(d.slice(-2)), teamOn(emp, d) || 'red'),
                     status: fixedRestReason(d, emp) || displayedStatus(d, emp, rec) || '', delay: del,
                     notes: fixedRestReason(d, emp) ? 'راحة إجبارية لا تُحسب ضمن راحات الموظف' : (rec.notes || '') });
             });
@@ -2320,7 +2383,7 @@
             const rec = effectiveRecord(date, emp, dayData.records && dayData.records[empId]);
 
             document.getElementById('modalEmployeeName').innerText = `تعديل: ${emp ? emp.name : ''}`;
-            const employeeShift = calculateShiftForDate(Number(date.slice(-2)), emp?.team || 'red');
+            const employeeShift = calculateShiftForDate(Number(date.slice(-2)), teamOn(emp, date) || 'red');
             document.getElementById('modalDateInfo').innerText = `${dayData.day || ''}، ${date} - الوردية: ${employeeShift}`;
             
             selectedModalStatus = rec.status || "";
@@ -3061,7 +3124,7 @@
                 const row = [date, day.day, calculateShiftForDate(Number(date.slice(-2)), activeTeam)];
                 visibleEmployees.forEach(emp => {
                     const rec = effectiveRecord(date, emp, day.records && day.records[emp.id]);
-                    row.push(calculateShiftForDate(Number(date.slice(-2)), emp.team || 'red'), displayedStatus(date, emp, rec), rec.delay || 0);
+                    row.push(calculateShiftForDate(Number(date.slice(-2)), teamOn(emp, date) || 'red'), displayedStatus(date, emp, rec), rec.delay || 0);
                 });
                 exportRows.push(row);
             });
