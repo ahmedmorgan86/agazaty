@@ -147,6 +147,27 @@ async function registerEmployee({ name, code, team, job, pass }) {
         await setDoc(requestRef(user.uid), { name, code, team, job, status: 'pending', createdAt: new Date().toISOString() });
     } catch (error) { await deleteUser(user).catch(() => {}); throw error; }
 }
+async function getStarterPassword() {
+    const value = (await getDocFromServer(metaRef())).data()?.starterPassword;
+    return typeof value === 'string' && value.length >= 7 ? value : '';
+}
+const setStarterPassword = value => {
+    if (typeof value !== 'string' || value.length < 7 || value.length > 64) throw new Error('كلمة البدء يجب ألا تقل عن ٧ أحرف.');
+    return updateDoc(metaRef(), { starterPassword: value });
+};
+async function mustChangePassword(typed) {
+    const user = auth?.currentUser;
+    if (!user || user.email?.toLowerCase() === adminEmail) return false;
+    const own = await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
+    if (!own.exists() || !['blue', 'yellow'].includes(own.data().team)) return false;
+    const starter = await getStarterPassword();
+    return Boolean(starter) && typed === starter;
+}
+async function forcePasswordChange(typed, next) {
+    const starter = await getStarterPassword();
+    if (!starter || typed !== starter || next === starter || next.length < 7) throw new Error('اختر كلمة مرور جديدة لا تقل عن ٧ أحرف ومختلفة عن الحالية.');
+    return updatePassword(auth.currentUser, next);
+}
 async function changePassword(current, next) {
     const credential = EmailAuthProvider.credential(auth.currentUser.email, current);
     await reauthenticateWithCredential(auth.currentUser, credential);
@@ -160,7 +181,9 @@ async function createEmployeeAccount(employee, initialPassword = '') {
     const provisioningAuth = getAuth(app);
     await setPersistence(provisioningAuth, inMemoryPersistence);
     if (initialPassword && initialPassword.length < 7) throw new Error('كلمة البدء يجب ألا تقل عن ٧ أحرف.');
-    const temporaryPassword = initialPassword || password();
+    let starter = '';
+    if (!initialPassword && ['blue', 'yellow'].includes(employee.team)) starter = await getStarterPassword();
+    const temporaryPassword = initialPassword || starter || password();
     let created;
     try {
         created = (await createUserWithEmailAndPassword(provisioningAuth, employeeEmail(employee.code), temporaryPassword)).user;
@@ -170,7 +193,7 @@ async function createEmployeeAccount(employee, initialPassword = '') {
         batch.set(doc(database, 'employeeAccounts', created.uid), { ...complete, employeeId: employee.id });
         batch.set(doc(database, 'teamMembership', employee.id), { team: employee.team, job: employee.job, groupKey: complete.groupKey });
         await batch.commit();
-        return { employee: complete, temporaryPassword };
+        return { employee: complete, temporaryPassword: starter && temporaryPassword === starter ? null : temporaryPassword };
     } catch (error) {
         if (created) await deleteUser(created).catch(() => {});
         throw error;
@@ -319,5 +342,5 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
+window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, mustChangePassword, forcePasswordChange, setStarterPassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));
