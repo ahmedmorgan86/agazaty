@@ -58,7 +58,7 @@ public final class MainActivity extends Activity {
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setSupportMultipleWindows(false);
         settings.setDatabaseEnabled(true);
-        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.8");
+        settings.setUserAgentString(settings.getUserAgentString() + " AgazatyAndroid/1.3.9");
         webView.addJavascriptInterface(new AndroidExport(), "AgazatyAndroidExport");
 
         webView.setWebViewClient(new WebViewClient() {
