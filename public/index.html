@@ -187,6 +187,7 @@
     </style>
     <link rel="stylesheet" href="./theme.css?v=12">
     <link rel="stylesheet" href="./design.css?v=6">
+    <link rel="stylesheet" href="./palette.css?v=2">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -951,6 +952,7 @@
     <div id="accountModal" class="app-modal fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-3"><div><h3 class="font-black text-lg">حسابي</h3><p id="accountProfile" class="text-sm text-slate-500"></p></div><button onclick="closeAccountModal()" aria-label="إغلاق"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="border-b border-slate-100 pb-4"><h4 class="text-sm font-bold">المظهر</h4><p class="text-xs text-slate-500 mt-1">يُحفظ اختيارك لحسابك على هذا الجهاز.</p><div class="theme-choice" role="group" aria-label="المظهر"><button type="button" data-theme="system" aria-pressed="true" onclick="setThemePref('system')">تلقائي</button><button type="button" data-theme="light" aria-pressed="false" onclick="setThemePref('light')">نهاري</button><button type="button" data-theme="dark" aria-pressed="false" onclick="setThemePref('dark')">ليلي</button></div></div>
             <form onsubmit="changeEmployeePassword(event)"><h4 class="text-sm font-bold">تغيير كلمة المرور</h4><label for="currentPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الحالية</label><input id="currentPassword" type="password" required autocomplete="current-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="newPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الجديدة</label><input id="newPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><label for="confirmPassword" class="block text-xs font-bold mt-3 mb-1">تأكيد كلمة المرور الجديدة</label><input id="confirmPassword" type="password" minlength="7" required autocomplete="new-password" class="w-full border border-slate-300 rounded-xl px-3 py-3"><button type="submit" class="w-full mt-4 bg-cyan-700 text-white rounded-xl px-4 py-2 font-bold">حفظ كلمة المرور</button><p id="accountMessage" role="status" class="text-xs mt-2"></p></form>
             <div class="border-t border-slate-100 pt-3">
                 <button type="button" onclick="closeAccountModal(); openMyBalancesModal()" class="w-full flex items-center justify-center gap-2 bg-teal-50 text-teal-800 border border-teal-200 rounded-xl px-4 py-3 font-bold text-xs hover:bg-teal-100 transition">
@@ -1114,23 +1116,39 @@
         const INITIAL_ATTENDANCE = {};
         const DEMO_MODE = new URLSearchParams(location.search).has('preview');
 
+        const THEME_LABELS = { system: 'تلقائي (حسب الجهاز)', light: 'نهاري', dark: 'ليلي' };
+        const THEME_ICONS = { system: 'fa-circle-half-stroke', light: 'fa-sun', dark: 'fa-moon' };
+        let themeUid = null;
+        function themeKey() { return `agazaty-theme-pref:${themeUid || 'device'}`; }
+        function getThemePref() {
+            const value = localStorage.getItem(themeKey()) || localStorage.getItem('agazaty-theme-pref:device');
+            return ['system', 'light', 'dark'].includes(value) ? value : 'system';
+        }
         function applyTheme(mode) {
             const dark = mode === 'dark';
             document.documentElement.classList.toggle('dark', dark);
             document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-            document.querySelector('meta[name="theme-color"]').content = dark ? '#0d1721' : '#176d68';
+            document.querySelector('meta[name="theme-color"]').content = dark ? '#000000' : '#176d68';
+        }
+        function applyThemePref() {
+            const pref = getThemePref();
+            applyTheme(pref === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : pref);
             const button = document.getElementById('themeButton');
-            if (button) {
-                button.setAttribute('aria-pressed', String(dark));
-                button.innerHTML = `<i class="fa-solid ${dark ? 'fa-sun' : 'fa-moon'}"></i><span>${dark ? 'الوضع النهاري' : 'الوضع الليلي'}</span>`;
-            }
+            if (button) button.innerHTML = `<i class="fa-solid ${THEME_ICONS[pref]}"></i><span>المظهر: ${THEME_LABELS[pref]}</span>`;
+            document.querySelectorAll('.theme-choice button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === pref)));
+        }
+        function setThemePref(pref) {
+            if (!['system', 'light', 'dark'].includes(pref)) return;
+            localStorage.setItem(themeKey(), pref);
+            localStorage.setItem('agazaty-theme-pref:device', pref);
+            applyThemePref();
         }
         function toggleTheme() {
-            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('agazaty-theme', next);
-            applyTheme(next);
+            const order = ['system', 'light', 'dark'];
+            setThemePref(order[(order.indexOf(getThemePref()) + 1) % order.length]);
         }
-        applyTheme(localStorage.getItem('agazaty-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (getThemePref() === 'system') applyThemePref(); });
+        applyThemePref();
 
         function showTemporaryPassword(code, pass) {
             document.getElementById('temporaryCode').textContent = code;
@@ -2833,6 +2851,8 @@
             if (registrationListener) { registrationListener(); registrationListener = null; }
             pendingRegistrations = [];
             firebaseUser = null;
+            themeUid = null;
+            applyThemePref();
             currentProfile = null;
             isAdmin = false;
             renderJobs();
@@ -2961,6 +2981,8 @@
                             activeTeam = null;
                         }
                         firebaseUser = user;
+                        themeUid = user.uid;
+                        applyThemePref();
                         isAdmin = claims.admin === true;
                         renderJobs();
                         if (registrationListener) { registrationListener(); registrationListener = null; }
