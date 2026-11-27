@@ -253,7 +253,7 @@
                     const employee = { id: `emp_${row.code}`, name: row.name.trim(), code: row.code,
                         team: row.team, job: row.job, dept: '', accessScope: row.accessScope || 'group',
                         title: typeof row.title === 'string' ? row.title.slice(0, 80) : '',
-                        annual_balance: 0, casual_balance: 0, perm_hours: 0 };
+                        annual_balance: 0, casual_balance: 0, perm_hours: 4 };
                     const created = row.code === '5686'
                         ? await window.firebaseBridge.linkAdminAsEmployee(employee)
                         : await window.firebaseBridge.createEmployeeAccount(employee, initialPassword);
