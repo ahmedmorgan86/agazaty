@@ -251,6 +251,19 @@
             </div>
         </div>
     </div>
+    <div id="forcedPasswordModal" class="app-modal fixed inset-0 z-[90] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="forcedPasswordTitle">
+        <form onsubmit="submitForcedPassword(event)" class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <span class="eyebrow">أمان الحساب</span><h2 id="forcedPasswordTitle" class="text-xl font-black mt-2">غيّر كلمة المرور قبل المتابعة</h2>
+            <p class="text-sm mt-2 text-slate-500">هذه أول مرة تدخل فيها. اختر كلمة مرور جديدة لا تقل عن ٧ أحرف.</p>
+            <label for="forcedNewPassword" class="block text-xs font-bold mt-3 mb-1">كلمة المرور الجديدة</label>
+            <input id="forcedNewPassword" type="password" required minlength="7" autocomplete="new-password" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2">
+            <label for="forcedConfirmPassword" class="block text-xs font-bold mt-3 mb-1">تأكيد كلمة المرور</label>
+            <input id="forcedConfirmPassword" type="password" required minlength="7" autocomplete="new-password" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2">
+            <p id="forcedPasswordMessage" class="text-xs mt-2 text-red-700"></p>
+            <button type="submit" class="action-primary w-full mt-4">حفظ والمتابعة</button>
+            <button type="button" onclick="logoutEmployee(); closeForcedPassword()" class="bg-slate-100 text-slate-700 rounded-lg px-4 py-2 font-bold text-xs w-full mt-2">تسجيل الخروج</button>
+        </form>
+    </div>
     <div id="temporaryPasswordModal" class="app-modal fixed inset-0 z-[75] hidden flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true" aria-labelledby="temporaryPasswordTitle">
         <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
             <span class="eyebrow">حساب جديد</span><h2 id="temporaryPasswordTitle" class="text-xl font-black mt-2">احفظ بيانات الدخول</h2>
@@ -532,6 +545,11 @@
                 </div>
             </div>
             <p id="employeeFormHelp" class="text-xs text-slate-500">تُنشأ كلمة مرور عشوائية للموظف الجديد. عند إدخال الكود 5686 يُربط ملف الموظف بحساب المدير الحالي بعد اختيار الوردية والإدارة، دون إنشاء حساب ثانٍ.</p>
+            <div id="starterPasswordPanel" class="rounded-xl border border-slate-200 p-3 space-y-2">
+                <label for="starterPasswordInput" class="block text-xs font-bold text-slate-700">كلمة بدء الحسابات الجديدة (الوردية الزرقاء والصفراء)</label>
+                <input id="starterPasswordInput" type="password" autocomplete="new-password" minlength="7" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2" placeholder="لا تُعرض ولا تُحفظ في الكود">
+                <button type="button" onclick="saveStarterPassword()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg px-3 py-2 font-bold text-xs">حفظ كلمة البدء</button>
+            </div>
             <div id="rosterImportPanel" class="rounded-xl border border-slate-200 p-3 space-y-2">
                 <label for="rosterInitialPassword" class="block text-xs font-bold text-slate-700">كلمة بدء الحسابات المستوردة (لا تُحفظ في الملف)</label>
                 <input id="rosterInitialPassword" type="password" autocomplete="new-password" minlength="7" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2" placeholder="أدخل كلمة البدء عند الاستيراد">
@@ -2548,6 +2566,33 @@
             // Firestore manages its own offline cache after sign-in.
         }
 
+        let forcedPasswordTyped = '';
+        function closeForcedPassword() { document.getElementById('forcedPasswordModal').classList.add('hidden'); forcedPasswordTyped = ''; }
+        async function submitForcedPassword(event) {
+            event.preventDefault();
+            const next = document.getElementById('forcedNewPassword').value;
+            const confirmation = document.getElementById('forcedConfirmPassword').value;
+            const message = document.getElementById('forcedPasswordMessage');
+            if (next !== confirmation) { message.textContent = 'كلمتا المرور غير متطابقتين.'; return; }
+            try {
+                await window.firebaseBridge.forcePasswordChange(forcedPasswordTyped, next);
+                document.getElementById('forcedNewPassword').value = '';
+                document.getElementById('forcedConfirmPassword').value = '';
+                message.textContent = '';
+                closeForcedPassword();
+                showNotice('تم تغيير كلمة المرور.');
+            } catch (error) { message.textContent = error.message; }
+        }
+        async function saveStarterPassword() {
+            if (!isAdmin) return;
+            const field = document.getElementById('starterPasswordInput');
+            try {
+                await window.firebaseBridge.setStarterPassword(field.value);
+                field.value = '';
+                showNotice('تم حفظ كلمة البدء.');
+            } catch (error) { showNotice(error.message, 'error'); }
+        }
+
         async function loginEmployee(event) {
             event.preventDefault();
             const code = document.getElementById('loginCode').value.trim();
@@ -2558,7 +2603,15 @@
             errorLabel.classList.add('hidden');
             button.disabled = true;
             button.textContent = 'جارٍ الدخول...';
-            try { await window.firebaseBridge.login(code, password); }
+            try {
+                await window.firebaseBridge.login(code, password);
+                try {
+                    if (await window.firebaseBridge.mustChangePassword(password)) {
+                        forcedPasswordTyped = password;
+                        document.getElementById('forcedPasswordModal').classList.remove('hidden');
+                    }
+                } catch (checkError) { /* a failed check must not block sign-in */ }
+            }
             catch (error) {
                 errorLabel.textContent = 'الكود أو كلمة المرور غير صحيحين، أو الحساب غير مفعّل.';
                 errorLabel.classList.remove('hidden');
