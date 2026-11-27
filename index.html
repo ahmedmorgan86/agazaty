@@ -2611,8 +2611,8 @@
 
         async function loginEmployee(event) {
             event.preventDefault();
-            const code = document.getElementById('loginCode').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const code = toLatinDigits(document.getElementById('loginCode').value.trim());
+            let password = document.getElementById('loginPassword').value;
             const errorLabel = document.getElementById('loginError');
             const button = document.getElementById('loginButton');
             const buttonLabel = button.innerHTML;
@@ -2620,7 +2620,13 @@
             button.disabled = true;
             button.textContent = 'جارٍ الدخول...';
             try {
-                await window.firebaseBridge.login(code, password);
+                try { await window.firebaseBridge.login(code, password); }
+                catch (firstError) {
+                    const latin = toLatinDigits(password);
+                    if (latin === password) throw firstError;
+                    await window.firebaseBridge.login(code, latin);
+                    password = latin;
+                }
                 try {
                     if (await window.firebaseBridge.mustChangePassword(password)) {
                         forcedPasswordTyped = password;
@@ -2629,7 +2635,10 @@
                 } catch (checkError) { /* a failed check must not block sign-in */ }
             }
             catch (error) {
-                errorLabel.textContent = 'الكود أو كلمة المرور غير صحيحين، أو الحساب غير مفعّل.';
+                const authCode = String(error?.code || '');
+                errorLabel.textContent = authCode === 'auth/too-many-requests' ? 'محاولات دخول كثيرة. انتظر بضع دقائق ثم حاول مرة أخرى.'
+                    : authCode === 'auth/network-request-failed' ? 'تعذر الاتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.'
+                    : 'الكود أو كلمة المرور غير صحيحين، أو الحساب غير مفعّل.';
                 errorLabel.classList.remove('hidden');
             } finally { button.disabled = false; button.innerHTML = buttonLabel; }
         }
@@ -2642,8 +2651,11 @@
             button.setAttribute('aria-label', visible ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور');
             button.innerHTML = visible ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
         }
+        function toLatinDigits(text) {
+            return String(text).replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660)).replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06F0));
+        }
         function normalizeLoginIdentifier(input) {
-            input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+            input.value = toLatinDigits(input.value).replace(/[^0-9]/g, '').slice(0, 4);
         }
         function showRegistration() {
             document.getElementById('loginForm').classList.add('hidden');
