@@ -2399,8 +2399,16 @@
             else window.print();
         }
 
+        function myReportEmployee() {
+            if (currentProfile) return employees.find(e => e.id === currentProfile.id || e.id === currentProfile.employeeId) || currentProfile;
+            // The admin signs in with code 5686, so use the employee record that carries that code.
+            if (isAdmin) return employees.find(e => String(e.code).trim() === '5686') || null;
+            return null;
+        }
         function openMyReport() {
-            if (currentProfile) openEmployeeReport(currentProfile.id);
+            const me = myReportEmployee();
+            if (!me) { showNotice(isAdmin ? 'لا يوجد ملف موظف بالكود 5686. افتح كشف أي موظف من قائمة الموظفين.' : 'لا يوجد ملف موظف مرتبط بحسابك.', 'warning'); return; }
+            openEmployeeReport(me.id);
         }
 
         // ==========================================
@@ -2862,7 +2870,7 @@
                 .forEach(([id, team]) => document.getElementById(id).classList.toggle('hidden', !isAdmin && currentProfile?.team !== team));
             document.querySelector('.team-controls').classList.toggle('single-team', !isAdmin);
             document.getElementById('backupControls').classList.toggle('hidden', !isAdmin);
-            document.getElementById('myReportButton').classList.toggle('hidden', !currentProfile);
+            document.getElementById('myReportButton').classList.toggle('hidden', !myReportEmployee());
             document.getElementById('manageJobsButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('mobileJobsButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('manageJobsButton').style.display = isAdmin ? 'flex' : 'none';
