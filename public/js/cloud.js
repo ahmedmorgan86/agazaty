@@ -139,8 +139,14 @@
                 employeeId: empId, team: emp.team, job: emp.job, groupKey: employeeKey(emp), record: day.records[empId] }]), successMessage);
         }
 
-        function downloadBackupJSON() {
-            const backup = { employees, attendanceData, shiftSettings, exportedAt: new Date().toISOString() };
+        async function downloadBackupJSON() {
+            // The screen only holds the years opened so far, so the backup file reads every year once.
+            let allAttendance = attendanceData;
+            if (isAdmin && window.firebaseBridge?.loadAllRecords && !DEMO_MODE) {
+                try { allAttendance = await window.firebaseBridge.loadAllRecords(); }
+                catch (error) { showNotice('تعذر تجهيز النسخة الكاملة. حاول مرة أخرى.', 'error'); return; }
+            }
+            const backup = { employees, attendanceData: allAttendance, shiftSettings, exportedAt: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");

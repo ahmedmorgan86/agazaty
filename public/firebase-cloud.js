@@ -1,9 +1,11 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider, getIdTokenResult, createUserWithEmailAndPassword, deleteUser, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, onSnapshot, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import { initializeFirestore, getFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, collectionGroup, query, where, documentId, onSnapshot, getDocFromServer, getDocs, setDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 
 let auth, database, configInUse;
 let listeners = [], stopAuth;
+const yearListeners = new Map();
+let ensureYearImpl = () => {};
 const groupKey = employee => employee.accessScope === 'self' ? `self|${employee.id || employee.employeeId}` : `${employee.team}|${employee.job}`;
 const adminEmail = 'ahmed.morgan2009@gmail.com';
 const adminCode = '5686';
@@ -115,17 +117,40 @@ function connect(config, callbacks) {
                 settings = snap.data().shiftSettings || { times: {}, overrides: {} };
                 emit(snap.metadata);
             }, callbacks.onError));
-            const recordsQuery = admin ? collectionGroup(database, 'records') : query(collectionGroup(database, 'records'), where('groupKey', '==', key));
-            listeners.push(onSnapshot(recordsQuery, { includeMetadataChanges: true }, snap => {
-                const result = {};
-                snap.docs.forEach(item => {
-                    const date = item.ref.parent.parent.id;
-                    const day = result[date] ||= { day: '', shift: '', records: {} };
-                    day.records[item.id] = item.data();
-                });
-                records = result;
-                emit(snap.metadata);
-            }, callbacks.onError));
+            // Records load one calendar year at a time (the current year first). Other years load only
+            // when the user opens a month in that year. Every consumer in the app works within one year.
+            yearListeners.clear();
+            const years = yearListeners;
+            const emitMerged = metadata => {
+                if (!settings || [...years.values()].some(item => !item.result)) return;
+                const merged = {};
+                years.forEach(item => Object.assign(merged, item.result));
+                records = merged;
+                emit(metadata);
+            };
+            const watchYear = year => {
+                if (years.has(year)) return;
+                const bounds = [
+                    where(documentId(), '>=', `attendance/${year}-01-01/records/!`),
+                    where(documentId(), '<=', `attendance/${year}-12-31/records/~`)
+                ];
+                const base = collectionGroup(database, 'records');
+                const recordsQuery = admin ? query(base, ...bounds) : query(base, where('groupKey', '==', key), ...bounds);
+                const entry = { result: null };
+                years.set(year, entry);
+                listeners.push(onSnapshot(recordsQuery, { includeMetadataChanges: true }, snap => {
+                    const result = {};
+                    snap.docs.forEach(item => {
+                        const date = item.ref.parent.parent.id;
+                        const day = result[date] ||= { day: '', shift: '', records: {} };
+                        day.records[item.id] = item.data();
+                    });
+                    entry.result = result;
+                    emitMerged(snap.metadata);
+                }, callbacks.onError));
+            };
+            ensureYearImpl = year => { if (Number.isInteger(year) && year >= 2000 && year <= 2100) watchYear(year); };
+            watchYear(new Date().getFullYear());
         } catch (error) { callbacks.onError(error); }
     }, callbacks.onError);
 }
@@ -365,5 +390,16 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, resetEmployeePassword, mustChangePassword, forcePasswordChange, setStarterPassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
+const ensureYear = year => ensureYearImpl(year);
+async function loadAllRecords() {
+    const snap = await getDocs(collectionGroup(database, 'records'));
+    const result = {};
+    snap.docs.forEach(item => {
+        const date = item.ref.parent.parent.id;
+        const day = result[date] ||= { day: '', shift: '', records: {} };
+        day.records[item.id] = item.data();
+    });
+    return result;
+}
+window.firebaseBridge = { connect, ensureYear, loadAllRecords, login, registerEmployee, logout, changePassword, resetEmployeePassword, mustChangePassword, forcePasswordChange, setStarterPassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));
