@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 DOWNLOADS = {
     "install-qr.svg": "https://agazaty-am.vercel.app/agazaty-android-v1.4.0.apk",
-    "windows-qr.svg": "https://agazaty-am.vercel.app/windows?v=1.4.0",
+    "windows-qr.svg": "https://agazaty-am.vercel.app/windows",
 }
 
 source = Image.open(ASSETS / "app-logo.png").convert("RGB")
