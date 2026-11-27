@@ -1,0 +1,145 @@
+        body { font-family: 'Cairo', sans-serif; background: #eef3f8; }
+        .app-header { background: #fff; color: #17334c; border-bottom: 1px solid #d9e3ed; box-shadow: 0 8px 24px rgba(18,48,75,.06); }
+        .header-top { max-width: 1500px; margin: auto; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+        .header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .header-brand-mark { width: 80px; height: 80px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 16px; background: white; border: 1px solid #dbe5ed; }
+        .header-brand-mark img { display: block; width: 76px; height: 76px; object-fit: contain; }
+        .header-brand strong { display: block; font-size: 17px; line-height: 1.35; }
+        .header-brand span { display: block; color: #64748b; font-size: 13px; }
+        .header-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .header-user-label { text-align: left; line-height: 1.35; }
+        .header-user-label strong { display: block; white-space: nowrap; }
+        .header-user-label span { color: #64748b; font-size: 13px; }
+        .header-user-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; color: #0e7490; background: #e5f5f8; }
+        .header-nav-wrap { border-top: 1px solid #e9eef3; }
+        .header-nav { max-width: 1500px; margin: auto; padding: 7px 24px; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
+        .header-nav button { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 39px; padding: 8px 12px; border-radius: 9px; color: #486276; font-size: 12px; font-weight: 800; white-space: nowrap; }
+        .header-nav button:hover { background: #edf6f8; color: #0e7490; }
+        .header-nav button.nav-primary { background: #0e7490; color: white; }
+        .header-nav button.nav-primary:hover { background: #0a5d76; }
+        .header-nav #cloudStatusBtn { margin-inline-start: auto; background: #f3f7f9; color: #547087; }
+        .employee-directory { background: white; border: 1px solid #dbe5ef; border-radius: 18px; padding: 20px; box-shadow: 0 12px 36px rgba(25,55,85,.06); }
+        .employee-directory-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .employee-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+        .employee-card { border: 1px solid #dce6ef; border-radius: 14px; padding: 15px; background: #fbfdff; }
+        .employee-card h3 { font-weight: 900; font-size: 15px; }
+        .employee-card p { color: #64748b; font-size: 12px; margin-top: 2px; }
+        .employee-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+        .employee-card-actions button { padding: 7px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; min-height: 36px; }
+        .notice-stack { position: fixed; z-index: 80; top: 18px; left: 18px; display: grid; gap: 10px; width: min(390px, calc(100vw - 36px)); pointer-events: none; }
+        .app-notice { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 15px; background: white; box-shadow: 0 16px 40px rgba(15, 38, 62, .2); border: 1px solid #dbe5ed; border-right: 4px solid #0e7490; pointer-events: auto; animation: notice-in .18s ease-out; }
+        .app-notice.success { border-right-color: #059669; }
+        .app-notice.error { border-right-color: #dc2626; }
+        .app-notice.warning { border-right-color: #d97706; }
+        .app-notice-icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: 0 0 auto; background: #e5f5f8; color: #0e7490; }
+        .app-notice.success .app-notice-icon { background: #dcfce7; color: #047857; }
+        .app-notice.error .app-notice-icon { background: #fee2e2; color: #b91c1c; }
+        .app-notice.warning .app-notice-icon { background: #fef3c7; color: #b45309; }
+        .app-notice-content { flex: 1; min-width: 0; }
+        .app-notice-content strong { display: block; font-size: 13px; }
+        .app-notice-content span { display: block; color: #52677b; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+        .app-notice-close { color: #64748b; padding: 2px 5px; }
+        @keyframes notice-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .app-main { max-width: 1500px; }
+        .app-main > .bg-white, .app-main > .grid + .bg-white { box-shadow: 0 12px 36px rgba(25,55,85,.06); border-color: #dbe5ef; }
+        .app-hero { background: linear-gradient(135deg, #122f4f, #186277); color: white; border-radius: 22px; padding: 24px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 18px; box-shadow: 0 18px 34px rgba(15,61,88,.17); }
+        .app-hero h2 { font-size: clamp(20px, 2.4vw, 30px); font-weight: 900; line-height: 1.4; }
+        .app-hero p { color: #d9ecf4; }
+        .hero-profile { background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.23); border-radius: 16px; padding: 14px 18px; min-width: 210px; }
+        .hero-profile strong, .hero-profile span { display: block; }
+        .hero-profile span { color: #d9ecf4; font-size: 12px; }
+        .selection-empty { padding: 48px 16px; text-align: center; color: #64748b; }
+        .selection-empty i { display: block; font-size: 28px; color: #0d7490; margin-bottom: 12px; }
+        .day-card { border: 1px solid #d9e4ed; border-radius: 16px; background: white; overflow: hidden; box-shadow: 0 6px 22px rgba(22,49,72,.05); }
+        .day-card-head { display: flex; justify-content: space-between; gap: 8px; padding: 12px 14px; background: #f1f6fa; border-bottom: 1px solid #e1e9f0; }
+        .day-card-person { display: flex; justify-content: space-between; gap: 10px; width: 100%; text-align: right; padding: 11px 14px; border-bottom: 1px solid #edf1f5; }
+        .day-card-person:last-child { border-bottom: 0; }
+        .day-card-person:disabled { cursor: default; }
+        .day-card-person:not(:disabled):hover { background: #eff7ff; }
+        .day-card-person small { display: block; color: #64748b; }
+        .login-screen { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at 85% 10%, #236c83, transparent 35%), linear-gradient(135deg,#0b223b,#153e5b); }
+        .login-card { width: min(100%, 430px); background: white; border-radius: 24px; padding: 30px; box-shadow: 0 25px 65px rgba(0,0,0,.22); }
+        .login-card input { width: 100%; min-height: 48px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 10px 13px; background: #f8fafc; font-size: 16px; }
+        .login-card label { display: block; margin: 15px 0 6px; font-weight: 700; font-size: 13px; }
+        .login-card button[type=submit] { width: 100%; min-height: 48px; margin-top: 20px; border-radius: 12px; background: #0d7490; color: white; font-weight: 800; }
+        .login-card button[type=submit]:hover { background: #0b6179; }
+        .login-screen.hidden, .mobile-attendance.hidden { display: none; }
+        .mobile-attendance { display: none; }
+        .status-present { background-color: #dcfce7; color: #15803d; border-color: #86efac; }
+        .status-rest { background-color: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+        .status-annual { background-color: #e0f2fe; color: #0369a1; border-color: #7dd3fc; }
+        .status-casual { background-color: #ffedd5; color: #c2410c; border-color: #fdba74; }
+        .status-permission { background-color: #f3e8ff; color: #7e22ce; border-color: #d8b4fe; }
+        .status-mission { background-color: #ccfbf1; color: #0f766e; border-color: #5eead4; }
+        .badge-shift-morning { background-color: #dbeafe; color: #1e40af; }
+        .badge-shift-long { background-color: #fef3c7; color: #b45309; }
+        .badge-shift-evening { background-color: #ede9fe; color: #6d28d9; }
+        .badge-shift-night { background-color: #e2e8f0; color: #334155; }
+        .sticky-col-1 { position: sticky; right: 0; z-index: 20; }
+        .sticky-col-2 { position: sticky; right: 100px; z-index: 20; }
+        .sticky-col-3 { position: sticky; right: 180px; z-index: 20; }
+        .attendance-scroll { overscroll-behavior-inline: contain; }
+        #attendanceTable { width: max-content; min-width: 100%; }
+        .attendance-grid th, .attendance-grid td { white-space: nowrap; }
+        .attendance-grid .sticky-col-1 { min-width: 100px; }
+        .attendance-grid .sticky-col-2 { min-width: 80px; }
+        .attendance-grid .sticky-col-3 { min-width: 150px; }
+        .modal-table-scroll { overflow-x: auto; overscroll-behavior-inline: contain; }
+        .modal-table-scroll > table { min-width: 680px; }
+        @media screen and (max-width: 1023px) {
+            .mobile-attendance { display: grid; gap: 12px; padding: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
+            .attendance-scroll { display: none; }
+        }
+        @media screen and (max-width: 639px) {
+            body { overflow-x: hidden; }
+            .notice-stack { top: 10px; left: 10px; width: calc(100vw - 20px); }
+            .header-top { padding: 10px 14px; gap: 8px; }
+            .header-brand { gap: 8px; }
+            .header-brand-mark { width: 64px; height: 64px; border-radius: 12px; }
+            .header-brand-mark img { width: 60px; height: 60px; }
+            .header-brand strong { font-size: 13px; }
+            .header-brand span, .header-user-label span { display: none; }
+            .header-user-label strong { font-size: 13px; max-width: 94px; overflow: hidden; text-overflow: ellipsis; }
+            .header-user-icon { display: none; }
+            .header-nav { padding: 5px 10px; }
+            .header-nav #cloudStatusBtn { margin-inline-start: 0; }
+            .employee-directory { padding: 14px; }
+            .employee-directory-header { align-items: flex-start; flex-wrap: wrap; }
+            .team-controls > button, .bulk-controls > button { margin: 0; }
+            .period-controls, .quick-filters { width: 100%; flex-wrap: wrap; gap: 8px; }
+            .month-tabs { max-width: 100%; overflow-x: auto; }
+            .month-tabs button { flex: 0 0 auto; min-height: 40px; }
+            #monthPicker { min-height: 40px; }
+            body .team-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+            body .team-controls.single-team { grid-template-columns: 1fr; }
+            .team-controls > span { grid-column: 1 / -1; }
+            .team-controls button { justify-content: center; min-height: 44px; white-space: normal; line-height: 1.4; text-align: center; }
+            body .bulk-controls { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .bulk-controls button { justify-content: center; min-height: 44px; white-space: normal; line-height: 1.4; }
+            .quick-filters > div { width: 100%; justify-content: space-between; }
+            .quick-filters select, .quick-filters input { width: 60%; min-width: 0; min-height: 40px; }
+            .table-section-heading { align-items: flex-start; }
+            .table-section-heading > div { width: 100%; flex-wrap: wrap; }
+            .attendance-scroll { max-height: min(65vh, 620px); }
+            #attendanceTable .sticky-col-1 { min-width: 92px; width: 92px; max-width: 92px; right: 0; }
+            #attendanceTable .sticky-col-1 span { display: block; width: max-content; margin: 3px 0 0; }
+            #attendanceTable .sticky-col-2 { min-width: 62px; width: 62px; max-width: 62px; }
+            #attendanceTable .sticky-col-3 { min-width: 112px; width: 112px; max-width: 112px; white-space: normal; }
+            #attendanceTable .sticky-col-3 span { max-width: 100%; width: auto; white-space: normal; }
+            .attendance-grid .sticky-col-2, .attendance-grid .sticky-col-3 { position: static; }
+            .attendance-grid th, .attendance-grid td { padding: 8px; }
+            .app-modal { padding: 8px; }
+            .app-modal > div { width: 100%; max-height: calc(100dvh - 16px); padding: 16px; border-radius: 14px; overflow-y: auto; }
+            .app-modal button { min-height: 40px; }
+            .app-modal .modal-header { align-items: flex-start; gap: 8px; }
+            .app-modal .modal-header > div { min-width: 0; }
+            .modal-table-scroll > table { min-width: 680px; }
+            #employeesManagerModal .modal-table-scroll > table { min-width: 760px; }
+            .app-hero { grid-template-columns: 1fr; padding: 18px; border-radius: 18px; }
+            .hero-profile { min-width: 0; }
+            .mobile-attendance { grid-template-columns: 1fr; }
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+        }
