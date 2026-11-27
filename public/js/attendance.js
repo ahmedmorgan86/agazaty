@@ -100,6 +100,7 @@
         function switchMonth(m) {
             if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(m)) return;
             currentMonth = m;
+            window.firebaseBridge?.ensureYear?.(Number(m.slice(0, 4)));
             document.getElementById('monthPicker').value = m;
             document.querySelectorAll('.month-tab-btn').forEach(btn => {
                 btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm');
