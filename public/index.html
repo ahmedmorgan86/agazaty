@@ -46,11 +46,11 @@
         .header-brand-mark { width: 80px; height: 80px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 16px; background: white; border: 1px solid #dbe5ed; }
         .header-brand-mark img { display: block; width: 76px; height: 76px; object-fit: contain; }
         .header-brand strong { display: block; font-size: 17px; line-height: 1.35; }
-        .header-brand span { display: block; color: #64748b; font-size: 11px; }
+        .header-brand span { display: block; color: #64748b; font-size: 13px; }
         .header-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
         .header-user-label { text-align: left; line-height: 1.35; }
         .header-user-label strong { display: block; white-space: nowrap; }
-        .header-user-label span { color: #64748b; font-size: 11px; }
+        .header-user-label span { color: #64748b; font-size: 13px; }
         .header-user-icon { width: 38px; height: 38px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 50%; color: #0e7490; background: #e5f5f8; }
         .header-nav-wrap { border-top: 1px solid #e9eef3; }
         .header-nav { max-width: 1500px; margin: auto; padding: 7px 24px; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: thin; }
@@ -66,7 +66,7 @@
         .employee-card h3 { font-weight: 900; font-size: 15px; }
         .employee-card p { color: #64748b; font-size: 12px; margin-top: 2px; }
         .employee-card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
-        .employee-card-actions button { padding: 7px 10px; border-radius: 8px; font-weight: 800; font-size: 11px; min-height: 36px; }
+        .employee-card-actions button { padding: 7px 10px; border-radius: 8px; font-weight: 800; font-size: 13px; min-height: 36px; }
         .notice-stack { position: fixed; z-index: 80; top: 18px; left: 18px; display: grid; gap: 10px; width: min(390px, calc(100vw - 36px)); pointer-events: none; }
         .app-notice { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-radius: 15px; background: white; box-shadow: 0 16px 40px rgba(15, 38, 62, .2); border: 1px solid #dbe5ed; border-right: 4px solid #0e7490; pointer-events: auto; animation: notice-in .18s ease-out; }
         .app-notice.success { border-right-color: #059669; }
@@ -140,7 +140,7 @@
             .header-brand-mark img { width: 60px; height: 60px; }
             .header-brand strong { font-size: 13px; }
             .header-brand span, .header-user-label span { display: none; }
-            .header-user-label strong { font-size: 11px; max-width: 94px; overflow: hidden; text-overflow: ellipsis; }
+            .header-user-label strong { font-size: 13px; max-width: 94px; overflow: hidden; text-overflow: ellipsis; }
             .header-user-icon { display: none; }
             .header-nav { padding: 5px 10px; }
             .header-nav #cloudStatusBtn { margin-inline-start: 0; }
@@ -186,7 +186,7 @@
         }
     </style>
     <link rel="stylesheet" href="./theme.css?v=11">
-    <link rel="stylesheet" href="./design.css?v=5">
+    <link rel="stylesheet" href="./design.css?v=6">
 </head>
 <body class="text-slate-800 text-sm">
     <div id="loginScreen" class="login-screen">
@@ -228,7 +228,8 @@
                         <button type="submit">إرسال طلب التسجيل <i class="fa-solid fa-arrow-left"></i></button><button type="button" class="login-back-button" onclick="hideRegistration()"><i class="fa-solid fa-arrow-right"></i> العودة إلى تسجيل الدخول</button>
                     </form>
                     <div id="pendingCard" class="login-card hidden"><h2 class="text-xl font-black">طلبك قيد المراجعة</h2><p id="pendingMessage" class="text-sm text-slate-500 mt-3">سيظهر حسابك بعد موافقة المدير.</p><button type="button" class="login-back-button" onclick="logoutEmployee()">تسجيل الخروج</button></div>
-                    <section class="download-panel login-downloads" aria-label="تحميل التطبيقات">
+                    <details class="login-downloads-toggle"><summary><i class="fa-solid fa-download"></i> تحميل التطبيق للموبايل أو الكمبيوتر</summary>
+<section class="download-panel login-downloads" aria-label="تحميل التطبيقات">
                         <div class="login-download-heading"><span class="login-download-icon"><i class="fa-solid fa-download"></i></span><span><strong>خذ أجازاتي معك</strong><small>نسخة مناسبة لكل جهاز</small></span></div>
                         <div class="login-download-grid">
                             <div class="download-card"><div><strong><i class="fa-brands fa-android"></i> أندرويد</strong><p>التطبيق على هاتفك · 1.3.8</p><a class="download-link" href="https://agazaty-am.vercel.app/agazaty-android-v1.3.8.apk" download="agazaty-android-v1.3.8.apk">تحميل التطبيق <i class="fa-solid fa-arrow-up-left-from-square"></i></a></div><a href="https://agazaty-am.vercel.app/agazaty-android-v1.3.8.apk" download="agazaty-android-v1.3.8.apk" aria-label="رمز تحميل أندرويد"><img src="./assets/install-qr.svg?v=11" alt="QR لتحميل تطبيق أندرويد" width="86" height="86"></a></div>
@@ -236,6 +237,7 @@
                         </div>
                         <p class="download-footnote">لتثبيت نسخة الويب دون تنزيل ملف: اختر «تثبيت التطبيق» من قائمة Chrome أو Edge. على iPhone اختر «إضافة إلى الشاشة الرئيسية» من Safari.</p>
                     </section>
+</details>
                     <p class="login-copyright">© Ahmed Morgan <span class="copyright-year"></span></p>
                 </div>
             </div>
@@ -244,6 +246,7 @@
     <div id="authGate" class="hidden fixed inset-0 z-[45] bg-slate-900/75 flex items-center justify-center p-4 no-print">
         <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center space-y-3">
             <h2 class="font-bold text-lg">جاري تحميل بيانات الحضور</h2>
+            <div class="skeleton-stack" aria-hidden="true"><i></i><i></i><i></i></div>
             <p id="authGateMessage" class="text-sm text-slate-600">يتم الاتصال بقاعدة البيانات المشتركة.</p>
             <div class="flex gap-2 justify-center pt-2">
                 <button type="button" onclick="location.reload()" class="bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg px-4 py-2 font-bold text-xs">إعادة المحاولة</button>
@@ -324,6 +327,7 @@
             <div><span class="dashboard-eyebrow"><i class="fa-solid fa-layer-group"></i> مساحة العمل اليومية</span><h1>جدول الحضور والورديات</h1><p>الشهر كاملًا أمامك؛ اختر الوردية، راجع الأرصدة، وحدّث الحضور من مكان واحد.</p></div>
             <div class="dashboard-intro-mark" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i><span>كل الأيام</span></div>
         </section>
+        <section id="myStatusCard" class="my-status-card no-print hidden" aria-live="polite"></section>
         <!-- Controls & Filter Toolbar -->
         <div class="dashboard-controls bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 no-print">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -417,7 +421,8 @@
                 <div class="flex items-center space-x-2 space-x-reverse">
                     <i class="fa-solid fa-table-cells text-slate-400"></i>
                     <h2 class="font-bold text-slate-800" id="tableTitle">جدول الحضور والورديات</h2>
-                    <span id="activeTeamBadge" class="bg-slate-100 text-slate-600 border border-slate-200 text-[11px] font-bold px-2 py-0.5 rounded-full">اختر وردية</span>
+                    <span class="rest-legend" aria-label="أيام الراحة الثابتة"><i class="dot dot-red"></i>الحمراء: 1 <i class="dot dot-blue"></i>الزرقاء: 21 <i class="dot dot-yellow"></i>الصفراء: 11</span>
+                    <span id="activeTeamBadge" class="bg-slate-100 text-slate-600 border border-slate-200 text-[13px] font-bold px-2 py-0.5 rounded-full">اختر وردية</span>
                 </div>
                 <div class="text-xs text-slate-500 flex items-center space-x-3 space-x-reverse">
                     <span id="attendanceHint">💡 انقر على أي خلية لتغيير الحالة أو تسجيل التأخير والملاحظات</span>
@@ -702,9 +707,9 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
                             الوردية الحمراء
                         </span>
-                        <span class="bg-red-200 text-red-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 11</span>
+                        <span class="bg-red-200 text-red-900 text-[13px] font-black px-2 py-0.5 rounded">يوم 11</span>
                     </div>
-                    <p class="text-[11px] text-red-700 mt-1">راحة الوردية يوم 1 · اليوم الطويل يوم 11</p>
+                    <p class="text-[13px] text-red-700 mt-1">راحة الوردية يوم 1 · اليوم الطويل يوم 11</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl">
@@ -713,9 +718,9 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                             الوردية الزرقاء
                         </span>
-                        <span class="bg-blue-200 text-blue-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 1</span>
+                        <span class="bg-blue-200 text-blue-900 text-[13px] font-black px-2 py-0.5 rounded">يوم 1</span>
                     </div>
-                    <p class="text-[11px] text-blue-700 mt-1">راحة الوردية يوم 21 · اليوم الطويل يوم 1</p>
+                    <p class="text-[13px] text-blue-700 mt-1">راحة الوردية يوم 21 · اليوم الطويل يوم 1</p>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
@@ -724,16 +729,16 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                             الوردية الصفراء
                         </span>
-                        <span class="bg-amber-200 text-amber-900 text-[11px] font-black px-2 py-0.5 rounded">يوم 21</span>
+                        <span class="bg-amber-200 text-amber-900 text-[13px] font-black px-2 py-0.5 rounded">يوم 21</span>
                     </div>
-                    <p class="text-[11px] text-amber-700 mt-1">راحة الوردية يوم 11 · اليوم الطويل يوم 21</p>
+                    <p class="text-[13px] text-amber-700 mt-1">راحة الوردية يوم 11 · اليوم الطويل يوم 21</p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-emerald-800 text-xs">🟢 الوردية الصباحية</span>
-                        <span class="bg-emerald-200 text-emerald-900 text-[11px] font-black px-2 py-0.5 rounded">ثابت</span>
+                        <span class="bg-emerald-200 text-emerald-900 text-[13px] font-black px-2 py-0.5 rounded">ثابت</span>
                     </div>
-                    <p class="text-[11px] text-emerald-700 mt-1">الصباحية طوال الشهر، دون يوم طويل.</p>
+                    <p class="text-[13px] text-emerald-700 mt-1">الصباحية طوال الشهر، دون يوم طويل.</p>
                 </div>
             </div>
 
@@ -1353,19 +1358,19 @@
 
             if (team === 'red') {
                 activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-red-600 text-white shadow-sm";
-                badge.className = "bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.className = "bg-red-100 text-red-800 border border-red-200 text-[13px] font-bold px-2 py-0.5 rounded-full";
                 badge.innerText = "الوردية الحمراء (اليوم الطويل: يوم 11)";
             } else if (team === 'blue') {
                 activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-blue-600 text-white shadow-sm";
-                badge.className = "bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.className = "bg-blue-100 text-blue-800 border border-blue-200 text-[13px] font-bold px-2 py-0.5 rounded-full";
                 badge.innerText = "الوردية الزرقاء (اليوم الطويل: يوم 1)";
             } else if (team === 'yellow') {
                 activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-amber-500 text-white shadow-sm";
-                badge.className = "bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.className = "bg-amber-100 text-amber-800 border border-amber-200 text-[13px] font-bold px-2 py-0.5 rounded-full";
                 badge.innerText = "الوردية الصفراء (اليوم الطويل: يوم 21)";
             } else if (team === 'morning') {
                 activeBtn.className = "team-tab-btn px-2.5 py-1 rounded-md text-xs font-bold flex items-center space-x-1.5 space-x-reverse transition bg-emerald-600 text-white shadow-sm";
-                badge.className = "bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full";
+                badge.className = "bg-emerald-100 text-emerald-800 border border-emerald-200 text-[13px] font-bold px-2 py-0.5 rounded-full";
                 badge.innerText = "الوردية الصباحية";
             }
 
@@ -1485,16 +1490,37 @@
         function getStatusBadge(status) {
             if (!status || status === '') return '<span class="text-slate-300">-</span>';
             const clean = status.trim();
-            if (clean === 'حضور') return '<span class="status-present px-2 py-0.5 rounded text-[11px] font-bold border">حضور</span>';
-            if (clean === 'راحة' || clean === 'راحة الوردية') return `<span class="status-rest px-2 py-0.5 rounded text-[11px] font-bold border">${escapeHTML(clean)}</span>`;
-            if (clean === 'إعتيادي') return '<span class="status-annual px-2 py-0.5 rounded text-[11px] font-bold border">إعتيادي</span>';
-            if (clean === 'عارضة') return '<span class="status-casual px-2 py-0.5 rounded text-[11px] font-bold border">عارضة</span>';
-            if (clean === 'إذن') return '<span class="status-permission px-2 py-0.5 rounded text-[11px] font-bold border">إذن</span>';
-            if (clean === 'مأمورية') return '<span class="status-mission px-2 py-0.5 rounded text-[11px] font-bold border">مأمورية</span>';
-            return `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-bold border">${escapeHTML(clean)}</span>`;
+            if (clean === 'حضور') return '<span class="status-present px-2 py-0.5 rounded text-[13px] font-bold border">حضور</span>';
+            if (clean === 'راحة' || clean === 'راحة الوردية') return `<span class="status-rest px-2 py-0.5 rounded text-[13px] font-bold border">${escapeHTML(clean)}</span>`;
+            if (clean === 'إعتيادي') return '<span class="status-annual px-2 py-0.5 rounded text-[13px] font-bold border">إعتيادي</span>';
+            if (clean === 'عارضة') return '<span class="status-casual px-2 py-0.5 rounded text-[13px] font-bold border">عارضة</span>';
+            if (clean === 'إذن') return '<span class="status-permission px-2 py-0.5 rounded text-[13px] font-bold border">إذن</span>';
+            if (clean === 'مأمورية') return '<span class="status-mission px-2 py-0.5 rounded text-[13px] font-bold border">مأمورية</span>';
+            return `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[13px] font-bold border">${escapeHTML(clean)}</span>`;
         }
 
+        function renderMyStatus() {
+            const box = document.getElementById('myStatusCard');
+            if (!box) return;
+            const emp = typeof currentProfile !== 'undefined' ? currentProfile : null;
+            if (!firebaseUser || !emp || !emp.team) { box.classList.add('hidden'); return; }
+            const now = new Date();
+            const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const day = now.getDate();
+            const restMap = { red: 1, blue: 21, yellow: 11 };
+            const restDay = restMap[emp.team];
+            const teamNames = { red: 'الحمراء', blue: 'الزرقاء', yellow: 'الصفراء', morning: 'الصباحية' };
+            let todayText = '';
+            if (key === currentMonth) {
+                const rest = fixedRestReason(`${key}-${String(day).padStart(2, '0')}`, emp);
+                todayText = rest ? rest : (calculateShiftForDate(day, emp.team) || '—');
+            } else { todayText = 'افتح الشهر الحالي لعرض وردية اليوم'; }
+            const restText = restDay ? `يوم ${restDay} من كل شهر` : 'الجمعة من كل أسبوع';
+            box.innerHTML = `<div><span>وردية اليوم</span><strong>${escapeHTML(todayText)}</strong></div><div><span>فريقك</span><strong>${teamNames[emp.team] || '—'}</strong></div><div><span>يوم الراحة الثابت</span><strong>${restText}</strong></div>`;
+            box.classList.remove('hidden');
+        }
         function renderTable() {
+            renderMyStatus();
             if (!firebaseUser) {
                 document.getElementById('tableHeaderRow').innerHTML = '';
                 document.getElementById('tableBody').innerHTML = '';
@@ -1537,11 +1563,11 @@
                             <span>${teamIcon}</span>
                             <span>${escapeHTML(emp.name)}</span>
                         </div>
-                        <div class="flex justify-between items-center text-[11px] text-slate-400 font-normal mt-1 px-2">
+                        <div class="flex justify-between items-center text-[13px] text-slate-400 font-normal mt-1 px-2">
                             <span>البيان</span>
                             <span>التأخير</span>
                         </div>
-                        <div class="text-[11px] text-slate-500 font-normal mt-1">${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</div>
+                        <div class="text-[13px] text-slate-500 font-normal mt-1">${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</div>
                     </th>
                 `;
             });
@@ -1599,7 +1625,7 @@
                     totals[emp.id].delay += delayNum;
 
                     const delayBadge = delayNum > 0 
-                        ? `<span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-[11px]">${delayNum} د</span>` 
+                        ? `<span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-[13px]">${delayNum} د</span>` 
                         : (rec.status ? '<span class="text-slate-400">0</span>' : '-');
 
                     bodyHTML += `
@@ -1608,7 +1634,7 @@
                                 ${getStatusBadge(displayedStatus(date, emp, rec))}
                                 ${rec.notes ? '<i class="fa-solid fa-comment-dots text-slate-400 text-[10px]" title="'+escapeHTML(rec.notes)+'"></i>' : ''}
                             </div>
-                            <span class="text-[11px] text-slate-500">${escapeHTML(employeeShift)}</span>
+                            <span class="text-[13px] text-slate-500">${escapeHTML(employeeShift)}</span>
                         </td>
                         <td onclick="openEditModal('${date}', '${emp.id}')" class="p-2 text-center cursor-pointer hover:bg-blue-50/80 transition">
                             ${delayBadge}
@@ -1634,14 +1660,14 @@
                 const t = totals[emp.id];
                 footerHTML += `
                     <td class="p-3 text-center border-r border-slate-200 bg-slate-100">
-                        <div class="text-[11px] space-y-0.5">
+                        <div class="text-[13px] space-y-0.5">
                             <div>حضور: <span class="font-bold text-emerald-700">${t.present}</span> | راحة الموظف: <span class="font-bold text-slate-700">${t.rest}</span></div>
                             <div class="text-[10px] text-slate-500">إعتيادي: ${t.annual} | عارضة: ${t.casual} | إذن: ${t.permission}</div>
                         </div>
                     </td>
                     <td class="p-3 text-center bg-slate-100">
                         <span class="text-xs font-extrabold text-red-600 block">${t.delay} د</span>
-                        <span class="text-[11px] text-slate-400 block">${(t.delay/60).toFixed(1)} س</span>
+                        <span class="text-[13px] text-slate-400 block">${(t.delay/60).toFixed(1)} س</span>
                     </td>
                 `;
             });
@@ -1790,7 +1816,7 @@
                     <div>
                         <span class="text-xs text-slate-500 block leading-tight">${escapeHTML(k.label)}</span>
                         <span class="text-base font-bold text-slate-900 block">${escapeHTML(k.value)}</span>
-                        ${k.sub ? `<span class="text-[11px] text-slate-400 block">${escapeHTML(k.sub)}</span>` : ''}
+                        ${k.sub ? `<span class="text-[13px] text-slate-400 block">${escapeHTML(k.sub)}</span>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -1879,8 +1905,14 @@
                     <p>الإدارة: ${escapeHTML(emp.job || 'غير محددة')}</p>
                     <p>الاعتيادي: ${emp.annual_balance ?? 21} يوم · العارضة: ${emp.casual_balance ?? 7} أيام · الأذونات: ${emp.perm_hours ?? 4} ساعات</p>
                     <div class="employee-card-actions">
-                        ${isAdmin ? `<button type="button" class="bg-cyan-700 text-white" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات</button>` : ''} <button type="button" class="bg-teal-700 hover:bg-teal-800 text-white" onclick="openEmployeeBalancesModal('${emp.id}')"><i class="fa-solid fa-wallet ml-1"></i>تعديل الأرصدة والإذن</button>
-                        <button type="button" class="bg-slate-100 text-slate-700" onclick="openEmployeeReport('${emp.id}')"><i class="fa-solid fa-file-lines ml-1"></i>كشف الحضور</button>
+                        <button type="button" class="card-primary-btn bg-teal-700 hover:bg-teal-800 text-white" onclick="openEmployeeReport('${emp.id}')"><i class="fa-solid fa-file-lines ml-1"></i>كشف الحضور</button>
+                        <details class="card-more">
+                            <summary aria-label="المزيد من الإجراءات"><i class="fa-solid fa-ellipsis"></i> المزيد</summary>
+                            <div class="card-more-menu">
+                                ${isAdmin ? `<button type="button" onclick="openEmployeesManagerModal(); editEmployee('${emp.id}')"><i class="fa-solid fa-pen ml-1"></i>تعديل البيانات</button>` : ''}
+                                <button type="button" onclick="openEmployeeBalancesModal('${emp.id}')"><i class="fa-solid fa-wallet ml-1"></i>تعديل الأرصدة والإذن</button>
+                            </div>
+                        </details>
                     </div>
                 </article>
             `).join('') : '<p class="text-slate-500 text-sm">لا يوجد موظفون في هذه المجموعة.</p>';
