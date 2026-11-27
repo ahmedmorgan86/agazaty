@@ -1682,7 +1682,7 @@
                     const rec = effectiveRecord(date, emp, day.records?.[emp.id]);
                     const canEdit = !isFixedRest(date, emp) && canAccessEmployee(emp);
                     return `<button type="button" class="day-card-person" ${canEdit ? `onclick="openEditModal('${date}','${emp.id}')"` : 'disabled'}>
-                        <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
+                        <span><strong>${escapeHTML(emp.name)}</strong><small>${escapeHTML(emp.job || 'غير محددة')} · ${escapeHTML(emp.code)}${teamOn(emp, date) !== activeTeam ? ` · وردية ذلك اليوم: ${escapeHTML(TEAM_NAMES_AR[teamOn(emp, date)] || '')}` : ''}</small>${rec.notes ? `<small>${escapeHTML(rec.notes)}</small>` : ''}</span>
                         <span class="text-left">${getStatusBadge(displayedStatus(date, emp, rec))}<small>${rec.delay ? `${Number(rec.delay)} دقيقة تأخير` : (isFixedRest(date, emp) ? 'راحة ثابتة' : 'بدون تأخير')}</small></span>
                     </button>`;
                 }).join('') : '<p class="p-3 text-slate-500">لا يوجد موظفون في هذه الوردية.</p>';
@@ -1993,7 +1993,8 @@
             document.getElementById('formEmpTeam').value = emp.team || '';
             document.getElementById('formEmpJob').value = emp.job || '';
             document.getElementById('formEmpSelfOnly').checked = emp.accessScope === 'self';
-            document.getElementById('formEmpTeam').disabled = !isAdmin;
+            document.getElementById('formEmpTeam').disabled = true; // shift changes go through the transfer button so history is kept
+            document.getElementById('formEmpTeam').title = 'لنقل الموظف لوردية أخرى استخدم زر نقل وردية';
             document.getElementById('formEmpJob').disabled = !isAdmin;
             document.getElementById('employeeFormPanel').classList.remove('hidden');
             document.getElementById('formEmpAnnual').value = emp.annual_balance ?? 21;
@@ -2015,6 +2016,7 @@
             document.getElementById('formEmpJob').value = '';
             document.getElementById('formEmpSelfOnly').checked = false;
             document.getElementById('formEmpTeam').disabled = false;
+            document.getElementById('formEmpTeam').title = '';
             document.getElementById('formEmpJob').disabled = false;
             document.getElementById('employeeFormPanel').classList.toggle('hidden', !isAdmin);
             document.getElementById('employeeFormHelp').classList.toggle('hidden', !isAdmin);
