@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
-const page = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const page = readFileSync(new URL('../js/rules.js', import.meta.url), 'utf8');
 const getFunction = name => {
   const match = page.match(new RegExp(`function ${name}\\([^]*?\\n        \\}`));
   assert.ok(match, `${name} is present in the app`);
