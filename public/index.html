@@ -185,7 +185,7 @@
             .print-only { display: block !important; }
         }
     </style>
-    <link rel="stylesheet" href="./theme.css?v=11">
+    <link rel="stylesheet" href="./theme.css?v=12">
     <link rel="stylesheet" href="./design.css?v=6">
 </head>
 <body class="text-slate-800 text-sm">
@@ -1012,7 +1012,7 @@
                     <span class="flex items-center gap-2.5"><i class="fa-solid fa-user-gear text-slate-600 text-base"></i>إعدادات الحساب وكلمة المرور</span>
                     <i class="fa-solid fa-chevron-left text-slate-400"></i>
                 </button>
-                <button type="button" onclick="closeMobileMoreMenu(); openCloudModal()" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold">
+                <button type="button" id="mobileCloudButton" onclick="closeMobileMoreMenu(); openCloudModal()" class="w-full flex items-center justify-between p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold">
                     <span class="flex items-center gap-2.5"><i class="fa-solid fa-cloud text-blue-600 text-base"></i>حالة السحابة والمزامنة</span>
                     <i class="fa-solid fa-chevron-left text-slate-400"></i>
                 </button>
@@ -2819,6 +2819,7 @@
                 message.textContent = 'تم تغيير كلمة المرور.';
                 message.className = 'text-xs mt-2 text-emerald-700';
                 showNotice(message.textContent);
+                setTimeout(() => { closeAccountModal(); message.textContent = ''; }, 1500);
             } catch (error) {
                 message.textContent = ['auth/wrong-password', 'auth/invalid-credential'].includes(error.code) ? 'كلمة المرور الحالية غير صحيحة.' : error.message;
                 message.className = 'text-xs mt-2 text-red-700';
@@ -2873,6 +2874,10 @@
             document.getElementById('myReportButton').classList.toggle('hidden', !myReportEmployee());
             document.getElementById('manageJobsButton').classList.toggle('hidden', !isAdmin);
             document.getElementById('mobileJobsButton').classList.toggle('hidden', !isAdmin);
+            document.getElementById('cloudStatusBtn').classList.toggle('hidden', !isAdmin);
+            document.getElementById('mobileCloudButton').classList.toggle('hidden', !isAdmin);
+            document.getElementById('mobileCloudButton').style.display = isAdmin ? 'flex' : 'none';
+            if (!isAdmin) document.getElementById('cloudModal').classList.add('hidden');
             document.getElementById('manageJobsButton').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('mobileJobsButton').style.display = isAdmin ? 'flex' : 'none';
             if (firebaseLoadFailed) return;
@@ -2919,6 +2924,7 @@
         }
 
         function openCloudModal() {
+            if (!isAdmin) return;
             document.getElementById('cloudModal').classList.remove('hidden');
         }
 
