@@ -168,6 +168,17 @@ async function forcePasswordChange(typed, next) {
     if (!starter || typed !== starter || next === starter || next.length < 7) throw new Error('اختر كلمة مرور جديدة لا تقل عن ٧ أحرف ومختلفة عن الحالية.');
     return updatePassword(auth.currentUser, next);
 }
+async function resetEmployeePassword(employeeId, newPassword) {
+    if (!auth?.currentUser) throw new Error('سجّل الدخول أولاً.');
+    const token = await auth.currentUser.getIdToken(true);
+    const result = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ employeeId, password: newPassword })
+    });
+    if (result.status === 503) throw new Error('خدمة إعادة التعيين غير مفعّلة بعد.');
+    if (!result.ok) throw new Error('تعذرت إعادة تعيين كلمة المرور.');
+}
 async function changePassword(current, next) {
     const credential = EmailAuthProvider.credential(auth.currentUser.email, current);
     await reauthenticateWithCredential(auth.currentUser, credential);
@@ -342,5 +353,5 @@ async function save(data) {
     await setDoc(metaRef(), { shiftSettings: data.shiftSettings || { times: {}, overrides: {} }, legacyMigrated: true });
 }
 
-window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, mustChangePassword, forcePasswordChange, setStarterPassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
+window.firebaseBridge = { connect, login, registerEmployee, logout, changePassword, resetEmployeePassword, mustChangePassword, forcePasswordChange, setStarterPassword, save, saveRecords, clearRecord, saveDays, saveShiftSettings, initializeWorkspace, createEmployeeAccount, linkAdminAsEmployee, approveRegistration, rejectRegistration, watchRegistrations, updateColleagueName, updateEmployeeBalances, watchJobs, addJob, removeJob, updateEmployeeAccount, deleteEmployeeRecords };
 window.dispatchEvent(new Event('firebase-bridge-ready'));
