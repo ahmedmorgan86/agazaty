@@ -147,26 +147,38 @@ async function registerEmployee({ name, code, team, job, pass }) {
         await setDoc(requestRef(user.uid), { name, code, team, job, status: 'pending', createdAt: new Date().toISOString() });
     } catch (error) { await deleteUser(user).catch(() => {}); throw error; }
 }
+async function starterApi(body) {
+    if (!auth?.currentUser) throw new Error('سجّل الدخول أولاً.');
+    const token = await auth.currentUser.getIdToken();
+    const result = await fetch('/api/starter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body)
+    });
+    if (!result.ok) throw Object.assign(new Error('starter-api'), { status: result.status });
+    return result.json();
+}
+// The starter password is kept on the server only (serverSecrets/starter); browsers never read it.
 async function getStarterPassword() {
-    const value = (await getDocFromServer(metaRef())).data()?.starterPassword;
+    const value = (await starterApi({ action: 'get' })).password;
     return typeof value === 'string' && value.length >= 7 ? value : '';
 }
-const setStarterPassword = value => {
+const setStarterPassword = async value => {
     if (typeof value !== 'string' || value.length < 7 || value.length > 64) throw new Error('كلمة البدء يجب ألا تقل عن ٧ أحرف.');
-    return updateDoc(metaRef(), { starterPassword: value });
+    try { await starterApi({ action: 'set', password: value }); } catch { throw new Error('تعذر حفظ كلمة البدء. حاول مرة أخرى.'); }
 };
 async function mustChangePassword(typed) {
     const user = auth?.currentUser;
     if (!user || user.email?.toLowerCase() === adminEmail) return false;
-    const own = await getDocFromServer(doc(database, 'employeeAccounts', user.uid));
-    if (!own.exists() || !['blue', 'yellow'].includes(own.data().team)) return false;
-    const starter = await getStarterPassword();
-    return Boolean(starter) && typed === starter;
+    return Boolean((await starterApi({ action: 'status', typed })).mustChange);
 }
 async function forcePasswordChange(typed, next) {
-    const starter = await getStarterPassword();
-    if (!starter || typed !== starter || next === starter || next.length < 7) throw new Error('اختر كلمة مرور جديدة لا تقل عن ٧ أحرف ومختلفة عن الحالية.');
-    return updatePassword(auth.currentUser, next);
+    const user = auth?.currentUser;
+    if (!user || typeof next !== 'string' || next.length < 7 || next === typed) throw new Error('اختر كلمة مرور جديدة لا تقل عن ٧ أحرف ومختلفة عن الحالية.');
+    try { await starterApi({ action: 'change', typed, next }); }
+    catch { throw new Error('اختر كلمة مرور جديدة لا تقل عن ٧ أحرف ومختلفة عن الحالية.'); }
+    // The server changed the password, which ends old sessions. Sign in again so the user stays signed in.
+    await signInWithEmailAndPassword(auth, user.email, next);
 }
 async function resetEmployeePassword(employeeId, newPassword) {
     if (!auth?.currentUser) throw new Error('سجّل الدخول أولاً.');
