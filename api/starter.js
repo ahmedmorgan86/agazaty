@@ -95,13 +95,13 @@ export default async function handler(request, response) {
       return response.status(200).json({ ok: true });
     }
 
-    // status / change: only for a blue or yellow employee whose CURRENT password is the starter.
+    // status / change: for an employee in any shift whose CURRENT password is the starter.
     if (isAdmin || email === ADMIN_EMAIL) return response.status(200).json({ mustChange: false });
     const typed = body.typed;
     if (typeof typed !== 'string' || typed.length < 1 || typed.length > 128) return response.status(400).json({ error: 'Invalid request' });
     const profile = await fetch(`${docs}/employeeAccounts/${encodeURIComponent(caller.localId)}`, { headers: auth });
     const team = profile.ok ? (await profile.json()).fields?.team?.stringValue : '';
-    if (!['blue', 'yellow'].includes(team)) return response.status(200).json({ mustChange: false });
+    if (!['red', 'blue', 'yellow', 'morning'].includes(team)) return response.status(200).json({ mustChange: false });
     // Prove the typed value really is this account's current password before comparing it.
     const proof = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Referer: REFERER },

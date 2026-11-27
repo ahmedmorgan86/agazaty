@@ -14,10 +14,12 @@ const STARTER = 'starter-pass-1';
 const users = {
   admin: { localId: 'A', email: 'ahmed.morgan2009@gmail.com', customAttributes: '{"admin":true}' },
   blue: { localId: 'B', email: '1111@x', customAttributes: '' },
-  red: { localId: 'R', email: '2222@x', customAttributes: '' }
+  red: { localId: 'R', email: '2222@x', customAttributes: '' },
+  red2: { localId: 'R2', email: '3333@x', customAttributes: '' },
+  morning: { localId: 'M', email: '4444@x', customAttributes: '' }
 };
-const teams = { B: 'blue', R: 'red' };
-const passwords = { B: STARTER, R: 'redpass-1' };
+const teams = { B: 'blue', R: 'red', R2: 'red', M: 'morning' };
+const passwords = { B: STARTER, R: 'redpass-1', R2: STARTER, M: STARTER };
 let secretDoc = null, updated = [];
 globalThis.fetch = async (url, init = {}) => {
   url = String(url);
@@ -62,7 +64,9 @@ assert.equal((await call('admin', { action: 'get' })).body.password, STARTER, 'a
 assert.equal((await call('admin', { action: 'status', typed: STARTER })).body.mustChange, false, 'admin never forced');
 assert.equal((await call('blue', { action: 'status', typed: 'wrong-guess' })).code, 403, 'guess must be the real current password');
 assert.equal((await call('blue', { action: 'status', typed: STARTER })).body.mustChange, true, 'blue on starter');
-assert.equal((await call('red', { action: 'status', typed: 'redpass-1' })).body.mustChange, false, 'red never forced');
+assert.equal((await call('red', { action: 'status', typed: 'redpass-1' })).body.mustChange, false, 'red not on starter is not forced');
+assert.equal((await call('red2', { action: 'status', typed: STARTER })).body.mustChange, true, 'red on starter is forced');
+assert.equal((await call('morning', { action: 'status', typed: STARTER })).body.mustChange, true, 'morning on starter is forced');
 assert.equal((await call('blue', { action: 'change', typed: STARTER, next: STARTER })).code, 400, 'same as starter');
 assert.equal((await call('blue', { action: 'change', typed: STARTER, next: 'abc' })).code, 400, 'too short');
 assert.equal(updated.length, 0, 'no password changed by rejected requests');

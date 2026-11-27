@@ -230,7 +230,7 @@ async function createEmployeeAccount(employee, initialPassword = '') {
     await setPersistence(provisioningAuth, inMemoryPersistence);
     if (initialPassword && initialPassword.length < 7) throw new Error('كلمة البدء يجب ألا تقل عن ٧ أحرف.');
     let starter = '';
-    if (!initialPassword && ['blue', 'yellow'].includes(employee.team)) starter = await getStarterPassword();
+    if (!initialPassword && ['red', 'blue', 'yellow', 'morning'].includes(employee.team)) starter = await getStarterPassword();
     const temporaryPassword = initialPassword || starter || password();
     let created;
     try {
