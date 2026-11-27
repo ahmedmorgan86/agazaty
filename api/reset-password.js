@@ -51,7 +51,7 @@ export default async function handler(request, response) {
   try {
     // 1. Who is calling? Firebase validates the ID token and returns the user and custom claims.
     const lookup = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${encodeURIComponent(apiKey)}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken })
+      method: 'POST', headers: { 'Content-Type': 'application/json', Referer: 'https://agazaty-am.vercel.app/' }, body: JSON.stringify({ idToken })
     });
     if (!lookup.ok) return response.status(401).json({ error: 'Unauthorized' });
     const caller = (await lookup.json()).users?.[0];
